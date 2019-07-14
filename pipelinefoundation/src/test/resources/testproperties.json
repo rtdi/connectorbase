@@ -1,0 +1,35 @@
+{
+	"values": [
+		{
+			"type": "PropertyString",
+			"name": "topiclistener.topiclist",
+			"value": "ab\":\\cd"
+		},
+		{
+			"type": "PropertyInt",
+			"name": "topiclistener.instances",
+			"value": "1"
+		},
+		{
+			"type": "PropertyLong",
+			"name": "topiclistener.flush.max.ms",
+			"value": "1000"
+		},
+		{
+			"type": "PropertyInt",
+			"name": "topiclistener.flush.max.records",
+			"value": "100"
+		},
+		{
+			"type": "PropertyGroup",
+			"name": "list",
+			"values": [
+				{
+					"type": "PropertyPassword",
+					"name": "pw",
+					"value": "my password"
+				}
+			]
+		}
+	]
+}

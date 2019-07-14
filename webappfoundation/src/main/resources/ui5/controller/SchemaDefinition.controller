@@ -1,0 +1,37 @@
+"sap/m/Button",	"sap/m/Dialog",	"sap/m/Text", "sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
+Button, Dialog, Text, Controller, JSONModel
+init : function() {
+	var oModel = new JSONModel();
+	var sSchemaname = jQuery.sap.getUriParameters().get("name");
+	if (sSchemaname != null) {
+		oModel.loadData("../rest/schemas/" + sSchemaname);
+		this.getView().setModel(oModel);
+	}
+	var oEdit = this.byId("editid");
+	oEdit.setVisible(false);
+	var oStateModel = this.getView().getModel("state");
+	oStateModel.setProperty("/title", "Schema definition");
+	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Schemas", "link" : "./Schemas"} ] );
+},
+edit : function(oEvent) {
+},
+cancel : function(oEvent) {
+},
+save : function(oEvent) {
+},
+onCollapseAll: function() {
+	var oTreeTable = this.byId("TreeTable");
+	oTreeTable.collapseAll();
+},
+onCollapseSelection: function() {
+	var oTreeTable = this.byId("TreeTable");
+	oTreeTable.collapse(oTreeTable.getSelectedIndices());
+},
+onExpandFirstLevel: function() {
+	var oTreeTable = this.byId("TreeTable");
+	oTreeTable.expandToLevel(1);
+},
+onExpandSelection: function() {
+	var oTreeTable = this.byId("TreeTable");
+	oTreeTable.expand(oTreeTable.getSelectedIndices());
+}

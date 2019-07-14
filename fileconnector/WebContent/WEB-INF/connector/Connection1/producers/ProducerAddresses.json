@@ -1,0 +1,19 @@
+{
+	"values": [
+		{
+			"type": "PropertyString",
+			"name": "producer.fileschema",
+			"value": "schema1"
+		},
+		{
+			"type": "PropertyInt",
+			"name": "producer.pollinterval",
+			"value": "20"
+		},
+		{
+			"type": "PropertyString",
+			"name": "producer.topic",
+			"value": "ADDRESSES"
+		}
+	]
+}

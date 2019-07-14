@@ -1,0 +1,27 @@
+<Table
+	items="{path:'/rows', templateShareable:false}">
+	<columns>
+		<Column width="5%">
+			<Label text="Partition" />
+		</Column>
+		<Column width="5%">
+			<Label text="Offset" />
+		</Column>
+		<Column width="10%">
+			<Label text="Timestamp" />
+		</Column>
+		<Column>
+			<Label text="ValueRecord" />
+		</Column>
+	</columns>
+	<items>
+		<ColumnListItem vAlign="Middle">
+			<cells>
+				<Text text="{partition}" />
+				<Text text="{offset}" />
+				<Text text="{path: 'timestamp', formatter: '.timeformatter'}" />
+				<Text text="{valueRecordString}" />
+			</cells>
+		</ColumnListItem>
+	</items>
+</Table>

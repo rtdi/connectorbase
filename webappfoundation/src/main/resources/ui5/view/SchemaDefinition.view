@@ -1,0 +1,44 @@
+<t:TreeTable
+        id="TreeTable"
+        rows="{path:'/data', parameters: {arrayNames:['fields']}}"
+        selectionMode="Single"
+        visibleRowCountMode="Auto"
+        enableSelectAll="false"
+        ariaLabelledBy="title">
+    <t:extension>
+        <Toolbar>
+            <Title id="title" text="{/schemaname}" level="H2" />
+            <ToolbarSpacer/>
+            <Button text="Collapse all" press="onCollapseAll"/>
+            <Button text="Collapse selection" press="onCollapseSelection"/>
+            <Button text="Expand first level" press="onExpandFirstLevel"/>
+            <Button text="Expand selection" press="onExpandSelection"/>
+      	</Toolbar>
+    </t:extension>
+    <t:columns>
+        <t:Column>
+            <Label text="Fields"/>
+            <t:template>
+                <Text text="{name}" wrapping="false" renderWhitespace="false" />
+            </t:template>
+        </t:Column>
+        <t:Column>
+            <Label text="Cardinality"/>
+            <t:template>
+                <Text text="{cardinality}" wrapping="false" renderWhitespace="false" />
+            </t:template>
+        </t:Column>
+        <t:Column>
+            <Label text="Datatype"/>
+            <t:template>
+                <Text text="{datatype}" wrapping="false" renderWhitespace="false" />
+            </t:template>
+        </t:Column>
+        <t:Column>
+            <Label text="Description"/>
+            <t:template>
+                <Text text="{description}" wrapping="false" renderWhitespace="false"/>
+            </t:template>
+        </t:Column>
+    </t:columns>
+</t:TreeTable>

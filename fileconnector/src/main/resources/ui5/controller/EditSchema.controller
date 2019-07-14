@@ -1,0 +1,143 @@
+"sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
+Controller, JSONModel, InputFormatter
+init : function() {
+	var oModel = new JSONModel();
+	var that = this;
+	var sSchemaname = jQuery.sap.getUriParameters().get("name");
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	if (sSchemaname == null) {
+		oModel.loadData("../rest/fileschemas/" + encodeURI(sConnectionname) + "/new/template");
+	} else {
+		oModel.attachRequestCompleted(function() {
+	        that.onFilenamePatternChange(null);
+	    });
+		oModel.loadData("../rest/fileschemas/" + encodeURI(sConnectionname) + "/" + encodeURI(sSchemaname));
+	}
+	this.getView().setModel(oModel);
+
+	var oCharsetModel = new JSONModel();
+	oCharsetModel.loadData("../rest/charsets");
+	this.getView().setModel(oCharsetModel, "charsets");
+
+	var oLocaleModel = new JSONModel();
+	oLocaleModel.loadData("../rest/locales");
+	this.getView().setModel(oLocaleModel, "locales");
+
+	var oStateModel = this.getView().getModel("state");
+	oStateModel.setProperty("/title", "Edit Schema");
+	this.onPressEdit(null);
+},
+edit : function(oEvent) {
+},
+save : function(oEvent) {
+	var oModel = this.getView().getModel();
+	var sSchemaname = oModel.getProperty("/schemaname");
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	if (!!sSchemaname) {
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("POST", "../rest/fileschemas/" + encodeURI(sConnectionname) + "/" + encodeURI(sSchemaname));
+		xmlhttp.setRequestHeader("Content-Type", "application/json");
+		xmlhttp.onreadystatechange = function() {
+		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+		        alert(xmlhttp.responseText);
+		    }
+		}
+		xmlhttp.send(oModel.getJSON());
+	} else {
+		alert("No name of the schema entered");
+	}
+},
+cancel : function(oEvent) {
+},
+onFilenamePatternChange : function(oEvent) {
+	var oModel = this.getView().getModel();
+	var pattern = oModel.getProperty("/filenamepattern");
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	var oFileModel = new JSONModel();
+	oFileModel.loadData("../rest/files/" + encodeURI(sConnectionname) + "/" + encodeURI(pattern) + "/100");
+	this.getView().setModel(oFileModel, "files");
+},
+onDataFileChange : function(oEvent) {
+	this.readraw();
+},
+onPressRawDataRefresh : function(oEvent) {
+	this.readraw();
+},
+onPressParsedDataRefresh : function(oEvent) {
+	this.readparsed();
+},
+onPressGuessSettings : function(oEvent) {
+	var oItem = this.getView().byId("idfilelist").getSelectedItem();
+	if (!!oItem) {
+		var oModel = this.getView().getModel();
+		var that = this;
+		var sFilePath = oItem.data().path;
+		var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("POST", "../rest/files/guess/" + encodeURI(sConnectionname) + "/" + encodeURI(sFilePath));
+		xmlhttp.setRequestHeader("Content-Type", "application/json");
+		xmlhttp.onreadystatechange = function() {
+		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+				oModel.setJSON(xmlhttp.responseText);
+		    }
+	    }
+		xmlhttp.send(oModel.getJSON());
+	}
+},
+readraw : function() {
+	var oItem = this.getView().byId("idfilelist").getSelectedItem();
+	if (!!oItem) {
+		var oModel = this.getView().getModel();
+		var that = this;
+		var sFilePath = oItem.data().path;
+		var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("POST", "../rest/files/raw/" + encodeURI(sConnectionname) + "/" + encodeURI(sFilePath));
+		xmlhttp.setRequestHeader("Content-Type", "application/json");
+		xmlhttp.onreadystatechange = function() {
+		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+				var oDataModel = new JSONModel();
+				oDataModel.setJSON(xmlhttp.responseText);
+		        that.getView().setModel(oDataModel, "rawdata");
+		    }
+	    }
+		xmlhttp.send(oModel.getJSON());
+	}
+},
+readparsed : function() {
+	var oItem = this.getView().byId("idfilelist").getSelectedItem();
+	if (!!oItem) {
+		var oModel = this.getView().getModel();
+		var that = this;
+		var sFilePath = oItem.data().path;
+		var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("POST", "../rest/files/parsed/" + encodeURI(sConnectionname) + "/" + encodeURI(sFilePath));
+		xmlhttp.setRequestHeader("Content-Type", "application/json");
+		xmlhttp.onreadystatechange = function() {
+		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+				var oDataModel = new JSONModel();
+				oDataModel.setJSON(xmlhttp.responseText);
+		        that.getView().setModel(oDataModel, "parseddata");
+		    }
+	    }
+		xmlhttp.send(oModel.getJSON());
+	}
+},
+onDataFileUpdateFinished : function(oEvent) {
+	var oControl = oEvent.getSource();
+	if (oControl.getItems().length > 0) {
+		var oItem = oControl.getItems()[0];
+		oControl.setSelectedItem(oItem, true);
+		this.readraw();
+	}
+},
+columnFactory : function(sId, oContext) {
+	var oModel = this.getView().getModel();
+	var sName = oContext.getProperty("columnId");
+
+	return new sap.ui.table.Column(sId, {
+		label: new sap.m.Label({ text: sName }),
+		template: new sap.m.Text({text: {path: "parseddata>" + sName}})
+	});
+}

@@ -1,0 +1,268 @@
+"sap/m/Button",	"sap/m/Dialog",	"sap/m/Text", "sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
+Button, Dialog, Text, Controller, JSONModel
+init : function() {
+	this.onPressRefresh(null);
+},
+edit : function(oEvent) {
+    var oModel = this.getView().getModel();
+	var aConnections = oModel.getProperty("/connections");
+	if (!!aConnections) {
+		for (var i in aConnections) {
+			var connection = aConnections[i];
+			if (!!connection.connectionname) {
+				// add one row with a plus button to create new producers
+				var path = "/connections/" + i + "/producers"
+				if (oModel.getProperty(path) == null) {
+					oModel.setProperty(path, [ { "producername": null, "connectionname" : connection.connectionname } ] );
+				} else {
+					var aData = oModel.getProperty(path);
+					aData.push( { "producername": null, "connectionname" : connection.connectionname } );
+					oModel.setProperty(path, aData);
+				}
+				// add one row with a plus button to create new consumers
+				path = "/connections/" + i + "/consumers"
+				if (oModel.getProperty(path) == null) {
+					oModel.setProperty(path, [ { "consumername": null, "connectionname" : connection.connectionname } ] );
+				} else {
+					var aData = oModel.getProperty(path);
+					aData.push( { "consumername": null, "connectionname" : connection.connectionname } );
+					oModel.setProperty(path, aData);
+				}
+			}
+		}
+	}
+	
+	// if there is no "add" Button yet on the screen
+	if (!aConnections || !!aConnections[aConnections.length-1].connectionname) {
+	    aConnections.push( { "connectionname": null } );
+	}
+	oModel.setProperty("/connections", aConnections);
+},
+cancel : function(oEvent) {
+    var oModel = this.getView().getModel();
+	var aConnections = oModel.getProperty("/connections");
+	// remove the "+" row for adding new connections
+	if (!!aConnections && !aConnections[aConnections.length-1].connectionname) {
+		aConnections.splice(aConnections.length-1, 1);
+	}
+	if (!!aConnections) {
+		for (var i in aConnections) {
+			// remove the row with a plus button
+			var path = "/connections/" + i + "/producers"
+			var aData = oModel.getProperty(path);
+			if (!!aData && !aData[aData.length-1].producername) {
+				aData.splice(aData.length-1, 1);
+			}
+			// remove the row with a plus button
+			path = "/connections/" + i + "/consumers"
+			aData = oModel.getProperty(path);
+			if (!!aData && !aData[aData.length-1].consumername) {
+				aData.splice(aData.length-1, 1);
+			}
+		}
+	}
+	oModel.setProperty("/connections", aConnections);
+},
+save : function(oEvent) {
+	this.cancel(oEvent);
+},
+onPressAddConnection : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	window.location.href = './Connection?new=';
+},
+onPressRefresh : function(oEvent) {
+	var oModel = new JSONModel();
+	oModel.loadData("../rest/ConnectorStatus", null, false);
+	var oStateModel = this.getView().getModel("state");
+	oStateModel.setProperty("/title", oModel.getProperty("/connectorname"));
+	var aConnections = oModel.getProperty("/connections");
+	if (!!aConnections) {
+		for (var i in aConnections) {
+			var connection = aConnections[i];
+			if (!!connection.connectionname) {
+				var path = "/connections/" + i + "/producers"
+				var aData = oModel.getProperty(path);
+				if (aData != null) {
+					for (var j in aData) {
+						var oProducer = aData[j];
+						oProducer.connectionname = connection.connectionname;
+					}
+				}
+				path = "/connections/" + i + "/consumers"
+				var aData = oModel.getProperty(path);
+				if (aData != null) {
+					for (var j in aData) {
+						var oConsumer = aData[j];
+						oConsumer.connectionname = connection.connectionname;
+					}
+				}
+			}
+		}
+	}
+	
+	this.getView().setModel(oModel);
+},
+onPressDeleteConnection : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	if (!!obj.connectionname) {
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("DELETE", "../rest/connections/" + encodeURI(obj.connectionname));
+		xmlhttp.setRequestHeader("Content-Type", "application/json");
+		xmlhttp.onreadystatechange = function() {
+		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+		        alert(xmlhttp.responseText);
+		    }
+		}
+		xmlhttp.send(null);
+	}
+},
+onPressStopConnection : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	if (!!obj.connectionname) {
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("GET", "../rest/connections/" + encodeURI(obj.connectionname) + "/stop");
+		xmlhttp.setRequestHeader("Content-Type", "application/json");
+		xmlhttp.onreadystatechange = function() {
+		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+		        alert(xmlhttp.responseText);
+		    }
+		}
+		xmlhttp.send(null);
+	}
+},
+onPressStartConnection : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	if (!!obj.connectionname) {
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("GET", "../rest/connections/" + encodeURI(obj.connectionname) + "/start");
+		xmlhttp.setRequestHeader("Content-Type", "application/json");
+		xmlhttp.onreadystatechange = function() {
+		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+		        alert(xmlhttp.responseText);
+		    }
+		}
+		xmlhttp.send(null);
+	}
+},
+onPressAddProducer : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var connectionpath = path.substring(0, path.indexOf('/producers'));
+	var oModel = this.getView().getModel();
+	var oConnection = oModel.getProperty(connectionpath);
+	window.location.href = './Producer?connectionname=' + encodeURI(oConnection.connectionname) + '&new=';
+},
+onPressStopProducer : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var connectionpath = path.substring(0, path.indexOf('/producers'));
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	var oConnection = oModel.getProperty(connectionpath);
+	if (!!obj.producername) {
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("GET", "../rest/connections/" + encodeURI(obj.connectionname) + "/producers/" + encodeURI(obj.producername) + "/stop");
+		xmlhttp.setRequestHeader("Content-Type", "application/json");
+		xmlhttp.onreadystatechange = function() {
+		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+		        alert(xmlhttp.responseText);
+		    }
+		}
+		xmlhttp.send(null);
+	}
+},
+onPressStartProducer : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var connectionpath = path.substring(0, path.indexOf('/producers'));
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	var oConnection = oModel.getProperty(connectionpath);
+	if (!!obj.producername) {
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("GET", "../rest/connections/" + encodeURI(obj.connectionname) + "/producers/" + encodeURI(obj.producername) + "/start");
+		xmlhttp.setRequestHeader("Content-Type", "application/json");
+		xmlhttp.onreadystatechange = function() {
+		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+		        alert(xmlhttp.responseText);
+		    }
+		}
+		xmlhttp.send(null);
+	}
+},
+connectionnameformatter : function(name) {
+	return "Connection?name=" + encodeURI(name);
+},
+producernameformatter : function(connectionname, producername) {
+	return "Producer?connectionname=" + encodeURI(connectionname) + "&producername=" + encodeURI(producername);
+},
+consumernameformatter : function(connectionname, consumername) {
+	return "Consumer?connectionname=" + encodeURI(connectionname) + "&consumername=" + encodeURI(consumername);
+},
+timeformatter : function(epoche) {
+	if ( ! epoche) {
+		return "";
+	}
+	var oDate = new Date(epoche);
+	var diff = ((new Date()) - oDate)/1000;
+	if (diff < 0) {
+		return oDate.toLocaleString();
+	} else if (diff < 60) {
+		return diff.toFixed(0) + " s ago";
+	} else if (diff < 3600) {
+		var m = diff/60;
+		return m.toFixed(0) + " m ago";
+	} else if (diff < 3600*24) {
+		var h = diff/3600;
+		return h.toFixed(0) + " h ago";
+	} else {
+		return oDate.toLocaleString();
+	}
+},
+handleConsumerInstanceLastError : function (oEvent) {
+	var oContext = oEvent.getSource().getBindingContext();
+	var dialog = new Dialog({
+		title: 'Last Error',
+		type: 'Message',
+		state: 'Error',
+		content: new Text({
+			text: oContext.getProperty("lasterror")
+		}),
+		beginButton: new Button({
+			text: 'OK',
+			press: function () {
+				dialog.close();
+			}
+		}),
+		afterClose: function() {
+			dialog.destroy();
+		}
+	});
+	dialog.open();
+},
+handleProducerLastError : function (oEvent) {
+	var oContext = oEvent.getSource().getBindingContext();
+	var dialog = new Dialog({
+		title: 'Last Error',
+		type: 'Message',
+		state: 'Error',
+		content: new Text({
+			text: oContext.getProperty("lasterror")
+		}),
+		beginButton: new Button({
+			text: 'OK',
+			press: function () {
+				dialog.close();
+			}
+		}),
+		afterClose: function() {
+			dialog.destroy();
+		}
+	});
+	dialog.open();			
+}

@@ -1,0 +1,28 @@
+.JSONViewerTR, .JSONViewerTD {
+	border: 1pt solid black		!important;
+}
+
+.JSONViewerTH {
+	font-weight: 500 			!important; 
+	border: 1pt solid black		!important;
+}
+
+.JSONViewerSubTable {
+	border: 1pt solid black		!important;
+	border-collapse: collapse	!important;
+}
+
+.JSONViewerTable {
+	border: 1pt solid black		!important;
+	border-collapse: collapse	!important;
+	text-align: left;
+	vertical-align: top;
+	white-space: nowrap;
+	font-size: small 		!important;
+	margin: 3pt;
+}
+
+.JSONViewerDIV {
+	overflow-x: auto;
+}
+

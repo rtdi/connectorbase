@@ -1,0 +1,38 @@
+<t:TreeTable
+        rows="{path:'/files', parameters: {arrayNames:['files']}}"
+        selectionMode="MultiToggle"
+        enableSelectAll="false"
+        ariaLabelledBy="title"
+        id="TreeTable"
+        visibleRowCountMode="Auto" >
+    <t:extension>
+        <Toolbar>
+            <Title id="title" text="Directory" />
+            <ToolbarSpacer/>
+            <Button text="Collapse all" press="onCollapseAll" />
+            <Button text="Collapse selection" press="onCollapseSelection" />
+            <Button text="Expand first level" press="onExpandFirstLevel" />
+            <Button text="Expand selection" press="onExpandSelection" />
+        </Toolbar>
+    </t:extension>
+    <t:columns>
+        <t:Column>
+            <Label text="Name"/>
+            <t:template>
+                <Link text="{schemaname}" wrapping="false" press="onFilenamePress" />
+            </t:template>
+        </t:Column>
+        <t:Column width="20%">
+            <Label text="Size" />
+            <t:template>
+                <Text text="{path:'filesize', formatter:'.FileSizeFormatter'}" />
+            </t:template>
+        </t:Column>
+        <t:Column width="20%">
+            <Label text="last modified" />
+            <t:template>
+                <Text text="{path:'lastmodified', formatter:'.UnixDateFormatter'}" />
+            </t:template>
+        </t:Column>
+    </t:columns>
+</t:TreeTable>

@@ -1,0 +1,25 @@
+"sap/m/Button",	"sap/m/Dialog",	"sap/m/Text", "sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
+Button, Dialog, Text, Controller, JSONModel
+init : function() {
+	var oModel = new JSONModel();
+	oModel.loadData("../rest/topics", null, false);
+	var aTopics = oModel.getProperty("/topics");
+    aTopics.push( { "topicname": null } );
+	this.getView().setModel(oModel);
+	var oStateModel = this.getView().getModel("state");
+	oStateModel.setProperty("/title", "List of Topics");
+	var oEdit = this.byId("editid");
+	oEdit.setVisible(false);
+},
+edit : function(oEvent) {
+},
+cancel : function(oEvent) {
+},
+save : function(oEvent) {
+},
+onPressAddTopic : function(oEvent) {
+	window.location.href = './TopicDefinition?new';
+},
+topicformatter : function(name) {
+	return "DataPreview?name=" + encodeURI(name);
+}

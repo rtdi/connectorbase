@@ -1,0 +1,41 @@
+"sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
+Controller, JSONModel, InputFormatter
+init : function() {
+	var oModel = new JSONModel();
+	var oStateModel = this.getView().getModel("state");
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	if (!!sConnectionname) {
+		var sProducername = jQuery.sap.getUriParameters().get("producername");
+		if (!sProducername) {
+			oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/producer/template");
+			this.onPressEdit(null);
+			oStateModel.setProperty("/title", "Create new Producer");
+		} else {
+			oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/producers/" + encodeURI(sProducername));
+			oStateModel.setProperty("/title", "Producer settings");
+		}
+		this.getView().setModel(oModel);
+	}
+	oStateModel.setProperty("/breadcrumbs", [ {"text" : "ConnectorStatus", "link" : "./ConnectorStatus"} ] );
+},
+edit : function(oEvent) {
+},
+save : function(oEvent) {
+	var oModel = this.getView().getModel();
+	var data = JSON.stringify(oModel.getJSON());
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	var sProducername = oModel.getProperty("/name");
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open("POST", "../rest/connections/" + encodeURI(sConnectionname) + "/producers/" + encodeURI(sProducername));
+	xmlhttp.setRequestHeader("Content-Type", "application/json");
+	xmlhttp.onreadystatechange = function() {
+	    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+	        window.location.href = './ConnectorStatus';
+	    } else {
+	        alert(xmlhttp.responseText);
+	    }
+	}
+	xmlhttp.send(oModel.getJSON());
+},
+cancel : function(oEvent) {
+}

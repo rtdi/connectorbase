@@ -1,0 +1,1 @@
+{"root":{"values":[{"type":"propertyString","name":"topiclistener.topiclist","value":"Topic1"},{"type":"propertyInt","name":"topiclistener.instances","value":1},{"type":"propertyLong","name":"topiclistener.flush.max.ms","value":60000},{"type":"propertyInt","name":"topiclistener.flush.max.records","value":1000}]}}

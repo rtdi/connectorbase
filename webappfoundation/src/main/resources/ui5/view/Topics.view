@@ -1,0 +1,21 @@
+<Table
+	items="{path:'/topics', templateShareable:false}">
+	<columns>
+		<Column>
+			<Label text="Topic Name" />
+		</Column>
+	</columns>
+	<items>
+		<ColumnListItem>
+			<cells>
+				<HBox alignItems="Center">
+					<core:Icon src="sap-icon://add" visible="{path: 'topicname', formatter: '.disableControl'}" press="onPressAddTopic" />
+					<core:Icon src="sap-icon://detailed-view" visible="{path: 'topicname', formatter: '.enableControl'}" />
+					<Link text="{topicname}" visible="{path: 'topicname', formatter: '.enableControl'}" 
+							href="{path : 'topicname', formatter: '.topicformatter'}"
+					/>
+				</HBox>				
+			</cells>
+		</ColumnListItem>
+	</items>
+</Table>

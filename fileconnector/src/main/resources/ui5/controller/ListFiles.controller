@@ -1,0 +1,68 @@
+"sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
+Controller, JSONModel, InputFormatter
+init : function() {
+	var oModel = new JSONModel();
+	oModel.loadData("../rest/files", null, false);
+	oModel.setProperty("/title", oModel.getProperty("Files"));
+	this.getView().setModel(oModel);
+	var oStateModel = this.getView().getModel("state");
+	oStateModel.setProperty("/title", "Directory");
+	oStateModel.setProperty("/edit", true );
+},
+edit : function(oEvent) {
+},
+save : function(oEvent) {
+},
+cancel : function(oEvent) {
+},
+onCollapseAll: function() {
+	var oTreeTable = this.byId("TreeTable");
+	oTreeTable.collapseAll();
+},
+onCollapseSelection: function() {
+	var oTreeTable = this.byId("TreeTable");
+	oTreeTable.collapse(oTreeTable.getSelectedIndices());
+},
+onExpandFirstLevel: function() {
+	var oTreeTable = this.byId("TreeTable");
+	oTreeTable.expandToLevel(1);
+},
+onExpandSelection: function() {
+	var oTreeTable = this.byId("TreeTable");
+	oTreeTable.expand(oTreeTable.getSelectedIndices());
+},
+onFilenamePress: function() {
+},
+FileSizeFormatter : function(size) {
+	if (typeof size === "undefined") {
+		return "";
+	}
+	var mb = 1024*1024;
+	var gb = mb*1024;
+	if (size > gb) {
+		return (size/gb).toFixed() + " GB";
+	} else if (size > mb) {
+		return (size/mb).toFixed() + " MB";
+	} else if (size > 1024) {
+		return (size/1024).toFixed() + " KB";
+	} else {
+		return size + " Bytes";
+	}
+},
+UnixDateFormatter : function(epoche) {
+	if (typeof epoche === "undefined") {
+		return "";
+	}
+	var current = Date.now();
+	var age = (current - epoche)/1000;
+	if (age > 3600*24 || age < 0) {
+		var date = new Date(epoche);
+		return date.toISOString().split('T')[0];
+	} else if (age > 3600) {
+		return (age/3600).toFixed() + "h";
+	} else if (age > 60) {
+		return (age/60).toFixed() + "min";
+	} else {
+		return age.toFixed() + "sec";
+	}
+}

@@ -1,0 +1,32 @@
+<forForm id="topicsettingsid" editable="false">
+	<fortitle>
+		<core:Title text="Topic settings" />
+	</fortitle>
+	<forlayout>
+		<forResponsiveGridLayout
+			labelSpanXL="3"
+			labelSpanL="3"
+			labelSpanM="3"
+			labelSpanS="12"
+			adjustLabelSpan="false"
+			emptySpanXL="4"
+			emptySpanL="4"
+			emptySpanM="4"
+			emptySpanS="0"
+			columnsXL="1"
+			columnsL="1"
+			columnsM="1"
+			singleContainerFullSize="false" />
+	</forlayout>
+	<forformContainers>
+		<forFormContainer>
+			<forformElements>
+				<forFormElement label="Topic name">
+					<forfields>
+						<Input value="{/name}" />
+					</forfields>
+				</forFormElement>
+			</forformElements>
+		</forFormContainer>
+	</forformContainers>
+</forForm>

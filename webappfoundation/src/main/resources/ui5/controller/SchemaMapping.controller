@@ -1,0 +1,74 @@
+"sap/m/Button",	"sap/m/Dialog",	"sap/m/Text", "sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
+Button, Dialog, Text, Controller, JSONModel
+init : function() {
+	var sSchemaname = jQuery.sap.getUriParameters().get("name");
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	if (sSchemaname != null) {
+		var oSourceSchemaModel = new JSONModel();
+		oSourceSchemaModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas/" + encodeURI(sSchemaname));
+		this.getView().setModel(oSourceSchemaModel, "source");
+	}
+	
+	var oTargetSchemasModel = new JSONModel();
+	oTargetSchemasModel.loadData("../rest/schemas");
+	this.getView().setModel(oTargetSchemasModel, "targetschemas");
+	
+	var oStateModel = this.getView().getModel("state");
+	oStateModel.setProperty("/title", "Schema mapping");
+	// oStateModel.setProperty("/breadcrumbs", [ {"text" : "Schemas", "link" : "./Schemas"} ] );
+},
+edit : function(oEvent) {
+},
+cancel : function(oEvent) {
+},
+save : function(oEvent) {
+	var sSchemaname = jQuery.sap.getUriParameters().get("name");
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	var oTargetSchemaModel = this.getView().getModel("targetschemas");
+	var sTargetSchemaname = oTargetSchemaModel.getProperty("/selected");
+	var oTargetModel = this.getView().getModel("target");
+	
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open("POST", "../rest/mapping/" + encodeURI(sConnectionname) + "/" + encodeURI(sSchemaname) + "/" + encodeURI(sTargetSchemaname));
+	xmlhttp.setRequestHeader("Content-Type", "application/json");
+	xmlhttp.onreadystatechange = function() {
+	    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+	        alert(xmlhttp.responseText);
+	    }
+	}
+	xmlhttp.send(oTargetModel.getJSON());
+},
+onTargetSchemaChange : function(oEvent) {
+	var oTargetSchemaModel = this.getView().getModel("targetschemas");
+	var sTargetSchemaname = oTargetSchemaModel.getProperty("/selected");
+	if (!!sTargetSchemaname) {
+		var sSchemaname = jQuery.sap.getUriParameters().get("name");
+		var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+		var oModel = new JSONModel();
+		oModel.loadData("../rest/mapping/" + encodeURI(sConnectionname) + "/" + encodeURI(sSchemaname) + "/" + encodeURI(sTargetSchemaname));
+		this.getView().setModel(oModel, "target");
+	}
+},
+onSourceCollapseAll: function() {
+	var oTreeTable = this.byId("SourceTree");
+	oTreeTable.collapseAll();
+},
+onTargetCollapseAll: function() {
+	var oTreeTable = this.byId("TargetTree");
+	oTreeTable.collapseAll();
+},
+onDropMapping: function(oEvent) {
+	var oStateModel = this.getView().getModel("state");
+	var edit = oStateModel.getProperty("/edit");
+
+	if (edit) {
+		var oSourceModel = this.getView().getModel("source");
+		var oSourcePath = oEvent.getParameter("draggedControl").getBindingContext("source").getPath();
+		var oSourceRow = oSourceModel.getProperty(oSourcePath);
+	
+		var oTargetModel = this.getView().getModel("target");
+		var oTargetPath = oEvent.getParameter("droppedControl").getBindingContext("target").getPath();
+		var oTargetRow = oTargetModel.getProperty(oTargetPath);
+		oTargetModel.setProperty(oTargetPath + "/expression", oSourceRow.name);
+	}
+}

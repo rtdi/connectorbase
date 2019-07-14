@@ -1,0 +1,15 @@
+<Table
+	items="{path:'/schemas', templateShareable:false}">
+	<columns>
+		<Column>
+			<Label text="Schema Name" />
+		</Column>
+	</columns>
+	<items>
+		<ColumnListItem vAlign="Middle">
+			<cells>
+				<Link text="{schemaname}" href="{path : 'schemaname', formatter: '.schemaformatter'}"/>
+			</cells>
+		</ColumnListItem>
+	</items>
+</Table>

@@ -1,0 +1,63 @@
+"sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
+Controller, JSONModel, InputFormatter
+init : function() {
+	var that = this;
+	var oEdit = this.getView().byId("editid");
+	oEdit.setVisible(false);
+	var oModel = new JSONModel();
+
+	oModel.loadData("../rest/landscape");
+	this.getView().setModel(oModel);
+	var options = {
+		layout : {
+		},
+		physics : {
+		}
+	}
+	oModel.attachRequestCompleted(function() {
+		var container = document.getElementById('visualization');
+		var data = oModel.getData();
+		for (var i in data.nodes) {
+			var n = data.nodes[i];
+			n.shape = 'circularImage';
+			n.color = '#eeeeee';
+			n.scaling = {
+		    	label: false
+			};
+			if (n.type === 'PRODUCER') {
+				n.image = '../images/producer.png';			
+			} else if (n.type === 'PIPELINESERVER') {
+				n.image = '../images/pipelineserver.png';
+			} else if (n.type === 'REMOTECONNECTION') {
+				n.image = '../images/remotesystem.png';
+			} else if (n.type === 'CONSUMER') {
+				n.image = '../images/consumer.png';			
+			}
+		}
+		for (var i in data.edges) {
+			var e = data.edges[i];
+			e.arrows = 'to';
+			e.color = '#0000ee';
+		}
+		var visdatanodes = new vis.DataSet();
+		var visdataedges = new vis.DataSet();
+		
+		visdatanodes.add(data.nodes);
+		visdataedges.add(data.edges);
+		var visdata = {
+			nodes : visdatanodes,
+			edges : visdataedges
+		};
+
+		var network = new vis.Network(
+			container,
+			visdata,
+			options);
+	});
+},
+edit : function(oEvent) {
+},
+save : function(oEvent) {
+},
+cancel : function(oEvent) {
+}

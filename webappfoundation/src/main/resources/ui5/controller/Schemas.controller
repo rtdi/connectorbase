@@ -1,0 +1,28 @@
+"sap/m/Button",	"sap/m/Dialog",	"sap/m/Text", "sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
+Button, Dialog, Text, Controller, JSONModel
+init : function() {
+	var oModel = new JSONModel();
+	oModel.loadData("../rest/schemas");
+	this.getView().setModel(oModel);
+	var oStateModel = this.getView().getModel("state");
+	oStateModel.setProperty("/title", "All Schemas known by the server");
+	var oEdit = this.byId("editid");
+	oEdit.setVisible(false);
+},
+edit : function(oEvent) {
+},
+cancel : function(oEvent) {
+},
+save : function(oEvent) {
+},
+onPressAddTopic : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	if (!!obj.connectionname && obj.connectionname.length != 0) {
+		window.location.href = './Connection?new=' + encodeURI(obj.connectionname);
+	}
+},
+schemaformatter : function(name) {
+	return "SchemaDefinition?name=" + encodeURI(name);
+}

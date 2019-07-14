@@ -1,0 +1,153 @@
+<Table
+	items="{path:'/connections', templateShareable:false}">
+	<headerToolbar>
+		<Toolbar>
+			<content>
+					<Button icon="sap-icon://refresh" text="Reload" class="sapUiTinyMarginBeginEnd" press="onPressRefresh" />
+			</content>
+		</Toolbar>
+	</headerToolbar>
+	<columns>
+		<Column width="20%">
+		</Column>
+		<Column width="10%">
+		</Column>
+		<Column>
+		</Column>
+	</columns>
+	<items>
+		<ColumnListItem>
+			<cells>
+				<HBox alignItems="Center">
+					<core:Icon src="sap-icon://add" class="sapUiTinyMarginBeginEnd" visible="{= !${connectionname} }" press="onPressAddConnection" />
+					<core:Icon src="sap-icon://delete" class="sapUiTinyMarginBeginEnd" visible="{= !!${connectionname} &amp;&amp; !!${state>/edit} }" press="onPressDeleteConnection" />
+					<Link text="{connectionname}" visible="{= !!${connectionname} }" 
+							href="{path: 'connectionname', formatter: '.connectionnameformatter'}"
+					/>
+					<core:Icon src="sap-icon://restart" class="sapUiTinyMarginBeginEnd" visible="{= !!${connectionname} &amp;&amp; !${state>/edit} }" press="onPressStartConnection" />
+					<core:Icon src="sap-icon://stop" class="sapUiTinyMarginBeginEnd" visible="{= !!${connectionname} &amp;&amp; !${state>/edit} }" press="onPressStopConnection" />
+				</HBox>				
+				<Button text="last error" press="handleConnectionLastError" enabled="{path: 'errors', formatter: '.disableControl'}" />
+				<l:VerticalLayout>
+				
+					<Table
+						items="{path:'producers', templateShareable:false}">
+						<columns>
+							<Column width="30%">
+								<Label text="Producer" />
+							</Column>
+							<Column>
+								<Label text="Instances" />
+							</Column>
+						</columns>
+						<items>
+							<ColumnListItem>
+								<cells>
+									<HBox alignItems="Center">
+										<core:Icon src="sap-icon://add" class="sapUiTinyMarginBeginEnd" visible="{= !${producername} }" press="onPressAddProducer" />
+										<core:Icon src="sap-icon://delete" class="sapUiTinyMarginBeginEnd" visible="{= !!${producername} &amp;&amp; !!${state>/edit} }" press="onPressDeleteProducer" />
+										<Link text="{producername}" visible="{= !!${producername} }" 
+												href="{parts : [ 'connectionname', 'producername' ], formatter: '.producernameformatter'}"
+										/>
+										<core:Icon src="sap-icon://restart" class="sapUiTinyMarginBeginEnd" visible="{= !!${producername} &amp;&amp; !${state>/edit} }" press="onPressStartProducer" />
+										<core:Icon src="sap-icon://stop" class="sapUiTinyMarginBeginEnd" visible="{= !!${producername} &amp;&amp; !${state>/edit} }" press="onPressStopProducer" />
+									</HBox>				
+									<Table visible="{path: 'producername', formatter: '.enableControl'}"
+										items="{path:'instances', templateShareable:false}">
+										<columns>
+											<Column>
+												<Label text="State" />
+											</Column>
+											<Column>
+												<Label text="rows produced" />
+											</Column>
+											<Column>
+												<Label text="last produced" />
+											</Column>
+											<Column>
+												<Label text="poll calls" />
+											</Column>
+											<Column>
+												<Label text="last error" />
+											</Column>
+										</columns>
+										<items>
+											<ColumnListItem>
+												<cells>
+													<Text text="{state}" />
+													<Text text="{rowsproduced}" />
+													<Text text="{path: 'lastdatatimestamp', formatter: '.timeformatter'}" />
+													<Text text="{pollcalls}" />
+													<Button text="last error" press="handleConsumerInstanceLastError" enabled="{path: 'errors', formatter: '.disableControl'}" />
+												</cells>
+											</ColumnListItem>
+										</items>
+									</Table>
+								</cells>
+							</ColumnListItem>
+						</items>
+					</Table>
+					
+					<Table
+						items="{path:'consumers', templateShareable:false}">
+						<columns>
+							<Column width="30%">
+								<Label text="Consumer" />
+							</Column>
+							<Column>
+								<Label text="Instances" />
+							</Column>
+						</columns>
+						<items>
+							<ColumnListItem>
+								<cells>
+									<HBox alignItems="Center">
+										<core:Icon src="sap-icon://add" class="sapUiTinyMarginBeginEnd" visible="{= !${consumername} }" press="onPressAddConsumer" />
+										<core:Icon src="sap-icon://delete" class="sapUiTinyMarginBeginEnd" visible="{= !!${consumername} &amp;&amp; !!${state>/edit} }" press="onPressDeleteConsumer" />
+										<Link text="{consumername}" visible="{= !!${consumername} }" 
+												href="{parts : [ 'connectionname', 'consumername' ], formatter: '.consumernameformatter'}"
+										/>
+										<core:Icon src="sap-icon://restart" class="sapUiTinyMarginBeginEnd" visible="{= !!${consumername} &amp;&amp; !${state>/edit} }" press="onPressStartConsumer" />
+										<core:Icon src="sap-icon://stop" class="sapUiTinyMarginBeginEnd" visible="{= !!${consumername} &amp;&amp; !${state>/edit} }" press="onPressStopConsumer" />
+									</HBox>				
+									<Table visible="{path: 'consumername', formatter: '.enableControl'}"
+										items="{path:'instances', templateShareable:false}">
+										<columns>
+											<Column>
+												<Label text="State" />
+											</Column>
+											<Column>
+												<Label text="rows fetched" />
+											</Column>
+											<Column>
+												<Label text="received" />
+											</Column>
+											<Column>
+												<Label text="fetch calls" />
+											</Column>
+											<Column>
+												<Label text="last error" />
+											</Column>
+										</columns>
+										<items>
+											<ColumnListItem>
+												<cells>
+													<Text text="{state}"/>
+													<Text text="{rowsfetched}"/>
+													<Text text="{path: 'lastdatatimestamp', formatter: '.timeformatter'}"/>
+													<Text text="{fetchcalls}"/>
+													<Button text="last error" press="handleConsumerInstanceLastError" enabled="{path: 'errors', formatter: '.disableControl'}" />
+												</cells>
+											</ColumnListItem>
+										</items>
+									</Table>
+								</cells>
+							</ColumnListItem>
+						</items>
+					</Table>
+
+				</l:VerticalLayout>
+			</cells>
+		</ColumnListItem>
+	</items>
+</Table>

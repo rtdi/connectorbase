@@ -1,0 +1,107 @@
+<IconTabBar
+	id="idIconTabBarInlineMode"
+	headerMode="Inline"
+	class="sapUiResponsiveContentPadding">
+	<items>
+		<IconTabFilter text="File Level Settings">
+			<form:SimpleForm
+				columnsXL="2"
+				columnsL="2"
+				columnsM="2"
+				editable="true"
+				layout="ResponsiveGridLayout" >
+				<form:content>
+				
+					<core:Title text="File Settings" />
+					<Label text="Name of the schema" />
+					<Input value='{/schemaname}' />
+					<Label text="Regular Expression of the data file names, e.g. plan.*\.csv" />
+					<Input value='{/filenamepattern}' change="onFilenamePatternChange" />
+					
+					<core:Title text="Description" />
+					<TextArea value="{/description}" growing="true" growingMaxLines="10" />
+					
+					<core:Title text="Defaults" />
+					<Label text="Default charset to use" />
+					<ComboBox items="{charsets>/charsets}" selectedKey="{/charset}">
+						<core:Item key="{charsets>code}" text="{charsets>name}" />
+					</ComboBox>
+					<Label text="Default Locale to use" />
+					<ComboBox items="{locales>/locales}" selectedKey="{/locale}">
+						<core:Item key="{locales>code}" text="{locales>name}" />
+					</ComboBox>
+					
+					<core:Title text="Found data files" />
+					<List
+						growing="true"
+						id="idfilelist"
+						items="{files>/files}" 
+						mode="SingleSelectMaster"
+						selectionChange="onDataFileChange"
+						updateFinished="onDataFileUpdateFinished">
+						<headerToolbar>
+							<Toolbar>
+								<Button icon="sap-icon://refresh" text="Find files" press="onFilenamePatternChange" />
+							</Toolbar>
+						</headerToolbar>
+						<StandardListItem title="{files>filename}" app:path="{files>path}" />
+					</List>
+				</form:content>
+			</form:SimpleForm>
+			<Button icon="sap-icon://refresh" text="Reload" press="onPressRawDataRefresh" />
+			<TextArea value="{rawdata>/sampledata}" growing="true" growingMaxLines="20" width="100%" enabled="false" />
+		</IconTabFilter>
+		<IconTabFilter text="Format Settings">
+			<form:SimpleForm
+				columnsXL="2"
+				columnsL="2"
+				columnsM="2"
+				editable="true"
+				layout="ResponsiveGridLayout" >
+				<form:content>
+								
+					<core:Title text="Separator Settings" />
+					<Label text="Line Separator" />
+					<Input value='{/lineSeparator}' />
+					<Label text="Column Delimiter" />
+					<Input value='{/delimiter}' />
+					<Label text="Extract Header" />
+					<Switch type="AcceptReject" state='{/headerExtractionEnabled}' />
+
+					<core:Title text="Escape Settings" />
+					<Label text="Quote character" />
+					<Input value='{/quote}' />
+					<Label text="Character preceding a quote char to escape it" />
+					<Input value='{/quoteEscape}' />
+					
+				</form:content>
+			</form:SimpleForm>
+			<Button icon="sap-icon://refresh" text="Reload" press="onPressParsedDataRefresh" />
+			<Button icon="sap-icon://hint" press="onPressGuessSettings" />
+			<t:Table columns="{path: 'parseddata>/columns', factory: '.columnFactory'}" rows="{parseddata>/rows}">
+			</t:Table>
+		</IconTabFilter>
+		<IconTabFilter text="Column Definitions">
+			<Table items="{/columns}" >
+				<columns>
+					<Column>
+						<Text text="Name" />
+					</Column>
+					<Column>
+						<Text text="Data Type" />
+					</Column>
+				</columns>
+				<items>
+					<ColumnListItem>
+						<cells>
+							<Input value="{name}" />
+							<Input value="{datatype}" />
+						</cells>
+					</ColumnListItem>
+				</items>
+			</Table>
+		</IconTabFilter>
+		<IconTabFilter text="Advanced Settings">
+		</IconTabFilter>
+	</items>
+</IconTabBar>

@@ -1,0 +1,42 @@
+"sap/m/Button",	"sap/m/Dialog",	"sap/m/Text", "sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
+Button, Dialog, Text, Controller, JSONModel
+init : function() {
+	var oModel = new JSONModel();
+	var oStateModel = this.getView().getModel("state");
+	var sSchemaname = jQuery.sap.getUriParameters().get("name");
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	if (sSchemaname != null) {
+		oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas/" + encodeURI(sSchemaname));
+		this.getView().setModel(oModel);
+	}
+	var oEdit = this.byId("editid");
+	oStateModel.setProperty("/title", "Remote schema definition");
+	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Browse", "link" : "./Browse"} ] );
+},
+edit : function(oEvent) {
+	var sSchemaname = jQuery.sap.getUriParameters().get("name");
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	if (sSchemaname != null) {
+		window.location.href = './EditSchema?connectionname=' + encodeURI(sConnectionname) + '&name=' + encodeURI(sSchemaname);
+	}
+},
+cancel : function(oEvent) {
+},
+save : function(oEvent) {
+},
+onCollapseAll: function() {
+	var oTreeTable = this.byId("TreeTable");
+	oTreeTable.collapseAll();
+},
+onCollapseSelection: function() {
+	var oTreeTable = this.byId("TreeTable");
+	oTreeTable.collapse(oTreeTable.getSelectedIndices());
+},
+onExpandFirstLevel: function() {
+	var oTreeTable = this.byId("TreeTable");
+	oTreeTable.expandToLevel(1);
+},
+onExpandSelection: function() {
+	var oTreeTable = this.byId("TreeTable");
+	oTreeTable.expand(oTreeTable.getSelectedIndices());
+}

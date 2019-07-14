@@ -1,0 +1,15 @@
+{ "root" :
+{ "values" : [
+{ "type": "propertyString",
+  "name": "host",
+  "value": "localhost"
+}
+,{ "type": "propertyString",
+  "name": "user",
+  "value": "user1"
+}
+,{ "type": "propertyPassword",
+  "name": "password",
+  "value": "password1"
+}
+] }}

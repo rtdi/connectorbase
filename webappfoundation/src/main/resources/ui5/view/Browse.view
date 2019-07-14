@@ -1,0 +1,40 @@
+<Table
+	items="{path:'/tablenames', templateShareable:false}">
+	<headerToolbar>
+		<Toolbar>
+			<content>
+				<Label text="Select a connection" />
+				<ComboBox items="{Connections>/connections}" selectedKey="{Connections>/selected}" change="onConnectionChange">
+					<core:Item key="{Connections>connectionname}" text="{Connections>connectionname}" />
+				</ComboBox>
+			</content>
+		</Toolbar>
+	</headerToolbar>
+	<columns>
+		<Column>
+			<Label text="Remote Name" />
+		</Column>
+		<Column>
+			<Label text="Type" />
+		</Column>
+		<Column>
+			<Label text="Description" />
+		</Column>
+		<Column>
+			<Label text="Mapping" />
+		</Column>
+	</columns>
+	<items>
+		<ColumnListItem vAlign="Middle">
+			<cells>
+				<HBox alignItems="Center">
+					<Link text="{tablename}" href="{path : 'tablename', formatter: '.schemaformatter'}" visible="{path: 'tablename', formatter: '.enableControl'}"/>
+					<core:Icon src="sap-icon://add" class="sapUiTinyMarginBeginEnd" visible="{path: 'tablename', formatter: '.disableControl'}" press="onPressAddRemote" />
+				</HBox>				
+				<Text text="{tabletype}" />
+				<Text text="{description}" />
+				<Link text="mapping" href="{path : 'tablename', formatter: '.mappingformatter'}" visible="{path: 'tablename', formatter: '.enableControl'}" />
+			</cells>
+		</ColumnListItem>
+	</items>
+</Table>

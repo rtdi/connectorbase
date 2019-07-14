@@ -1,0 +1,24 @@
+{
+	"values": [
+		{
+			"type": "PropertyString",
+			"name": "tenantid",
+			"value": "TENANT1"
+		},
+		{
+			"type": "PropertyString",
+			"name": "http.url",
+			"value": "https://pipelineserver.rtdi.io/pipelinehttpserver"
+		},
+		{
+			"type": "PropertyString",
+			"name": "http.user",
+			"value": "pipelineuser"
+		},
+		{
+			"type": "PropertyPassword",
+			"name": "http.password",
+			"value": "ids$sgSWQfgl$gcbfr"
+		}
+	]
+}

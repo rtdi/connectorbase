@@ -1,0 +1,75 @@
+package io.rtdi.bigdata.connector.connectorframework.controller;
+
+import java.util.HashMap;
+
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
+import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeException;
+import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
+import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.properties.ConnectionProperties;
+import io.rtdi.bigdata.connector.properties.ProducerProperties;
+
+public class ProducerController extends Controller<ProducerInstanceController> {
+
+	private ProducerProperties producerprops;
+	private ConnectionController connectioncontroller;
+	private int instancecount;
+
+	public ProducerController(ProducerProperties producerprops, ConnectionController connectioncontroller) throws PropertiesException {
+		super(producerprops.getName());
+		this.producerprops = producerprops;
+		this.connectioncontroller = connectioncontroller;
+		instancecount = producerprops.getInstanceCount();
+		for (int i = 0 ; i<instancecount; i++) {
+			String name = getName() + " " + String.valueOf(i);
+			ProducerInstanceController instance = new ProducerInstanceController(name, this, i);
+			addChild(name, instance);
+		}
+	}
+
+	@Override
+	protected void stopControllerImpl(ControllerExitType exittype) {
+	}
+
+	@Override
+	protected void startControllerImpl() throws ConnectorRuntimeException {
+	}
+
+	public ProducerProperties getProducerProperties() {
+		return producerprops;
+	}
+
+	@Override
+	protected String getControllerType() {
+		return "ProducerController";
+	}
+
+	public ConnectionProperties getConnectionProperties() {
+		return connectioncontroller.getConnectionProperties();
+	}
+
+	public IPipelineAPI<?, ?, ?, ?> getPipelineAPI() {
+		return connectioncontroller.getPipelineAPI();
+	}
+
+	public IConnectorFactory<?, ?, ?> getConnectorFactory() {
+		return connectioncontroller.getConnectorFactory();
+	}
+
+	public HashMap<String, ProducerInstanceController> getInstances() {
+		return getChildControllers();
+	}
+
+	public ConnectionController getConnectionController() {
+		return connectioncontroller;
+	}
+
+	public ConnectorController getConnectorController() {
+		return connectioncontroller.getConnectorController();
+	}
+
+	public int getProducerCount() {
+		return instancecount;
+	}
+}
