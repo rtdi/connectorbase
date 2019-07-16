@@ -22,7 +22,7 @@ import io.rtdi.bigdata.connector.properties.PipelineConnectionServerProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
 
 /**
- * The main API definition. Every concrete implementation of a transaction log service is based on this. <BR/>
+ * The main API definition. Every concrete implementation of a transaction log service is based on this. <br>
  * Each instance can be used for a single tenant only.
  *
  * @param <S> PipelineConnectionProperties
@@ -48,15 +48,18 @@ public abstract class PipelineAbstract<
 	}
 	
 	/**
+	 * Instantiate the Pipeline for a given tenant using the IPipelineServer, an implementation capable of handling multiple tenants simultaneously.
+	 * Implementation is quite simple then, it calls the multi-tenant api with one fixed tenant. 
+	 *  
 	 * At this point in time no connections or anything else that might fail should be done.
 	 * The class will be instantiated e.g. at start of the webserver and just because the
 	 * topic server is not available, the web server should still start up.
 	 * All connections should be created at {@link #open()}.
 	 * 
-	 * @param server
+	 * @param server the multi-tenant version of the api to use as actual implementation
 	 */
 	public PipelineAbstract(PipelineServerAbstract<? extends PipelineConnectionServerProperties,T,P,C> server) {
-		super();
+		this();
 		this.server = server;
 	}
 
@@ -254,12 +257,12 @@ public abstract class PipelineAbstract<
 	}
 
 	/**
-	 * Create a new ProducerSession based on the provided properties. <BR/>
+	 * Create a new ProducerSession based on the provided properties. <br>
 	 * This method should not throw exceptions as it creates the object only.
 	 * 
 	 * @param properties Producer specific properties or null
 	 * @return A new ProducerSession to be used for connecting against the server and producing records
-	 * @throws PropertiesException 
+	 * @throws PropertiesException if something wrong with the properties
 	 */
 	protected abstract P createProducerSession(ProducerProperties properties) throws PropertiesException;
 	
@@ -277,13 +280,13 @@ public abstract class PipelineAbstract<
 	}
 
 	/**
-	 * This factory method creates a new ConsumerSession object. <BR/>
-	 * It should call {@link #setTopicHandlers(ConsumerSession) setTopicHandlers} as reference which concrete topics it does listen on. <BR/>
+	 * This factory method creates a new ConsumerSession object. <br>
+	 * It should also add the concrete topics it does listen on. <br>
 	 * This method should not throw exceptions as it creates the object only.
 	 * 
 	 * @param properties Mandatory parameter as it includes the topics to listen on
 	 * @return A new ConsumerSession
-	 * @throws PropertiesException 
+	 * @throws PropertiesException if something goes wrong
 	 */
 	protected abstract C createConsumerSession(ConsumerProperties properties) throws PropertiesException;
 	

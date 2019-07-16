@@ -14,8 +14,8 @@ public class TopicName implements Comparable<TopicName> {
 	/**
 	 * Create a topic name based on the FQN.
 	 * 
-	 * @param fqn
-	 * @throws PropertiesException
+	 * @param fqn topic name as fqn
+	 * @throws PropertiesException in case the fqn is null or invalid
 	 */
 	public TopicName(String fqn) throws PropertiesException {
 		if (fqn == null) {
@@ -36,8 +36,8 @@ public class TopicName implements Comparable<TopicName> {
 	 * Create a topic name based on the tenant and the tenant specific name. 
 	 * 
 	 * @param tenantID optional
-	 * @param name
-	 * @throws PropertiesException
+	 * @param name topic name within the tenant
+	 * @throws PropertiesException in case the name is null
 	 */
 	public TopicName(String tenantID, String name) throws PropertiesException {
 		if (name == null || name.length() == 0) {
@@ -78,7 +78,7 @@ public class TopicName implements Comparable<TopicName> {
 	}
 
 	/**
-	 * @param c
+	 * @param c character to find
 	 * @return fqn.indexOf(c)
 	 */
 	public int indexOf(char c) {
@@ -86,8 +86,8 @@ public class TopicName implements Comparable<TopicName> {
 	}
 
 	/**
-	 * @param beginindex
-	 * @param len
+	 * @param beginindex start position
+	 * @param len substring length
 	 * @return fqn.substring(beginindex, len)
 	 */
 	public String substring(int beginindex, int len) {
@@ -95,7 +95,7 @@ public class TopicName implements Comparable<TopicName> {
 	}
 
 	/**
-	 * @param beginindex
+	 * @param beginindex start position
 	 * @return fqn.substring(beginindex)
 	 */
 	public String substring(int beginindex) {

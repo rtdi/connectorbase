@@ -5,7 +5,6 @@ import java.util.List;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesRuntimeException;
 import io.rtdi.bigdata.connector.properties.atomic.IProperty;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
 
@@ -25,9 +24,8 @@ public class ConsumerProperties {
 	/**
 	 * Creates an new TopicListenerProperties with the minimum list of actual properties, some of which have  default value.
 	 * 
-	 * @param name The name of the TopicListener
-	 * @param connectionprops The parent Connection
-	 * @throws PropertiesRuntimeException
+	 * @param name of the instance
+	 * @throws PropertiesException if name is null
 	 */
 	public ConsumerProperties(String name) throws PropertiesException {
 		super();
@@ -59,7 +57,7 @@ public class ConsumerProperties {
 	}
 	
 	/**
-	 * @return The regexp of all topics this Listener consumes data from
+	 * @return The regexp string of all topics this Listener consumes data from
 	 */
 	public String getTopicPattern() {
 		return properties.getStringPropertyValue(TOPICLISTENER_TOPICLIST);
@@ -81,8 +79,8 @@ public class ConsumerProperties {
 	/**
 	 * Copies the provided values of the ProperyGroup into this object
 	 * 
-	 * @param pg
-	 * @throws PropertiesRuntimeException
+	 * @param pg PropertyRoot to take the values from
+	 * @throws PropertiesException if there is a mismatch in the data type
 	 * 
 	 * @see PropertyRoot#parseValue(PropertyRoot)
 	 */
@@ -91,7 +89,7 @@ public class ConsumerProperties {
 	}
 
 	/**
-	 * @return The backing PropertyGroup containing all the values
+	 * @return backing PropertyGroup containing all the values
 	 */
 	public PropertyRoot getPropertyGroup() {
 		return properties;
@@ -100,8 +98,8 @@ public class ConsumerProperties {
 	/**
 	 * Set the InstanceCount property value.
 	 * 
-	 * @param instances
-	 * @throws PipelinePropertiesException 
+	 * @param instances specifies how many consumers should read the topic in parallel
+	 * @throws PropertiesException if there is a mismatch in the data type
 	 */
 	public void setInstanceCount(int instances) throws PropertiesException {
 		properties.setProperty(TOPICLISTENER_INSTANCES, instances);
@@ -117,8 +115,8 @@ public class ConsumerProperties {
 	/**
 	 * Set the FlushTime property value.
 	 * 
-	 * @param flushtime
-	 * @throws PipelinePropertiesException 
+	 * @param flushtime specifies the time in ms when a flush should happen in any case
+	 * @throws PropertiesException if there is a mismatch in the data type
 	 */
 	public void setFlushMaxTime(long flushtime) throws PropertiesException {
 		properties.setProperty(TOPICLISTENER_FLUSHMS, flushtime);
@@ -135,7 +133,7 @@ public class ConsumerProperties {
 	 * set the list of topics property value
 	 * 
 	 * @param pattern regexp matching all topics this listener should consume
-	 * @throws PipelinePropertiesException 
+	 * @throws PropertiesException if there is a mismatch in the data type
 	 */
 	public void setTopicPattern(String pattern) throws PropertiesException {
 		properties.setProperty(TOPICLISTENER_TOPICLIST, pattern);
@@ -151,8 +149,8 @@ public class ConsumerProperties {
 	/**
 	 * Set the FlushTime property value.
 	 * 
-	 * @param flushtime
-	 * @throws PipelinePropertiesException 
+	 * @param recordcount when to flush in any case
+	 * @throws PropertiesException if there is a mismatch in the data type
 	 */
 	public void setFlushMaxRecords(int recordcount) throws PropertiesException {
 		properties.setProperty(TOPICLISTENER_MAX_RECORDS, recordcount);
@@ -160,9 +158,9 @@ public class ConsumerProperties {
 
 	/**
 	 * Read the individual connection properties from a directory. The file name is derived from the {@link #getName()}.
-	 *  
-	 * @param connectionpropertiesfile
-	 * @throws PropertiesRuntimeException
+	 * 
+	 * @param directory where the file can be found
+	 * @throws PropertiesException if the file is not found or has invalid content
 	 */
 	public void read(File directory) throws PropertiesException {
 		properties.read(directory);
@@ -171,8 +169,8 @@ public class ConsumerProperties {
 	/**
 	 * Write the current connection properties into a directory. The file name is derived from the {@link #getName()}.
 	 *  
-	 * @param directory
-	 * @throws PropertiesRuntimeException
+	 * @param directory where the file should be written
+	 * @throws PropertiesException if the file cannot be written
 	 */
 	public void write(File directory) throws PropertiesException {
 		properties.write(directory);

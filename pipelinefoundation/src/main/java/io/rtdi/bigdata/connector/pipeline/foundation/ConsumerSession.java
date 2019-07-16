@@ -3,7 +3,6 @@ package io.rtdi.bigdata.connector.pipeline.foundation;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.avro.Schema;
@@ -81,15 +80,15 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 	 *  
 	 * Use {@link #addTopic(TopicHandler)} to actually add the individual topics.
 	 * 
-	 * @throws PropertiesException 
+	 * @throws PropertiesException in case the topics cannot be set
 	 */
 	public abstract void setTopics() throws PropertiesException;
 	
 	/**
-	 * Note: This method returns something useful only after the {@link #openConsumerSession()} had been called. For some implementations earlier 
+	 * Note: This method returns something useful only after the {@link #open()} had been called. For some implementations it might happen earlier 
 	 * but most need to establish a connection first.
 	 * 
-	 * @return The list of all topics it does listen on. Set by {@link #setTopics(List)}.
+	 * @return The list of all topics it does listen on. Set by {@link #setTopics()}.
 	 *
 	 */
 	public Map<String, T> getTopics() {
@@ -100,7 +99,7 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 	 * This method adds a new TopicHandler of a topic the consumer is listening on. 
 	 * It builds a directory of all topics this consumer does create data for and can be used to quickly get a TopicHandler.
 	 * 
-	 * @param topichandler
+	 * @param topichandler TopicHandler
 	 */
 	protected void addTopic(T topichandler) {
 		topichandlers.put(topichandler.getTopicName().getName(), topichandler);
@@ -110,7 +109,7 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 	/**
 	 * Inverse operation to {@link #addTopic(TopicHandler)}
 	 * 
-	 * @param topichandler
+	 * @param topichandler TopicHandler
 	 */
 	protected void removeTopic(T topichandler) {
 		lastmetadatachange = System.currentTimeMillis();
@@ -119,31 +118,29 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 
 	/**
 	 * Get the TopicHandler based on the TopicName. Useful when a consumer gets data from different tables, then this
-	 * method can be used. Or maybe the {@link #getTopic(String)}?<BR/>
+	 * method can be used. Or maybe the {@link #getTopic(String)}?<br>
 	 * 
-	 * @param topicname
-	 * @return
-	 * @throws PipelineRuntimeException 
+	 * @param topicname Name of the topic
+	 * @return TopicHandler
 	 */
-	public T getTopic(TopicName topicname) throws PipelineRuntimeException {
+	public T getTopic(TopicName topicname) {
 		return topichandlers.get(topicname.getName());
 	}
 	
 	/**
 	 * Get the TopicHandler based on the TopicName.getName() portion. 
 	 * Often the TopicName.getName() will be the source database table name, hence when a change row is found for a table,
-	 * by using this method the TopicHandler can be found.<BR/>
+	 * by using this method the TopicHandler can be found.<br>
 	 *  
-	 * @param topicname
-	 * @return
-	 * @throws PropertiesException 
+	 * @param topicname Name of the topic as string
+	 * @return TopicHandler
 	 */
-	public T getTopic(String topicname) throws PropertiesException {
+	public T getTopic(String topicname) {
 		return topichandlers.get(topicname);
 	}
 	
 	/**
-	 * @throws IOException
+	 * @throws IOException In case anything went wrong
 	 */
 	public abstract void open() throws IOException;
 
@@ -155,7 +152,7 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 	/**
 	 * This method implementation should confirm for the Consumer that the data has been processed successfully up to this point
 	 * 
-	 * @throws IOException 
+	 * @throws IOException In case anything went wrong
 	 */
 	public abstract void commit() throws IOException;
 

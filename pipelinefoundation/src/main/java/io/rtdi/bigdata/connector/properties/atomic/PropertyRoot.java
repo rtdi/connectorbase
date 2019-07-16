@@ -31,7 +31,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 	 * Read the entire properties from a file matching the name.
 	 *  
 	 * @param directory The directory where a file with the {@link #getName()} plus .json suffix is found
-	 * @throws PropertiesException
+	 * @throws PropertiesException if the file cannot be read or has invalid content
 	 */
 	public void read(File directory) throws PropertiesException {
 		if (!directory.exists()) {
@@ -57,7 +57,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 	 * Write the current properties to a file with its name derived from {@link #getName()}.
 	 * 
 	 * @param directory The directory where a file with the {@link #getName()} plus .json suffix should be written into
-	 * @throws PropertiesException
+	 * @throws PropertiesException if the file is not write-able or one of the properties cannot be serialized
 	 */
 	public void write(File directory) throws PropertiesException {
 		if (!directory.exists()) {

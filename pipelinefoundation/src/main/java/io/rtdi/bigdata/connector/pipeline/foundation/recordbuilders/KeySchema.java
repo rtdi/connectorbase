@@ -16,22 +16,29 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 public class KeySchema extends SchemaBuilder {
 
 	/**
-	 * @param name
-	 * @param namespace
-	 * @param description
+	 * @param name of the key schema
+	 * @param namespace optional namespace identifier
+	 * @param description free form text
 	 */
 	public KeySchema(String name, String namespace, String description) {
 		super(name, namespace, description);
 	}
 
 	/**
-	 * @param name
-	 * @param description
+	 * @param name of the key schema
+	 * @param description free form text
 	 */
 	public KeySchema(String name, String description) {
 		super(name, description);
 	}
 	
+	/**
+	 * Derive the key schema from the value schema using its primary key flags
+	 * 
+	 * @param valueschema the key schema is based on
+	 * @return KeySchema
+	 * @throws SchemaException if the value schema is invalid
+	 */
 	public static Schema create(Schema valueschema) throws SchemaException {
 		KeySchema kbuilder = new KeySchema(valueschema.getName(), null);
 		int count = 0;

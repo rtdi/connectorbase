@@ -12,7 +12,7 @@ import org.apache.avro.io.EncoderFactory;
 
 /**
  * Creates a a binary representation of an Avro GenericRecord in the Kafka format.
- * Hence all data putin into Kafka can be read by other tools like Kafka Connect.  
+ * Hence all data put into Kafka can be read by other tools like Kafka Connect.  
  *
  */
 public class AvroSerializer {
@@ -20,6 +20,14 @@ public class AvroSerializer {
 	private static EncoderFactory encoderFactory = EncoderFactory.get();
 
 
+	/**
+	 * Convert an AvroRecord into a Kafka payload
+	 * 
+	 * @param schemaid ID of the Kafka Schema
+	 * @param data AvroRecord
+	 * @return binary representation of the AvroRecord
+	 * @throws IOException in case the AvroRecord cannot be serialized
+	 */
 	public static byte[] serialize(int schemaid, GenericRecord data) throws IOException {
 		try ( ByteArrayOutputStream out = new ByteArrayOutputStream(); ) {
 			out.write(IOUtils.MAGIC_BYTE);

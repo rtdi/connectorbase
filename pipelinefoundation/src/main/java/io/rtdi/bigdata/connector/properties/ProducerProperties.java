@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.List;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesRuntimeException;
 import io.rtdi.bigdata.connector.properties.atomic.IProperty;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyGroup;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
@@ -51,8 +50,8 @@ public class ProducerProperties {
 	/**
 	 * Copy all values of the provided PropertyGroup into this object's values.
 	 * 
-	 * @param pg
-	 * @throws PropertiesRuntimeException
+	 * @param pg PropertyRoot to take the values from
+	 * @throws PropertiesException if one of the data types does not match
 	 * 
 	 * @see PropertyRoot#parseValue(PropertyRoot)
 	 */
@@ -79,8 +78,8 @@ public class ProducerProperties {
 	/**
 	 * Read the individual properties from a directory. The file name is derived from the {@link #getName()}.
 	 *  
-	 * @param directory
-	 * @throws PipelinePropertiesException
+	 * @param directory where the file can be found
+	 * @throws PropertiesException if the fiel cannot be read or the content is wrong
 	 */
 	public void read(File directory) throws PropertiesException {
 		properties.read(directory);
@@ -89,8 +88,8 @@ public class ProducerProperties {
 	/**
 	 * Write the current properties into a directory. The file name is derived from the {@link #getName()}.
 	 *  
-	 * @param directory
-	 * @throws PipelinePropertiesException
+	 * @param directory where to write the file to
+	 * @throws PropertiesException if the file is not write-able
 	 */
 	public void write(File directory) throws PropertiesException {
 		properties.write(directory);
@@ -99,15 +98,15 @@ public class ProducerProperties {
 	/**
 	 * Set the InstanceCount property value.
 	 * 
-	 * @param instances
-	 * @throws PipelinePropertiesException 
+	 * @param instances is the number of parallel producers
+	 * @throws PropertiesException in case there is a data type mismatch
 	 */
 	public void setInstanceCount(int instances) throws PropertiesException {
 		properties.setProperty(PRODUCER_COUNT, instances);
 	}
 	
 	/**
-	 * @return The InstanceCount property value
+	 * @return InstanceCount property value
 	 */
 	public Integer getInstanceCount() {
 		return properties.getIntPropertyValue(PRODUCER_COUNT);

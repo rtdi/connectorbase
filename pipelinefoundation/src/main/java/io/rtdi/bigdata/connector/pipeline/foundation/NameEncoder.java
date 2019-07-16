@@ -32,8 +32,9 @@ public class NameEncoder {
 	}
 
 	/** Inverse operation to {@link #encodeName(String)}
-	 * @param name
-	 * @return
+	 * 
+	 * @param name encoded name
+	 * @return decoded name
 	 */
 	public static String decodeName(String name) {
 		Matcher m = decoderpattern.matcher(name);

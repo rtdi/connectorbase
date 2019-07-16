@@ -30,7 +30,7 @@ public class AvroField extends Field {
 	 * Create a new column with the contents based on a compiled schema field.
 	 * Used to derive the key schema from the value schema.
 	 * 
-	 * @param f
+	 * @param f as Avro's field object
 	 */
 	public AvroField(Field f) {
 		super(f.name(), f.schema(), f.doc(), f.defaultVal(), f.order());

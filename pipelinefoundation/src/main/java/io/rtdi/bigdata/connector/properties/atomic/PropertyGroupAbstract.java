@@ -7,7 +7,6 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesRuntimeException;
 
 public abstract class PropertyGroupAbstract {
 
@@ -31,10 +30,10 @@ public abstract class PropertyGroupAbstract {
 	
 	/**
 	 * This method is used for JAXB serialization only. To set all values of a property group setValue() based on a JAXB serialized property group use setValue(pg)
-	 * @param values
-	 * @throws PropertiesRuntimeException
+	 * 
+	 * @param values list is the new topic property list
 	 */
-	public void setValues(List<IProperty> values) throws PropertiesRuntimeException {
+	public void setValues(List<IProperty> values) {
 		propertylist = values;
 	}
 		

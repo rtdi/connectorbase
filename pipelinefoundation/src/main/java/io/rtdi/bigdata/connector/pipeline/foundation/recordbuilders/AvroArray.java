@@ -28,15 +28,15 @@ public class AvroArray extends AvroField {
 	/**
 	 * This setting allows database writers to optimize the handling. For example an address might have multiple lines
 	 * hence it is an array of strings. But if we can agree that there will be never more than four lines, the database table
-	 * could store it in up to four columns instead of using a separate table.<br/>
+	 * could store it in up to four columns instead of using a separate table.<br>
 	 * null means unbounded
 	 * 0 means zero entries are allowed and hence can be used for min only
 	 * 1 means that at least or at most one entry is needed if the array itself is present
 	 * 
 	 * @param min allowed occurrences, null, 0 or any positive int
 	 * @param max allowed occurrences, null, 1 or any larger positive int 
-	 * @return
-	 * @throws SchemaException if min>max or any other illegal value for min or max
+	 * @return AvroArray object
+	 * @throws SchemaException if min &gt; max or any other illegal value for min or max
 	 */
 	public AvroArray setMinMax(Integer min, Integer max) throws SchemaException {
 		if (min != null) {

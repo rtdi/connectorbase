@@ -36,9 +36,10 @@ public class TopicUtil {
 	
 	/**
 	 * Used to combine tenant and topic name without validation. Useful for example when the topic name is actually a regex pattern.
-	 * @param tenantid
-	 * @param name
+	 * @param tenantid as string
+	 * @param name topic name within the tenant
 	 * @return fqn
+	 * @throws PropertiesException in case the input is invalid
 	 */
 	public static String createTopicFQN(String tenantid, String name) throws PropertiesException {
 		StringBuffer b = new StringBuffer();

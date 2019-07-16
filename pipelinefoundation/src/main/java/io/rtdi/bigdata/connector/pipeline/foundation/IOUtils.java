@@ -54,12 +54,12 @@ public class IOUtils {
 	}
 	
 	/**
-	 * Read from an inputstream the entire ByteBuffer size
+	 * Read from an InputStream the entire ByteBuffer size
 	 * 
-	 * @param in
+	 * @param in the InputStream to read from
 	 * @param b is the ByteBuffer to be filled in its entire
 	 * @return true in case all could be read
-	 * @throws IOException
+	 * @throws IOException in case of network issues
 	 */
 	public static boolean readExact(InputStream in, ByteBuffer b) throws IOException {
 		int bytesread = 0;
@@ -75,15 +75,15 @@ public class IOUtils {
 		return true;
 	}
 	
-	/** Read a string value from the input stream.<BR/>
-	 * The string read is stored in {@link #getNextStringValue()}.<BR/>
+	/** Read a string value from the input stream.<br>
+	 * The string read is stored in {@link #getNextStringValue()}.<br>
 	 * The readNext... method group is mostly used for reading values up the end, when values can exist up to n times.
 	 * 
 	 * As seen from the wire a string is a an integer with the string length plus the UTF-8 encoded value.
 	 * 
-	 * @param in
+	 * @param in the InputStream to read from
 	 * @return true in case the data was read successfully
-	 * @throws IOException
+	 * @throws IOException in case of network issues
 	 */
 	public boolean readNextStringValue(InputStream in) throws IOException {
 		if (readExact(in, integerbytebuffer)) {
@@ -107,13 +107,13 @@ public class IOUtils {
 		return nextstringvalue;
 	}
 	
-	/** Read a long value from the input stream.<BR/>
-	 * The value read is stored in {@link #getNextLongValue()}.<BR/>
+	/** Read a long value from the input stream.<br>
+	 * The value read is stored in {@link #getNextLongValue()}.<br>
 	 * The readNext... method group is mostly used for reading values up the end, when values can exist up to n times.
 	 * 
-	 * @param in
+	 * @param in the InputStream to read from
 	 * @return true in case the data was read successfully
-	 * @throws IOException
+	 * @throws IOException in case of network issues
 	 */
 	public boolean readNextLongValue(InputStream in) throws IOException {
 		if (readExact(in, longbytebuffer)) {
@@ -131,13 +131,13 @@ public class IOUtils {
 		return nextlongvalue;
 	}
 
-	/**Read a int value from the input stream.<BR/>
-	 * The value read is stored in {@link #getNextIntValue()}.<BR/>
+	/**Read a int value from the input stream.<br>
+	 * The value read is stored in {@link #getNextIntValue()}.<br>
 	 * The readNext... method group is mostly used for reading values up the end, when values can exist up to n times.
 	 * 
-	 * @param in
+	 * @param in the InputStream to read from
 	 * @return true in case the data was read successfully
-	 * @throws IOException
+	 * @throws IOException in case of network issues
 	 */
 	public boolean readNextIntValue(InputStream in) throws IOException {
 		if (readExact(in, integerbytebuffer)) {
@@ -157,9 +157,9 @@ public class IOUtils {
 
 	/** Send a string over the wire.
 	 * 
-	 * @param out
-	 * @param text
-	 * @throws IOException
+	 * @param out the OutputStream to write into
+	 * @param text String to send
+	 * @throws IOException in case of network issues
 	 */
 	public void sendString(OutputStream out, String text) throws IOException {
 		if (text == null) {
@@ -175,9 +175,9 @@ public class IOUtils {
 	
 	/** Read a mandatory string from the wire.
 	 * 
-	 * @param in
+	 * @param in the InputStream to read from
 	 * @return the string read or null in case the string was null
-	 * @throws IOException
+	 * @throws IOException in case of network issues
 	 */
 	public String readString(InputStream in) throws IOException {
 		int size = readInt(in);
@@ -197,9 +197,9 @@ public class IOUtils {
 
 	/** Send a byte array over the wire.
 	 * 
-	 * @param out
-	 * @param data
-	 * @throws IOException
+	 * @param out the OutputStream to write into
+	 * @param data byte[] to send
+	 * @throws IOException in case of network issues
 	 */
 	public void sendBytes(OutputStream out, byte[] data) throws IOException {
 		if (data != null) {
@@ -211,9 +211,9 @@ public class IOUtils {
 	}
 	
 	/** Read the data from a mandatory byte array from the wire.
-	 * @param in
-	 * @return
-	 * @throws IOException
+	 * @param in the InputStream to read from
+	 * @return the byte[] received
+	 * @throws IOException in case of network issues
 	 */
 	public byte[] readBytes(InputStream in) throws IOException {
 		int size = readInt(in);
@@ -231,9 +231,9 @@ public class IOUtils {
 
 	/** Send an integer over the wire.
 	 * 
-	 * @param out
-	 * @param value
-	 * @throws IOException
+	 * @param out the OutputStream to write into
+	 * @param value of type integer to send 
+	 * @throws IOException in case of network issues
 	 */
 	public void sendInt(OutputStream out, int value) throws IOException {
 		integerbytebuffer.putInt(0, value);
@@ -241,9 +241,9 @@ public class IOUtils {
 	}
 
 	/** Read a mandatory int value from the wire
-	 * @param in
-	 * @return
-	 * @throws IOException
+	 * @param in the InputStream to read from
+	 * @return integer read from the stream
+	 * @throws IOException in case of network issues
 	 */
 	public int readInt(InputStream in) throws IOException {
 		if (readExact(in, integerbytebuffer)) {
@@ -254,9 +254,9 @@ public class IOUtils {
 	}
 
 	/** Send a long over the wire.
-	 * @param out
-	 * @param value
-	 * @throws IOException
+	 * @param out the OutputStream to write into
+	 * @param value of type long to send
+	 * @throws IOException in case of network issues
 	 */
 	public void sendLong(OutputStream out, long value) throws IOException {
 		longbytebuffer.putLong(0, value);
@@ -264,9 +264,9 @@ public class IOUtils {
 	}
 
 	/** Read a mandatory long value from the wire
-	 * @param in
-	 * @return
-	 * @throws IOException
+	 * @param in the InputStream to read from
+	 * @return long value received
+	 * @throws IOException in case of network issues
 	 */
 	public long readLong(InputStream in) throws IOException {
 		if (readExact(in, longbytebuffer)) {

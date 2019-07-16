@@ -12,7 +12,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEnti
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayload;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.PipelineConnectionProperties;
@@ -37,8 +36,8 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * getSchema(new SchemaName(api.genTenantID(), schemaname))
 	 * 
 	 * @param schemaname The schema name of this tenant. It is not the FQN.
-	 * @return schemahandler or null if not found
-	 * @throws PropertiesException 
+	 * @return SchemaHandler or null if not found
+	 * @throws PropertiesException if something goes wrong
 	 */
 	SchemaHandler getSchema(String schemaname) throws PropertiesException;
 
@@ -51,66 +50,131 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 
 	/**
 	 * @return A list of schema names for this tenant
-	 * @throws PropertiesException 
+	 * @throws PropertiesException if something goes wrong
 	 */
 	List<String> getSchemas() throws PropertiesException;
 
+	/**
+	 * @param topic TopicName
+	 * @param partitioncount for the topic
+	 * @param replicationfactor for the topic
+	 * @param configs optional parameters
+	 * @return TopicHandler
+	 * @throws PropertiesException if something goes wrong
+	 */
 	T topicCreate(TopicName topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException;
 
+	/**
+	 * @param topic TopicName
+	 * @param partitioncount for the topic
+	 * @param replicationfactor for the topic
+	 * @return TopicHandler
+	 * @throws PropertiesException if something goes wrong
+	 */
 	T topicCreate(TopicName topic, int partitioncount, int replicationfactor) throws PropertiesException;
 
+	/**
+	 * @param topic name of the topic within the tenant
+	 * @param partitioncount for the topic
+	 * @param replicationfactor for the topic
+	 * @param configs optional parameters
+	 * @return TopicHandler
+	 * @throws PropertiesException if something goes wrong
+	 */
 	T topicCreate(String topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException;
 
+	/**
+	 * @param topic name of the topic within the tenant
+	 * @param partitioncount for the topic
+	 * @param replicationfactor for the topic
+	 * @return TopicHandler
+	 * @throws PropertiesException if something goes wrong
+	 */
 	T topicCreate(String topic, int partitioncount, int replicationfactor) throws PropertiesException;
 
 	/**
 	 * A synchronized version of the {@link #getTopic(String)} and {@link #topicCreate(TopicName, int, int, Map)} to deal with the case where 
 	 * two threads want to create the same topic at the same time.
 	 * 
-	 * @param name
-	 * @param partitioncount
-	 * @param replicationfactor
+	 * @param name name of the topic within the tenant
+	 * @param partitioncount for the topic
+	 * @param replicationfactor for the topic
 	 * @param configs Optional server specific properties
-	 * @return
-	 * @throws PropertiesException 
+	 * @return TopicHandler
+	 * @throws PropertiesException if something goes wrong
 	 */
 	T getTopicOrCreate(String name, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException;
 
+	/**
+	 * Simplified version of {@link #getTopicOrCreate(String, int, int, Map)} for convenience.
+	 * 
+	 * @param topicname name of the topic within the tenant
+	 * @param partitioncount for the topic
+	 * @param replicationfactor for the topic
+	 * @return TopicHandler
+	 * @throws PropertiesException if something goes wrong
+	 * 
+	 */
 	T getTopicOrCreate(String topicname, int partitioncount, int replicationfactor) throws PropertiesException;
 
 	/**
-	 * Get the TopicHandler of an already existing topic
+	 * Get the TopicHandler of an already existing topic.
+	 * 
 	 * @param topicname The tenant's name of the topic
 	 * @return The TopicHandler representing the topic or null
-	 * @throws PropertiesException 
+	 * @throws PropertiesException if something goes wrong
 	 */
 	T getTopic(String topicname) throws PropertiesException;
 
 	/**
 	 * Get a list of all known topics
 	 * @return A list of all known topics in the server
-	 * @throws PipelineRuntimeException
-	 * @throws IOException 
+	 * @throws IOException if something goes wrong
 	 */
-	List<String> getTopics() throws PipelineRuntimeException, IOException;
+	List<String> getTopics() throws IOException;
 
+	/**
+	 * @param topicname name of the topic within the tenant
+	 * @param count most recent n records
+	 * @return List of AvroRecords and their metadata
+	 * @throws IOException if something goes wrong
+	 * 
+	 */
 	List<TopicPayload> getLastRecords(String topicname, int count) throws IOException;
 
 	/**
-	 * see @link {@link #getLastRecords(TopicName, int)} <BR/>
-	 * Like above but used to re-read all data from a given timestamp onwards.
-	 * @throws PropertiesException 
-	 * @throws IOException 
+	 *  
+	 * @param topicname name of the topic within the tenant
+	 * @param timestamp starting point to read from
+	 * @return List of AvroRecords and their metadata
+	 * @throws IOException if something goes wrong
+	 * 
 	 */
 	List<TopicPayload> getLastRecords(String topicname, long timestamp) throws IOException;
 
+	/**
+	 * Read the most recent n records from a topic.
+	 * 
+	 * @param topicname TopicName
+	 * @param count of most recent records to return
+	 * @return List of AvroRecords and their metadata
+	 * @throws IOException if something goes wrong
+	 */
 	List<TopicPayload> getLastRecords(TopicName topicname, int count) throws IOException;
 
+	/**
+	 * Read all records from a given timestamp onwards. Like {@link #getLastRecords(TopicName, int)} but based using a timestamp as starting point.
+	 *  
+	 * @param topicname TopicName
+	 * @param timestamp starting point to read from
+	 * @return List of AvroRecords and their metadata
+	 * @throws IOException if something goes wrong
+	 */
 	List<TopicPayload> getLastRecords(TopicName topicname, long timestamp) throws IOException;
 
 	/**
 	 * @return The tenantid as being set in the constructor
-	 * @throws PropertiesException 
+	 * @throws PropertiesException if something goes wrong
 	 */
 	String getTenantID() throws PropertiesException;
 
@@ -119,54 +183,70 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	C createNewConsumerSession(ConsumerProperties properties) throws PropertiesException;
 
 	/**
-	 * This method should implement everything that is needed to open the connection to the topic server and thus enables all other api methods.<BR/>
-	 * The implementation should set useful information during the open sequence using the {@link #setApistate(String)} method to enable the end user
+	 * This method should implement everything that is needed to open the connection to the topic server and thus enables all other api methods.<br>
+	 * The implementation should set useful information during the open sequence to enable the end user
 	 * to see where the open method might have failed.
 	 * 
-	 * @throws PipelineRuntimeException
+	 * @throws IOException if something goes wrong
 	 */
 	void open() throws IOException;
 
 	void close();
 
+	/**
+	 * @param producername to remove
+	 * @throws IOException if something goes wrong
+	 */
 	void removeProducerMetadata(String producername) throws IOException;
 
 	void removeConsumerMetadata(String consumername) throws IOException;
 
 	/**
-	 * Loops through the entire metadata tree and calls {@link #addProducerMetadata(String, TopicName, SchemaName)} for each.<BR/>
-	 * Overwrite with a more effective implementation if applicable.
+	 * Add the producer's information to the metadata directory
 	 * 
-	 * @param producer
-	 * @throws IOException 
+	 * @param producer ProducerEntity to add metadata for
+	 * @throws IOException if something goes wrong
 	 */
 	void addProducerMetadata(ProducerEntity producer) throws IOException;
 
 	/**
-	 * Loops through the topics and calls {@link #addConsumerMetadata(String, TopicName)} for each.<BR/>
-	 * Overwrite with a more effective implementation if applicable.
+	 * Add the consumer's information to the metadata directory 
 	 * 
-	 * @param consumer
-	 * @throws IOException 
+	 * @param consumer ConsumerEntity to add metadata for
+	 * @throws IOException if something goes wrong
 	 */
 	void addConsumerMetadata(ConsumerEntity consumer) throws IOException;
 
 	/**
 	 * @return The information of all producers, the topics they use and the schemas of each topic
-	 * @throws PipelineRuntimeException
+	 * @throws IOException if something goes wrong
 	 */
 	ProducerMetadataEntity getProducerMetadata() throws IOException;
 
 	/**
 	 * @return The list of all consumers and the topics they listen on
-	 * @throws IOException 
+	 * @throws IOException if something goes wrong
 	 */
 	ConsumerMetadataEntity getConsumerMetadata() throws IOException;
 
 	S getAPIProperties();
 
+	/**
+	 * Find the properties file in the provided directory structure and load the contents so the {@link #open()} has all information it needs.
+	 * 
+	 * @param webinfdir root directory of the settings directory tree
+	 * @throws PropertiesException in case properties are wrong
+	 */
 	public void loadConnectionProperties(File webinfdir) throws PropertiesException;
 
+	/**
+	 * Write the current connection properties into a file within the currently active root directory tree. <br>
+	 * <br>
+	 * Note: The root directory needs to be set at the point. Usually because the {@link #loadConnectionProperties(File)} was called and it remembers that directory.
+	 * 
+	 * @throws PropertiesException in case the properties cannot be written
+	 * 
+	 */
 	public void writeConnectionProperties() throws PropertiesException;
 
 	/**

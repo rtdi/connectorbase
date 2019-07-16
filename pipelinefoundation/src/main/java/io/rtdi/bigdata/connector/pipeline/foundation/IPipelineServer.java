@@ -34,24 +34,24 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 	/**
 	 * To create or update an existing schema with all its metadata.
 	 * 
-	 * @param name The name of the schema
-	 * @param description An optional description
-	 * @param keyschema The Avro key-schema used by this
-	 * @param valueschema The Avro value-schema used by this 
-	 * @return
-	 * @throws PropertiesException 
+	 * @param name name of the schema
+	 * @param description optional description
+	 * @param keyschema Avro key-schema used by this
+	 * @param valueschema Avro value-schema used by this 
+	 * @return SchemaHandler
+	 * @throws PropertiesException if something goes wrong
 	 */
 	SchemaHandler registerSchema(SchemaName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException;
 
 	/**
 	 * Create a new topic  with the provided metadata
 	 * 
-	 * @param topic The TopicName to be used - has to be unique
-	 * @param partitioncount How many partitions should this topic have?
-	 * @param replicationfactor How often should it be replicated in case of a cluster
-	 * @param configs Optional server specific properties
-	 * @return The TopicHandler representing the topic with all its metadata
-	 * @throws PropertiesException 
+	 * @param topic TopicName to be used - has to be unique
+	 * @param partitioncount specifies how many partitions this topic should have
+	 * @param replicationfactor specifies how often it should be replicated in case of a cluster
+	 * @param configs optional server specific properties
+	 * @return TopicHandler representing the topic with all its metadata
+	 * @throws PropertiesException if something goes wrong
 	 */
 	T createTopic(TopicName topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException;
 
@@ -61,12 +61,12 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 	 * A synchronized version of the {@link #getTopic(TopicName)} and {@link #createTopic(TopicName, int, int, Map)} to deal with the case where 
 	 * two threads want to create the same topic at the same time.
 	 * 
-	 * @param topic
-	 * @param partitioncount
-	 * @param replicationfactor
-	 * @param configs Optional server specific properties
-	 * @return
-	 * @throws PropertiesException 
+	 * @param topic TopicName
+	 * @param partitioncount for the topic
+	 * @param replicationfactor for the topic
+	 * @param configs optional server specific properties
+	 * @return TopicHandler
+	 * @throws PropertiesException if something goes wrong
 	 */
 	T getTopicOrCreate(TopicName topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException;
 
@@ -74,11 +74,11 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 	 * A synchronized version of the {@link #getTopic(TopicName)} and {@link #createTopic(TopicName, int, int, Map)} to deal with the case where 
 	 * two threads want to create the same topic at the same time.
 	 * 
-	 * @param topic
-	 * @param partitioncount
-	 * @param replicationfactor
-	 * @return
-	 * @throws PropertiesException 
+	 * @param topic TopicName
+	 * @param partitioncount for the topic
+	 * @param replicationfactor for the topic
+	 * @return TopicHandler
+	 * @throws PropertiesException if something goes wrong
 	 */
 	T getTopicOrCreate(TopicName topic, int partitioncount, int replicationfactor) throws PropertiesException;
 
@@ -86,13 +86,13 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 
 	/**
 	 * This method can be used to re-read the last n records in a topic without impacting the consumption. Useful for
-	 * data preview and the such.<BR/>
+	 * data preview and the such.<br>
 	 * Should return the data sorted descending by insertion time
 	 * 
 	 * @param topicname The name of the topic to read data from
 	 * @param count The number of records 
-	 * @return A list of TopicPayload records containing metadata and data
-	 * @throws PipelineRuntimeException
+	 * @return list of Avro records with metadata
+	 * @throws IOException if something goes wrong
 	 */
 	List<TopicPayload> getLastRecords(TopicName topicname, int count) throws IOException;
 

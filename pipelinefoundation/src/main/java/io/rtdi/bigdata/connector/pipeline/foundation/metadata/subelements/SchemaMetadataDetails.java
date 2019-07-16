@@ -24,11 +24,11 @@ public class SchemaMetadataDetails {
 	/**
 	 * Create a new SchemaMetadata object by providing the AvroSchema and its SchemaID taken from the Kafka Schema Registry.
 	 * 
-	 * @param keyschema
-	 * @param valueschema
-	 * @param keyschemaid
-	 * @param valueschemaid
-	 * @throws PipelinePropertiesException 
+	 * @param keyschema Schema of the key
+	 * @param valueschema Schema of the value
+	 * @param keyschemaid schema id of the key
+	 * @param valueschemaid schema id of the value
+	 * @throws PropertiesException if either key or value is null
 	 */
 	public SchemaMetadataDetails(Schema keyschema, Schema valueschema, int keyschemaid, int valueschemaid) throws PropertiesException {
 		if (keyschema == null) {
@@ -44,14 +44,14 @@ public class SchemaMetadataDetails {
 	}
 	
 	/**
-	 * @return The AvroSchema of the key
+	 * @return Avro schema of the key
 	 */
 	public Schema getKeySchema() {
 		return keyschema;
 	}
 
 	/**
-	 * @return The AvroSchema of the value
+	 * @return Avro schema of the value
 	 */
 	public Schema getValueSchema() {
 		return valueschema;

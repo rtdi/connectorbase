@@ -15,10 +15,10 @@ public class TopicHandler implements Comparable<TopicHandler> {
 	/**
 	 * Create a new TopicHandler based on the TenantID and the tenant specific topic name.
 	 * 
-	 * @param tenant
-	 * @param topic tenant specific topic name
-	 * @param topicmetadata
-	 * @throws PipelinePropertiesException 
+	 * @param tenant tenant id as string
+	 * @param name tenant specific topic name
+	 * @param topicmetadata optional topic metadata
+	 * @throws PropertiesException in case the name is invalid
 	 */
 	public TopicHandler(String tenant, String name, TopicMetadata topicmetadata) throws PropertiesException {
 		this(new TopicName(tenant, name), topicmetadata); // validates that name is not null
@@ -27,9 +27,9 @@ public class TopicHandler implements Comparable<TopicHandler> {
 	/**
 	 * Create a new TopicHandler object based on the global topic name.
 	 * 
-	 * @param topicname
-	 * @param topicmetadata
-	 * @throws PipelinePropertiesException
+	 * @param topicname as TopicName object
+	 * @param topicmetadata optional topic metadata
+	 * @throws PropertiesException in case the name is invalid
 	 */
 	public TopicHandler(TopicName topicname, TopicMetadata topicmetadata) throws PropertiesException {
 		if (topicname == null) {
@@ -44,10 +44,10 @@ public class TopicHandler implements Comparable<TopicHandler> {
 	/**
 	 * A secondary constructor for topic servers that do not have metadata.
 	 * 
-	 * @param topicname
-	 * @param partitions
-	 * @param replicationfactor
-	 * @throws PipelinePropertiesException
+	 * @param topicname as TopicName object
+	 * @param partitions of the topic
+	 * @param replicationfactor of the topic
+	 * @throws PropertiesException if the topicname is null
 	 */
 	protected TopicHandler(TopicName topicname, int partitions, int replicationfactor) throws PropertiesException {
 		if (topicname == null) {
@@ -82,7 +82,7 @@ public class TopicHandler implements Comparable<TopicHandler> {
 	}
 	
 	/**
-	 * @return The actual Kafka topic metadata
+	 * @return topic metadata
 	 */
 	public TopicMetadata getTopicMetadata() {
 		return this.metadata;

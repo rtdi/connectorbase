@@ -13,9 +13,9 @@ public interface ISchemaRegistrySource {
 	/**
 	 * get schema from the schema registry
 	 * 
-	 * @param schemaid
-	 * @return
-	 * @throws PropertiesException 
+	 * @param schemaid of the schema to fetch
+	 * @return Avro Schema
+	 * @throws PropertiesException if something goes wrong
 	 */
 	Schema getSchema(int schemaid) throws PropertiesException;
 

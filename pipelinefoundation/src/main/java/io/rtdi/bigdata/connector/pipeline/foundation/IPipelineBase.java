@@ -1,6 +1,5 @@
 package io.rtdi.bigdata.connector.pipeline.foundation;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 
 /**
@@ -15,7 +14,7 @@ public interface IPipelineBase<T extends TopicHandler> extends ISchemaRegistrySo
 	 * 
 	 * @param topic The globally unique TopicName
 	 * @return The TopicHandler representing the topic or null
-	 * @throws PipelineRuntimeException
+	 * @throws PropertiesException if something goes wrong
 	 */
 	T getTopic(TopicName topic) throws PropertiesException;
 
@@ -24,7 +23,7 @@ public interface IPipelineBase<T extends TopicHandler> extends ISchemaRegistrySo
 	 * 
 	 * @param schemaname Lookup the schema dictionary for a schema of the given SchemaName
 	 * @return A global handler object containing all important information about the schema. 
-	 * @throws PipelineRuntimeException
+	 * @throws PropertiesException if something goes wrong
 	 */
 	SchemaHandler getSchema(SchemaName schemaname) throws PropertiesException;
 

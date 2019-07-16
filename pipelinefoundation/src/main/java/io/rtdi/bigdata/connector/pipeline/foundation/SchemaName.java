@@ -19,7 +19,7 @@ public class SchemaName implements Comparable<SchemaName>{
 	 * Then the tenant is null.
 	 * 
 	 * @param fqn is the full qualified name of the topic
-	 * @throws PropertiesException
+	 * @throws PropertiesException in case the fqn is null or invalid
 	 */
 	public SchemaName(String fqn) throws PropertiesException {
 		if (fqn == null) {
@@ -41,7 +41,7 @@ public class SchemaName implements Comparable<SchemaName>{
 	 * 
 	 * @param tenantID can be null
 	 * @param schemaname is the tenant specific name of the schema
-	 * @throws PropertiesException
+	 * @throws PropertiesException in case the fqn is null
 	 */
 	public SchemaName(String tenantID, String schemaname) throws PropertiesException {
 		if (schemaname == null || schemaname.length() == 0) {
@@ -88,7 +88,9 @@ public class SchemaName implements Comparable<SchemaName>{
 	}
 
 	/**
-	 * @param c
+	 * Duplicate the string operations based on the fqn.
+	 * 
+	 * @param c character to find
 	 * @return fqn.indexOf(c)
 	 */
 	public int indexOf(char c) {
@@ -96,8 +98,10 @@ public class SchemaName implements Comparable<SchemaName>{
 	}
 
 	/**
-	 * @param beginindex
-	 * @param len
+	 * Duplicate the string operations based on the fqn.
+	 * 
+	 * @param beginindex start position
+	 * @param len length of the substring
 	 * @return fqn.substring(beginindex, len)
 	 */
 	public String substring(int beginindex, int len) {
@@ -105,7 +109,9 @@ public class SchemaName implements Comparable<SchemaName>{
 	}
 
 	/**
-	 * @param beginindex
+	 * Duplicate the string operations based on the fqn.
+	 * 
+	 * @param beginindex start position
 	 * @return fqn.substring(beginindex)
 	 */
 	public String substring(int beginindex) {

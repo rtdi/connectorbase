@@ -37,15 +37,15 @@ public class SchemaBuilder {
 	}
 	
 	/**
-	 * Add a column of datatype record based on a provided SchemaBuilder.<br/>
+	 * Add a column of datatype record based on a provided SchemaBuilder.<br>
 	 * Useful if an Avro Schema has multiple fields with the same Record datatype.
 	 * 
 	 * @param columnname of the field to add
-	 * @param subschema created via {@link ValueSchema#createNewSchema(String)}
+	 * @param subschema SchemaBuilder used to form the child record schema
 	 * @param description optional 
 	 * @param nullable is true if the column can be null
 	 * @return AvroRecordField of the column added 
-	 * @throws SchemaException
+	 * @throws SchemaException if the subschema is null
 	 */
 	public AvroRecordField addColumnRecord(String columnname, SchemaBuilder subschema, String description, boolean nullable) throws SchemaException {
 		validate(columnname);
@@ -67,7 +67,7 @@ public class SchemaBuilder {
 	 * @param schemaname of the schema to be created; if null the column name is used
 	 * @param schemadescription of the schema to be created; if null the column description is used
 	 * @return AvroRecordField 
-	 * @throws SchemaException
+	 * @throws SchemaException if the schema is invalid
 	 * 
 	 * @see AvroRecordField#getSchemaBuilder()
 	 */
@@ -84,7 +84,7 @@ public class SchemaBuilder {
 	 * @param description explaining the use of the field
 	 * @param nullable is true if optional
 	 * @return AvroArray, the added column
-	 * @throws SchemaException
+	 * @throws SchemaException if the schema is invalid
 	 */
 	public AvroArray addColumnArray(String columnname, Schema arrayelement, String description, boolean nullable) throws SchemaException {
 		validate(columnname);
@@ -97,11 +97,11 @@ public class SchemaBuilder {
 	 * Add a column of datatype array-of-records based on an existing SchemaBuilder.
 	 * 
 	 * @param columnname of the array column
-	 * @param arrayelement created via {@link ValueSchema#createNewSchema(String)}
+	 * @param arrayelement created via {@link ValueSchema#createNewSchema(String, String)}
 	 * @param description explaining the use of the field
 	 * @param nullable is true if optional
 	 * @return AvroRecordArray, the added column
-	 * @throws SchemaException
+	 * @throws SchemaException if the schema is invalid
 	 */
 	protected AvroRecordArray addColumnRecordArray(String columnname, SchemaBuilder arrayelement, String description, boolean nullable) throws SchemaException {
 		validate(columnname);
@@ -117,8 +117,8 @@ public class SchemaBuilder {
 	 * @param nullable is true if the column can be null
 	 * @param schemaname of the schema to be created; if null the column name is used
 	 * @param schemadescription of the schema to be created; if null the column description is used
-	 * @return
-	 * @throws SchemaException
+	 * @return AvroRecordArray
+	 * @throws SchemaException if the schema is invalid
 	 */
 	public AvroRecordArray addColumnRecordArray(String columnname, String description, boolean nullable, String schemaname, String schemadescription) throws SchemaException {
 		SchemaBuilder subschema = createNewSchema((schemaname != null?schemaname:columnname), (schemadescription != null?schemadescription:description));
@@ -126,7 +126,7 @@ public class SchemaBuilder {
 	}
 
 	/**
-	 * Add columns to the current schema before it is built.<br/>
+	 * Add columns to the current schema before it is built.<br>
 	 * A typical call will look like 
 	 * <pre>add("col1", AvroNVarchar.getSchema(10), "first col", false);</pre>
 	 * 
@@ -135,10 +135,9 @@ public class SchemaBuilder {
 	 * @param description of the column or null
 	 * @param nullable is true if the column is optional
 	 * @return AvroField to set other properties of the field (fluent syntax)
-	 * @throws SchemaException
+	 * @throws SchemaException if the schema is invalid
 	 * 
-	 * @see io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes
-	 * @see AvroField#AvroField(String, Schema, String, Object)
+	 * @see AvroField#AvroField(String, Schema, String, boolean, Object)
 	 */
 	public AvroField add(String columnname, Schema schema, String description, boolean nullable) throws SchemaException {
 		validate(columnname, schema);
@@ -199,7 +198,7 @@ public class SchemaBuilder {
 	 * Once all columns are added to the schema it can be built and is locked then. 
 	 * The build() process goes through all child record builders as well, building the entire schema.
 	 * 
-	 * @throws SchemaException
+	 * @throws SchemaException if the schema has no columns
 	 */
 	public void build() throws SchemaException {
 		if (columns.size() == 0) {

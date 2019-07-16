@@ -19,13 +19,13 @@ public class SchemaHandler {
 	/**
 	 * Constructs a new SchemaHandler by specifying the optional tenantid and the tenant's schema name.
 	 * 
-	 * @param tenantid
+	 * @param tenantid optional tenant id
 	 * @param name schemaname within the tenant
-	 * @param keyschema
-	 * @param valueschema
-	 * @param keyschemaid
-	 * @param valueschemaid
-	 * @throws PipelinePropertiesException 
+	 * @param keyschema Avro schema of the key
+	 * @param valueschema Avro schema of the value
+	 * @param keyschemaid schema id of the key
+	 * @param valueschemaid schema id of the value
+	 * @throws PropertiesException in case of any error
 	 */
 	public SchemaHandler(String tenantid, String name, Schema keyschema, Schema valueschema, int keyschemaid, int valueschemaid) throws PropertiesException {
 		this(new SchemaName(tenantid, name), keyschema, valueschema, keyschemaid, valueschemaid); // includes the test if the name is null
@@ -34,12 +34,12 @@ public class SchemaHandler {
 	/**
 	 * Creates a new SchemaHandler via the global schemaname in the form of {tenantid}-{schemaname}.
 	 * 
-	 * @param schemaname
-	 * @param keyschema
-	 * @param valueschema
-	 * @param keyschemaid
-	 * @param valueschemaid
-	 * @throws PipelinePropertiesException
+	 * @param schemaname SchemaName object representing the schema
+	 * @param keyschema Avro schema of the key
+	 * @param valueschema Avro schema of the value
+	 * @param keyschemaid schema id of the key
+	 * @param valueschemaid schema id of the value
+	 * @throws PropertiesException in case of any error
 	 */
 	public SchemaHandler(SchemaName schemaname, Schema keyschema, Schema valueschema, int keyschemaid, int valueschemaid) throws PropertiesException {
 		if (schemaname == null) {

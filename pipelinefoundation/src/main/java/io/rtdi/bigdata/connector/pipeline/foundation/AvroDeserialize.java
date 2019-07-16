@@ -43,8 +43,9 @@ public class AvroDeserialize {
 	 * @param data with the binary Avro representation
 	 * @param registry is the provider of the schema
 	 * @param schemacache An optional map used as a cache between calls
-	 * @return
-	 * @throws IOException
+	 * @param lastid optionally provide an array of length one, the content will be overwritten with the schema id. Sorry, not very beautiful.
+	 * @return AvroRecord in Jexl abstraction
+	 * @throws IOException In case anything went wrong
 	 */
 	public static JexlRecord deserialize(byte[] data, ISchemaRegistrySource registry, Cache<Integer, Schema> schemacache, int[] lastid) throws IOException {
 		if (data != null) {

@@ -40,13 +40,13 @@ public class ValueSchema extends SchemaBuilder {
 	
 	
 	/**
-	 * In order to create a complex Avro schema for the value record from scratch, this builder is used.<br/>
-	 * It adds mandatory columns to the root level and using {@link #createNewSchema(String)} optional extension columns.
+	 * In order to create a complex Avro schema for the value record from scratch, this builder is used.<br>
+	 * It adds mandatory columns to the root level and optional extension columns.
 	 *  
 	 * @param name of the schema
 	 * @param namespace optional, to make sure two schemas with the same name but different meanings can be separated
 	 * @param description optional text
-	 * @throws SchemaException
+	 * @throws SchemaException if the schema is invalid
 	 */
 	public ValueSchema(String name, String namespace, String description) throws SchemaException {
 		super(name, namespace, description);
@@ -75,6 +75,9 @@ public class ValueSchema extends SchemaBuilder {
 	}
 
 	/**
+	 * @param name of the value schema
+	 * @param description free for text
+	 * @throws SchemaException if the schema is invalid
 	 * @see #ValueSchema(String, String, String)
 	 */
 	public ValueSchema(String name, String description) throws SchemaException {
@@ -84,7 +87,7 @@ public class ValueSchema extends SchemaBuilder {
 	/**
 	 * While a normal child schema has just the added columns, a child schema of the ValueSchema has an additional extension column always.
 	 * 
-	 * @see SchemaBuilder#createNewSchema(java.lang.String)
+	 * @see SchemaBuilder#createNewSchema(String, String)
 	 */
 	@Override
 	protected SchemaBuilder createNewSchema(String name, String schemadescription) throws SchemaException {

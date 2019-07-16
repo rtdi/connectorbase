@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.List;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesRuntimeException;
 import io.rtdi.bigdata.connector.properties.atomic.IProperty;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyGroup;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
@@ -20,7 +19,7 @@ public class ConnectionProperties {
 	/**
 	 * RemoteSourceProperties do have a unique name within an connector.
 	 * 
-	 * @param name
+	 * @param name of the properties
 	 */
 	public ConnectionProperties(String name) {
 		super();
@@ -28,7 +27,7 @@ public class ConnectionProperties {
 	}
 		
 	/**
-	 * @return The name of the RemoteSourceProperties
+	 * @return name of the RemoteSourceProperties
 	 */
 	public String getName() {
 		return properties.getName();
@@ -38,7 +37,7 @@ public class ConnectionProperties {
 	 * Helper method to return a named value of the RemoteSourceProperties object.
 	 * @see PropertyGroup#getValues()
 	 * 
-	 * @return 
+	 * @return List of all properties
 	 */
 	public List<IProperty> getValue() {
 		return properties.getValues();
@@ -46,10 +45,9 @@ public class ConnectionProperties {
 		
 	/**
 	 * Helper method to set all named values of the RemoteSourceProperties object via a PropertyGroup.
-	 * @see PropertyGroup#setValue()
 	 * 
-	 * @param pg
-	 * @throws PipelinePropertiesException
+	 * @param pg set all values based on the contents of this PropertyRoot object
+	 * @throws PropertiesException if one of the properties in invalid
 	 */
 	public void setValue(PropertyRoot pg) throws PropertiesException {
 		properties.parseValue(pg);
@@ -80,7 +78,7 @@ public class ConnectionProperties {
 	/**
 	 * Helper method to get the RemoteSourceProperties description from the backing PropertyGroup.
 	 * 
-	 * @return
+	 * @return description string
 	 */
 	public String getDescription() {
 		return properties.getDescription();
@@ -88,9 +86,8 @@ public class ConnectionProperties {
 
 	/**
 	 * Read the individual connection properties from a directory. The file name is derived from the {@link #getName()}.
-	 *  
-	 * @param connectionpropertiesfile
-	 * @throws PropertiesRuntimeException
+	 * @param directory of the properties file
+	 * @throws PropertiesException if the file has invalid contents
 	 */
 	public void read(File directory) throws PropertiesException {
 		properties.read(directory);
@@ -99,8 +96,8 @@ public class ConnectionProperties {
 	/**
 	 * Write the current connection properties into a directory. The file name is derived from the {@link #getName()}.
 	 *  
-	 * @param directory
-	 * @throws PipelinePropertiesException
+	 * @param directory of the properties file
+	 * @throws PropertiesException if one of the properties is invalid or the file is not write-able
 	 */
 	public void write(File directory) throws PropertiesException {
 		properties.write(directory);

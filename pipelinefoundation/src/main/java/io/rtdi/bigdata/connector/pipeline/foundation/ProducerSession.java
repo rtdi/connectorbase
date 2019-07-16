@@ -2,7 +2,6 @@ package io.rtdi.bigdata.connector.pipeline.foundation;
 
 import java.io.IOException;
 
-import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,6 +12,7 @@ import io.rtdi.bigdata.connector.properties.ProducerProperties;
 
 /**
  * A ProducerSession is a single connection to the topic server and used to load data into various topics in a transactional way.
+ * @param <T> TopicHandler
  *
  */
 public abstract class ProducerSession<T extends TopicHandler> {
@@ -30,7 +30,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * 
 	 * @param properties optional, needed by the producer
 	 * @param tenantid used for this session
-	 * @param api
+	 * @param api to use
 	 */
 	public ProducerSession(ProducerProperties properties, String tenantid, IPipelineBase<T> api) {
 		super();
@@ -40,11 +40,10 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	}
 
 	/**
-	 * Start a new transaction and assign its metadata. This method is usually not invoked directly but via {@link PipelineAbstract#beginProducerTransaction(ProducerSession, String) this}
+	 * Start a new transaction and assign its metadata.
 	 * 
-	 * @param sourcetransactionid
-	 * @throws PipelineRuntimeException
-	 * @throws IOException
+	 * @param sourcetransactionid a strictly ascending id. Will be used to find a recovery point in case of an error.
+	 * @throws PipelineRuntimeException in case the previous transaction is open still
 	 */
 	public final void beginTransaction(String sourcetransactionid) throws PipelineRuntimeException {
 		if (isopen) {
@@ -56,10 +55,10 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	}
 
 	/**
-	 * @throws PipelineRuntimeException
-	 * @throws IOException
+	 * Commit the transaction in the producer, thus telling the source this record had been received and cannot get lost anymore.
 	 * 
-	 * @see PipelineAbstract#commitProducerTransaction(ProducerSession)
+	 * @throws IOException in case anything goes wrong during the commit
+	 * 
 	 */
 	public final void commitTransaction() throws IOException {
 		commitImpl();
@@ -68,10 +67,10 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	}
 
 	/**
-	 * @throws PipelineRuntimeException
-	 * @throws IOException
+	 * Rollback the current transaction.
 	 * 
-	 * @see PipelineAbstract#abortProducerTransaction(ProducerSession)
+	 * @throws PipelineRuntimeException in case the rollback failed
+	 * 
 	 */
 	public final void abortTransaction() throws PipelineRuntimeException {
 		isopen = false;
@@ -81,25 +80,24 @@ public abstract class ProducerSession<T extends TopicHandler> {
 
 	/**
 	 * Called at the end of {@link #beginTransaction(String)} to provide the implementer with a place to add custom code.
+	 * Normally not called directly.
 	 * 
-	 * @throws PipelineRuntimeException
-	 * @throws IOException
+	 * @throws PipelineRuntimeException in case anything goes wrong
 	 */
 	public abstract void beginImpl() throws PipelineRuntimeException;
 
 	/**
 	 * Called at the end of {@link #commitTransaction()} to provide the implementer with a place to add custom code.
+	 * Normally not called directly.
 	 * 
-	 * @throws PipelineRuntimeException
-	 * @throws IOException
+	 * @throws IOException in case anything goes wrong
 	 */
 	public abstract void commitImpl() throws IOException;
 
 	/**
 	 * Called at the end of {@link #abortTransaction()} to provide the implementer with a place to add custom code.
 	 * 
-	 * @throws PipelineRuntimeException
-	 * @throws IOException
+	 * @throws PipelineRuntimeException if the abort fails
 	 */
 	protected abstract void abort() throws PipelineRuntimeException;
 
@@ -134,8 +132,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	/**
 	 *  This method is called whenever a new connection to the topic server should be created
 	 *  
-	 * @throws PipelineRuntimeException
-	 * @throws IOException
+	 * @throws PipelineRuntimeException in case anything goes wrong
 	 */
 	public abstract void open() throws PipelineRuntimeException;
 	
@@ -148,15 +145,15 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * Add a new row to the ProducerSession for being sent to the topic. It does modify the provided valuerecord
 	 * by filling the internal metadata columns.
 	 * 
-	 * @param topic The Topic this record is put into
-	 * @param partition Optional partition information
-	 * @param keyrecord
-	 * @param valuerecord
-	 * @param changetype
-	 * @param sourceRowID
-	 * @param sourceSystemID
-	 * @throws PipelineRuntimeException
-	 * @throws IOException
+	 * @param topic this record should be put into
+	 * @param partition optional partition information
+	 * @param handler SchemaHandler with the latest schema IDs
+	 * @param keyrecord Avro record of the key
+	 * @param valuerecord Avro record with the payload
+	 * @param changetype indicator how the record should be processed, e.g. inserted, deleted etc
+	 * @param sourceRowID optional information how to identify the record in the source
+	 * @param sourceSystemID optional information about the source system this record is produced from
+	 * @throws IOException in case anything goes wrong
 	 */
 	@SuppressWarnings("unchecked")
 	public final void addRow(TopicHandler topic, Integer partition, SchemaHandler handler, GenericRecord keyrecord, GenericRecord valuerecord,
@@ -175,18 +172,27 @@ public abstract class ProducerSession<T extends TopicHandler> {
 
 	/**
 	 * The actual internal implementation of how to add the record into the queue. 
-	 * It is protected as it should never be called directly but via this {@link #addRow(TopicHandler, Integer, Record, Record, RowType, String, String) addRow} version.
+	 * It is protected as it should never be called directly but via this {@link #addRow(TopicHandler, Integer, SchemaHandler, GenericRecord, GenericRecord, RowType, String, String) addRow} version.
 	 * 
-	 * @param transaction
-	 * @param topic
-	 * @param partition
-	 * @param keyrecord
-	 * @param valuerecord
-	 * @throws PipelineRuntimeException
-	 * @throws IOException
+	 * @param topic this record should be put into
+	 * @param partition optional partition information
+	 * @param handler SchemaHandler with the latest schema IDs
+	 * @param keyrecord Avro record of the key
+	 * @param valuerecord Avro record of the value
+	 * @throws IOException in case anything goes wrong
 	 */
 	protected abstract void addRowImpl(T topic, Integer partition, SchemaHandler handler, GenericRecord keyrecord, GenericRecord valuerecord) throws IOException;
 
+	/**
+	 * Some implementations, the http-pipeline with the http-server, exchange the data in the serialized format already. Then this version comes in handy.
+	 * Therefore the {@link #addRowImpl(TopicHandler, Integer, SchemaHandler, GenericRecord, GenericRecord)}  
+	 * 
+	 * @param topic this record should be put into
+	 * @param partition optional partition information
+	 * @param keyrecord Avro record of the key in serialized form
+	 * @param valuerecord Avro record with the payload in serialized form
+	 * @throws IOException in case anything goes wrong
+	 */
 	public abstract void addRowBinary(TopicHandler topic, Integer partition, byte[] keyrecord, byte[] valuerecord) throws IOException;
 
 		
