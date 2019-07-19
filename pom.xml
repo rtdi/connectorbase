@@ -41,7 +41,6 @@
 		<module>pipelinefoundation</module>
 		<module>connectorfoundation</module>
 		<module>pipelinehttp</module>
-		<module>pipelinehttpserver</module>
 		<module>pipelinekafkatcp</module>
 		<module>pipelinetest</module>
 		<module>webappfoundation</module>

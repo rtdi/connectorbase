@@ -33,5 +33,5 @@ bin/
 .idea
 *.iml
 *.log
-settings.xml
+pom.xml.versionsBackup
 
