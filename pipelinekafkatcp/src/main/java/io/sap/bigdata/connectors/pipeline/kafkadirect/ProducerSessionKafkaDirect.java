@@ -129,7 +129,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 	}
 
 	/**
-	 * This private method checks if the sent data had been received by the Kafka server and confirmed. As these are asynchronous 
+	 * This method checks if the sent data had been received by the Kafka server and confirmed. As these are asynchronous 
 	 * processes potentially, the logic is to empty the queue whenever the oldest (first) message had been sent.
 	 * If the overall time is longer than COMMIT_TIMEOUT, then the commit is considered failed.<BR>
 	 * 
@@ -140,8 +140,8 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 	 * sent within that time, it is tried again. This way the overall runtime of this method is between zero seconds - all messages have been 
 	 * sent already - and 20+1 seconds.
 	 * 
-	 * @param messagestatus
-	 * @throws PipelineRuntimeException
+	 * @param messagestatus ArrayDeque from the Future
+	 * @throws PipelineRuntimeException if error
 	 */
 	public static void checkMessageStatus(ArrayDeque<Future<RecordMetadata>> messagestatus) throws PipelineRuntimeException {
 		if (messagestatus.size() > 0) {

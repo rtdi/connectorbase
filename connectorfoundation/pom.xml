@@ -2,26 +2,20 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>io.rtdi.bigdata.connector</groupId>
 	<artifactId>connectorfoundation</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>A low level interface to build connectors on.</description>
+	<packaging>jar</packaging>
+    <parent>
+        <groupId>io.rtdi.bigdata.connector</groupId>
+        <artifactId>connectorbase</artifactId>
+        <version>0.8.1</version>
+    </parent>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
+			<version>4.13-beta-3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -32,12 +26,12 @@
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
 			<artifactId>jersey-client</artifactId>
-			<version>2.27</version>
+			<version>2.29</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.glassfish.jersey.inject</groupId>
 		    <artifactId>jersey-hk2</artifactId>
-			<version>2.27</version>
+			<version>2.29</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -47,7 +41,7 @@
 		<dependency>
 			<groupId>io.rtdi.bigdata.connector</groupId>
 			<artifactId>pipelinetest</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.8.1</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

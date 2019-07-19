@@ -25,8 +25,8 @@ public abstract class BrowsingService<S extends ConnectionProperties> implements
 	/**
 	 * Opens a connection to the source system by calling open().
 	 * 
-	 * @param connectionproperties
-	 * @throws IOException
+	 * @param controller ConnectionController
+	 * @throws IOException if network errors
 	 */
 	@SuppressWarnings("unchecked")
 	public BrowsingService(ConnectionController controller) throws IOException {
@@ -42,7 +42,7 @@ public abstract class BrowsingService<S extends ConnectionProperties> implements
 	}
 	
 	/**
-	 * This method implementation should open the connection to the source system but be very verbose about possible errors.<br/>
+	 * This method implementation should open the connection to the source system but be very verbose about possible errors.<br>
 	 * For example, when opening a JDBC connection, returning just the JDBC error might not be enough for the business user to find
 	 * the root cause. It could be
 	 * <ul><li>Network down</li>
@@ -53,15 +53,28 @@ public abstract class BrowsingService<S extends ConnectionProperties> implements
 	 * </ul>
 	 * Usually called by the constructor but in case of an error, this method might be called again to re-open the connection
 	 *   
-	 * @throws IOException
+	 * @throws IOException if network errors
 	 */
 	protected abstract void open() throws IOException;
 	
 	@Override
 	public abstract void close();
 
+	/**
+	 * Create a list of all remote objects the system knows.
+	 * 
+	 * @return a list of all found remote tables
+	 * @throws IOException if network error
+	 */
 	public abstract List<TableEntry> getRemoteSchemaNames() throws IOException;
 
+	/**
+	 * Return the table definition as Avro schema.
+	 * 
+	 * @param remotename of the object to return metadata for
+	 * @return Schema of the remote object
+	 * @throws IOException if network error
+	 */
 	public abstract Schema getRemoteSchemaOrFail(String remotename) throws IOException;
 	
 }

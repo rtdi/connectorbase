@@ -2,55 +2,46 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>io.rtdi.bigdata.connector</groupId>
 	<artifactId>pipelinekafkatcp</artifactId>
-	<version>0.1.5-SNAPSHOT</version>
-	<name>pipelinekafkatcp</name>
-	<description>pipelinekafkatcp</description>
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>A pipeline api using the Kafka tcp client libraries.</description>
 	<packaging>jar</packaging>
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+    <parent>
+        <groupId>io.rtdi.bigdata.connector</groupId>
+        <artifactId>connectorbase</artifactId>
+        <version>0.8.1</version>
+    </parent>
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.avro</groupId>
 			<artifactId>avro</artifactId>
-			<version>1.8.2</version>
+			<version>1.9.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-clients</artifactId>
-			<version>2.2.0</version>
+			<version>2.3.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.8.2</version>
+			<version>2.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.8.2</version>
+			<version>2.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
+			<version>4.13-beta-3</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.rtdi.bigdata.connector</groupId>
 			<artifactId>webappfoundation</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.8.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>

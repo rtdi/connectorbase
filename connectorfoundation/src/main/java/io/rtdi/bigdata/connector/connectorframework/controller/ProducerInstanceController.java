@@ -126,7 +126,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	
 	/**
 	 * Periodically sweep through all schemas and get get the latest versions.
-	 * @throws PropertiesException 
+	 * @throws PropertiesException if the schema is invalid
 	 */
 	public void updateSchemaWithLatest() throws PropertiesException {
 		for (Set<SchemaHandler> schemas : usedtopics.values()) {
@@ -139,10 +139,11 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	}
 
 	/**
-	 * This method is called periodically and updates metadata changes.<BR/>
-	 * It updates the metadata information in the server whenever there was a change or at least every 12 hours.<BR/>
-	 * The latter is needed as outdated metadata will be removed.<BR/>
-	 * @throws IOException 
+	 * This method is called periodically and updates metadata changes.<br>
+	 * It updates the metadata information in the server whenever there was a change or at least every 12 hours.<br>
+	 * The latter is needed as outdated metadata will be removed.<br>
+	 * 
+	 * @throws IOException if error
 	 */
 	public void polliteration() throws IOException {
 		if (nextmetadatachangecheck < System.currentTimeMillis()) {
@@ -167,10 +168,9 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	/**
 	 * This producer is generating data for the topic. 
 	 * 
-	 * @param topichandler
-	 * @throws PipelineRuntimeException 
+	 * @param topichandler TopicHandler to add
 	 */
-	public void addTopic(TopicHandler topichandler) throws PipelineRuntimeException {
+	public void addTopic(TopicHandler topichandler) {
 		topichandlers.put(topichandler.getTopicName().getName(), topichandler);
 		Set<SchemaHandler> topicschemas = usedtopics.get(topichandler);
 		if (topicschemas == null) {
@@ -183,9 +183,8 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	/**
 	 * Inverse operation to {@link #addTopic(TopicHandler)}
 	 * 
-	 * @param topic
-	 * @throws IOException 
-	 * @throws PipelineRuntimeException 
+	 * @param topic TopicHandler to remove
+	 * @throws PipelineRuntimeException if error 
 	 */
 	public void removeTopic(TopicHandler topic) throws PipelineRuntimeException {
 		topichandlers.remove(topic.getTopicName().getName());
@@ -197,7 +196,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	 * Get the TopicHandler based on the TopicName. Useful when a producer gets data from different tables, then this
 	 * method can be used. Or maybe the {@link #getTopic(String)}?
 	 * 
-	 * @param topicname
+	 * @param topicname TopicName
 	 * @return TopicHandler
 	 */
 	public TopicHandler getTopic(TopicName topicname) {
@@ -207,11 +206,10 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	/**
 	 * Add a schema to an existing topic or add topic and schema at once.
 	 * 
-	 * @param topic
-	 * @param schema
-	 * @throws PipelineRuntimeException
+	 * @param topic TopicHandler
+	 * @param schema SchemaHandler to add
 	 */
-	public void addTopicSchema(TopicHandler topic, SchemaHandler schema) throws PipelineRuntimeException {
+	public void addTopicSchema(TopicHandler topic, SchemaHandler schema) {
 		Set<SchemaHandler> topicschemas = usedtopics.get(topic);
 		if (topicschemas == null) {
 			addTopic(topic);
@@ -225,11 +223,10 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	/**
 	 * Remove a schema from the provided topic. If the topic does not exist, this operation does nothing.
 	 * 
-	 * @param topic
-	 * @param schema
-	 * @throws PipelineRuntimeException
+	 * @param topic TopicHandler
+	 * @param schema SchemaHandler
 	 */
-	public void removeTopicSchema(TopicHandler topic, SchemaHandler schema) throws PipelineRuntimeException {
+	public void removeTopicSchema(TopicHandler topic, SchemaHandler schema) {
 		Set<SchemaHandler> topicschemas = usedtopics.get(topic);
 		if (topicschemas != null) {
 			topicschemas.remove(schema);
@@ -241,10 +238,9 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	 * Get the SchemaHandler for a schemaname, e.g. a table name.
 	 * 
 	 * @param schemaname The schema name within the tenant
-	 * @return Schemahandler for the named schema
-	 * @throws PipelineRuntimeException
+	 * @return SchemaHandler for the named schema
 	 */
-	public SchemaHandler getSchema(String schemaname) throws PipelineRuntimeException {
+	public SchemaHandler getSchema(String schemaname) {
 		return schemahandlers.get(schemaname);
 	}
 	
@@ -258,7 +254,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	/**
 	 * Get the TopicHandler based on the TopicName.getName() portion. 
 	 *  
-	 * @param topicname
+	 * @param topicname tenant specifc topic name
 	 * @return TopicHandler
 	 */
 	public TopicHandler getTopic(String topicname) {

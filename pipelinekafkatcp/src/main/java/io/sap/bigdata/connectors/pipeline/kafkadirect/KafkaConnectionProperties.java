@@ -8,8 +8,8 @@ import io.rtdi.bigdata.connector.properties.PipelineConnectionProperties;
 
 /**
  * In order to connect to Kafka directly this KafkaConnectionProperties object does provide 
- * <UL><LI>Kafka Bootstrap Server list</LI>
- * <LI>Kakfa's Schema Registry URL</LI></UL>
+ * <ul><li>Kafka Bootstrap Server list</li>
+ * <li>optionally Kafka's Schema Registry URL</li></ul>
  * 
  * Note: In case the Kafka Connection is used by the KafkaAPIdirectAllTenants the TenantID can be NULL.
  *
@@ -36,9 +36,9 @@ public class KafkaConnectionProperties extends PipelineConnectionProperties {
 	/**
 	 * Create a new KafkaConnectionProperties object with the list of available properties and set their values.
 	 * 
-	 * @param bootstrapservers
+	 * @param bootstrapservers list of Kafka servers
 	 * @param schemaregistry url or null
-	 * @throws PipelinePropertiesException 
+	 * @throws PropertiesException if any of the properties are wrong
 	 */
 	public KafkaConnectionProperties(String bootstrapservers, String schemaregistry) throws PropertiesException {
 		this();
@@ -48,7 +48,6 @@ public class KafkaConnectionProperties extends PipelineConnectionProperties {
 
 	/**
 	 * @return The Kafka Bootstrap Server list
-	 * @throws PipelinePropertiesException 
 	 */
 	public String getKafkaBootstrapServers() {
 		return properties.getStringPropertyValue(KAFKABOOTSTRAPSERVERS);

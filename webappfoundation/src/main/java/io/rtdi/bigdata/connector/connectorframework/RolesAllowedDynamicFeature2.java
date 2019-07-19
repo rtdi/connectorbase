@@ -35,7 +35,7 @@ public class RolesAllowedDynamicFeature2 implements DynamicFeature  {
 	}
 	
 	/**
-	 * @return Map<rolename, Map<classname, Map<path, Set<methods>>>
+	 * @return Map of roles
 	 */
 	public static Map<String, Map<String, Map<String, Set<String>>>> getRoles() {
 		return roles;

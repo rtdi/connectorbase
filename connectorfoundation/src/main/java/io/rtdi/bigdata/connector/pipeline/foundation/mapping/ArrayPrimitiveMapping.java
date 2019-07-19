@@ -9,6 +9,7 @@ import org.apache.avro.generic.GenericData.Record;
 import io.rtdi.bigdata.connector.pipeline.foundation.mapping.RecordMapping.RecordContext;
 
 public class ArrayPrimitiveMapping extends Mapping {
+	@SuppressWarnings("unused")
 	private Schema arrayschema;
 	private PrimitiveMapping recordmapping;
 

@@ -2,7 +2,6 @@ package io.rtdi.bigdata.connector.connectorframework.controller;
 
 import java.io.IOException;
 
-import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeException;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerRequestedState;
@@ -42,7 +41,7 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 	 * In case of a restart, this method together with {@link #stopThreadControllerImpl(ControllerExitType)} can be called multiple times
 	 * within the life cycle of the thread.
 	 * 
-	 * @throws IOException
+	 * @throws IOException if error
 	 */
 	protected abstract void startThreadControllerImpl() throws IOException;
 	
@@ -60,7 +59,7 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 	/**
 	 * The inverse to {@link #startThreadControllerImpl()}
 	 * 
-	 * @param exittype
+	 * @param exittype ControllerExitType to tell how forceful the exit should happen
 	 */
 	protected abstract void stopThreadControllerImpl(ControllerExitType exittype);
 
@@ -147,7 +146,7 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 
 	/**
 	 * The main execution loop runs until it is stopped or a child thread is no longer alive.
-	 * @throws Exception 
+	 * @throws Exception if error
 	 */
 	protected void runUntilError() throws Exception {
 		int executioncounter = 0;

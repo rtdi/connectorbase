@@ -39,18 +39,19 @@ import io.rtdi.bigdata.connector.properties.ProducerProperties;
 
 /**
  * 
- * The Producer class is the main code to implement for producing data.<BR/>
+ * The Producer class is the main code to implement for producing data.<br>
  * The code sequence is
- * <UL><LI>constructor: connect to the source system</LI>
- * <LI>createTopiclist(): Create the initial list of topics and their schemas the producer will use</LI>
- * <LI>startProducerImpl(): Code that has to happen right before the start of the capturing  
- * <LI>getLastSourceTransaction(): check if the producer is new or got restarted</LI>
- * <UL><LI>null?: call initialLoad()</LI>
- * <LI>else?: call restartWith()</LI></UL>
- * <LI>poll()...</LI>
- * <LI>poll(): Call the poll() method in a loop until the connector is signaled to stopped.</LI>
- * <LI>poll()...</LI>
- * <LI>closeImpl(): Disconnect</LI></UL>
+ * <ul><li>constructor: connect to the source system</li>
+ * <li>createTopiclist(): Create the initial list of topics and their schemas the producer will use</li>
+ * <li>startProducerImpl(): Code that has to happen right before the start of the capturing  
+ * <li>getLastSourceTransaction(): check if the producer is new or got restarted
+ *   <ul><li>null?: call initialLoad()</li>
+ *   <li>else?: call restartWith()</li></ul>
+ * </li>
+ * <li>poll()...</li>
+ * <li>poll(): Call the poll() method in a loop until the connector is signaled to stopped.</li>
+ * <li>poll()...</li>
+ * <li>closeImpl(): Disconnect</li></ul>
  *
  * @param <S> ConnectionProperties
  * @param <P> ProducerProperties
@@ -75,46 +76,48 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 
 	/**
 	 * Allows the connector implementation to execute code at producer start, to start logging changes in the database.
-	 * @throws IOException
+	 * @throws IOException if error
 	 */
 	public abstract void startProducerChangeLogging() throws IOException;
 
 	/**
 	 * From this point on the initial load or error recovery is completed and the normal creation of change data should start
-	 * @throws IOException
+	 * @throws IOException if error
 	 */
 	public abstract void startProducerCapture() throws IOException;
 
 	/**
-	 * In this code segment the connector should create/read all used topics and their schemas.<BR/>
+	 * In this code segment the connector should create/read all used topics and their schemas.<br>
 	 * This can end up as either of two options for topic and schema each:
-	 * <OL><LI>Check if the topic/schema exists or create it</LI>
-	 * <LI>Check if the topic/schema exists or fail</LI></OL>
+	 * <ol><li>Check if the topic/schema exists or create it</li>
+	 * <li>Check if the topic/schema exists or fail</li></ol>
 	 * 
 	 * This information is cached so the Producer has a quick way to access the topic/schema. And it provides 
-	 * the information who writes into what topics with which schema.<BR/>
+	 * the information who writes into what topics with which schema.<br>
 	 * 
 	 * This method has to invoke {@link #addTopicSchema(TopicHandler, SchemaHandler)}.
+	 * @throws IOException if error
 	 * 
 	 * @see ProducerInstanceController#addTopic(TopicHandler)
 	 * @see #addTopic(TopicHandler)
 	 * @see #addTopicSchema(TopicHandler, SchemaHandler)
 	 * 
-	 * @throws PropertiesException
+	 * @throws PropertiesException if error
 	 */
 	public abstract void createTopiclist() throws IOException;
 
 	/**
 	 * @return null or the point as transactionid where the producer should start reading the source system
-	 * @throws IOException
+	 * @throws IOException if error
 	 */
 	public abstract String getLastSuccessfulSourceTransaction() throws IOException;
 
 	/**
 	 * In case the producer is started for the first time, this method is called and
 	 * should send all the source data.
+	 * @throws IOException if error
 	 * 
-	 * @throws PropertiesException
+	 * @throws PropertiesException if error
 	 */
 	public abstract void initialLoad() throws IOException;
 
@@ -123,7 +126,7 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	 * producer can send all changes since this transactionid.
 	 * 
 	 * @param lastsourcetransactionid where to start from
-	 * @throws IOException
+	 * @throws IOException if error
 	 * 
 	 * @see #getLastSuccessfulSourceTransaction()
 	 */
@@ -131,16 +134,16 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	
 	/**
 	 * The poll method is supposed to be a blocking call that exits either when
-	 * 10'000 records have been produced or one second passed.<BR/>
+	 * 10'000 records have been produced or one second passed.<br>
 	 * The record limit is needed to handle memory consumption, the time limit to update the
 	 * variables and to allow a clean exit in case of a shutdown.
 	 * 
-	 * The default implementation is using a BlockingQueue.<br/>
+	 * The default implementation is using a BlockingQueue.<br>
 	 * One thread does produce data constantly and is blocked when adding records to the queue. The poll method reads
-	 * the queue for up to one second or when enough records have been received. {@link #startLongRunningProducer(Runnable)}
+	 * the queue for up to one second or when enough records have been received. {@link #startLongRunningProducer(Controller)}
 	 * 
 	 * @return Number of records produced in this cycle
-	 * @throws IOException 
+	 * @throws IOException if error
 	 */
 	public int poll() throws IOException {
 		int rows = 0;
@@ -228,8 +231,8 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	 * is in an endless loop reading data by constantly scanning the source. If the producer is shutdown, this thread will get an interrupt signal
 	 * and should terminate asap.
 	 * 
-	 * @param task
-	 * @throws IOException 
+	 * @param task Controller
+	 * @throws IOException if error
 	 */
 	public void startLongRunningProducer(Controller<?> task) throws IOException {
 		instance.addChild(task.getName(), task);
@@ -281,6 +284,9 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	
 	/**
 	 * Convenience function to add a topic to the instance controller
+	 * 
+	 * @param topichandler TopicHandler to add
+	 * @throws IOException if error
 	 * @see ProducerInstanceController
 	 */
 	public void addTopic(TopicHandler topichandler) throws IOException {
@@ -289,6 +295,9 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	
 	/**
 	 * Convenience function to remove a topic from the instance controller
+	 * 
+	 * @param topic TopicHandler to remove
+	 * @throws IOException if error
 	 * @see ProducerInstanceController
 	 */
 	public void removeTopic(TopicHandler topic) throws IOException {
@@ -296,6 +305,7 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	}
 	
 	/**
+	 * @param topicname TopicName
 	 * @return convenience function to ask the instance controller for a specific topic
 	 * @see ProducerInstanceController
 	 */
@@ -349,6 +359,10 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 
 	/**
 	 * Convenience function to add a topic/schema to the instance controller
+	 * 
+	 * @param topic TopicHandler
+	 * @param schema Schema
+	 * @throws PipelineRuntimeException if error
 	 * @see ProducerInstanceController
 	 */
 	public void addTopicSchema(TopicHandler topic, SchemaHandler schema) throws PipelineRuntimeException {
@@ -357,6 +371,10 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	
 	/**
 	 * Convenience function remove a schema from the instance controller
+	 * 
+	 * @param topic TopicHandler
+	 * @param schema Schema
+	 * @throws PipelineRuntimeException if error
 	 * @see ProducerInstanceController
 	 */
 	public void removeTopicSchema(TopicHandler topic, SchemaHandler schema) throws PipelineRuntimeException {
@@ -364,7 +382,9 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	}
 	
 	/**
+	 * @param schemaname tenant specific schema name
 	 * @return convenience function to ask the instance controller for a specific schema
+	 * @throws PipelineRuntimeException if error
 	 * @see ProducerInstanceController
 	 */
 	public SchemaHandler getSchema(String schemaname) throws PipelineRuntimeException {
@@ -381,7 +401,10 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	}
 	
 	/**
-	 * @return convenience function to ask the instance controller for a topic
+	 * Convenience function to ask the instance controller for a topic.
+	 * 
+	 * @param topicname Tenant specific topic name
+	 * @return TopicHandler
 	 * 
 	 * @see ProducerInstanceController
 	 */

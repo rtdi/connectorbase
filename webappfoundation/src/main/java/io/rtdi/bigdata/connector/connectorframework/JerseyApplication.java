@@ -7,7 +7,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 
 /**
- * Initialize all Jersey infrastructure.<br/>
+ * Initialize all Jersey infrastructure.<br>
  * If a connector needs more than the default Jersey services it would extend this class,
  * override the {@link #getPackages()} method on register the new one in the web.xml.
  * Otherwise this class is added to the web.xml.

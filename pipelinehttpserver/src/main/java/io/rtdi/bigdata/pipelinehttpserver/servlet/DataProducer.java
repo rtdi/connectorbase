@@ -67,13 +67,13 @@ public class DataProducer extends HttpServlet {
 				) {
 			/* 
 			 * One message consists of
-			 * <UL><LI>Size of the Topicname</LI>
-			 * <LI>Topicname as UTF-8 encoded byte array</LI>
-			 * <LI>The partition integer, negative means NULL</LI>
-			 * <LI>Size of the key Avro message</LI>
-			 * <LI>payload of the key</LI>
-			 * <LI>Size of the value Avro message</LI>
-			 * <LI>payload of the value</LI></UL>
+			 * <ul><li>Size of the Topicname</li>
+			 * <li>Topicname as UTF-8 encoded byte array</li>
+			 * <li>The partition integer, negative means NULL</li>
+			 * <li>Size of the key Avro message</li>
+			 * <li>payload of the key</li>
+			 * <li>Size of the value Avro message</li>
+			 * <li>payload of the value</li></ul>
 			 */
 			producersession.beginImpl( );
 			while (io.readNextIntValue(in)) {

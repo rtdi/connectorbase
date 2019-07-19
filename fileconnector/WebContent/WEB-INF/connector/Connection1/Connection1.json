@@ -1,9 +1,0 @@
-{
-	"values": [
-		{
-			"type": "PropertyString",
-			"name": "file.directory",
-			"value": "c:\\temp"
-		}
-	]
-}

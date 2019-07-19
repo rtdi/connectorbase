@@ -4,17 +4,12 @@ import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericDatumReader;
-import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
-import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
@@ -23,7 +18,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaConstants;
-import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlArray;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericDatumReader;
@@ -34,7 +28,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroTimestamp
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroVarchar;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.AvroRecordArray;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
 
 public class MappingExperiments {

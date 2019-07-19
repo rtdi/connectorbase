@@ -35,7 +35,7 @@ public class Index extends HttpServlet {
 			out.append("Error occured at start: ");
 			out.append(error);
 		} else {
-			out.append("PipelineHTTPServer is running fine, no startup errors<br/>\r\n");
+			out.append("PipelineHTTPServer is running fine, no startup errors<br>\r\n");
 			out.append("<table><tr><th>Measure</th><th>Count</th></tr>\r\n");
 			
 			out.append("<tr><td>Consumer rows</td><td>");

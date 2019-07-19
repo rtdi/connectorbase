@@ -32,6 +32,7 @@ public class MappingExperiments {
 	public void tearDown() throws Exception {
 	}
 
+	@SuppressWarnings("unused")
 	@Test
 	public void test() {
 		try {
@@ -107,6 +108,7 @@ public class MappingExperiments {
 		return valuebuilder.getSchema();
 	}
 
+	@SuppressWarnings("unused")
 	private Schema getKeySchema() throws SchemaException {
 		KeySchema valuebuilder = new KeySchema("HWMonitor", "HWMonitor structure contains detailed data about the hardware utilization");
 		valuebuilder.add("HOST", AvroString.getSchema(), "The ip address of the computer being monitored", false);

@@ -111,7 +111,7 @@ public class DataConsumer extends HttpServlet {
 	}
 
 	/**
-	 * Executed by the open() method.<BR/>
+	 * Executed by the open() method.<br>
 	 * Task is to create a session object in the webserver, receive the request which 
 	 * topics to listen on and to attach an active ConsumerSession.
 	 * 

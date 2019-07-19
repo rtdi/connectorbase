@@ -62,7 +62,7 @@ public class ConnectorController extends ThreadBasedController<ConnectionControl
 	/**
 	 * @param api with the PipelineAPI instance
 	 * @param factory for the connector to create all concrete classes
-	 * @param propertiespath pointing to the global.properties file
+	 * @param props global.properties data
 	 * @param connectordirpath pointing to the root directory of the connection properties
 	 */
 	public ConnectorController(IPipelineAPI<?,?,?,?> api, IConnectorFactory<?, ?, ?> factory, String connectordirpath, Properties props) {
@@ -76,7 +76,6 @@ public class ConnectorController extends ThreadBasedController<ConnectionControl
 	/**
 	 * Every hour send usage statistics to the central database
 	 * 
-	 * @see io.rtdi.bigdata.connector.connectorframework.controller.Controller#controllerLoop(int)
 	 */
 	@Override
 	protected void controllerLoop(int executioncounter) {
@@ -92,7 +91,7 @@ public class ConnectorController extends ThreadBasedController<ConnectionControl
 
 	/**
 	 * Read the configuration directory and create the object tree
-	 * @throws PropertiesException
+	 * @throws PropertiesException if properties are invalid
 	 */
 	public void readConfigs() throws PropertiesException {
 		if (configdir.isDirectory()) {
@@ -109,7 +108,7 @@ public class ConnectorController extends ThreadBasedController<ConnectionControl
 	
 	/**
 	 * Write the entire tree's configuration to the connectordirpath (see constructor)
-	 * @throws PropertiesException
+	 * @throws PropertiesException if properties are invalid
 	 */
 	public void writeConfigs() throws PropertiesException {
 		if (configdir.isDirectory()) {

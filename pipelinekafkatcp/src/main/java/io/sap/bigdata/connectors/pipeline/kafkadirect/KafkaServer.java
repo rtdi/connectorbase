@@ -589,13 +589,6 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 		return null;
 	}
 	
-	/**
-	 * @param kafkatopicname
-	 * @param count return up to that many records
-	 * @return
-	 * @throws ConnectorException
-	 * @throws IOException
-	 */
     @Override
 	public List<TopicPayload> getLastRecords(TopicName kafkatopicname, int count) throws PipelineRuntimeException {
 		if (kafkatopicname == null) {

@@ -43,7 +43,7 @@ public class WebAppController implements ServletContextListener {
 
 	
 	/**
-	 * @param servletContext
+	 * @param servletContext ServletContext
 	 * @return The root ConnectorController with all its connections, producers and consumers
 	 */
 	public static ConnectorController getConnector(ServletContext servletContext) {
@@ -51,7 +51,7 @@ public class WebAppController implements ServletContextListener {
 	}
 
 	/**
-	 * @param servletContext
+	 * @param servletContext ServletContext
 	 * @return The PipelineAPI to interact with the pipeline server
 	 */
 	public static IPipelineAPI<?,?,?,?> getPipelineAPI(ServletContext servletContext) {
@@ -59,7 +59,7 @@ public class WebAppController implements ServletContextListener {
 	}
 
 	/**
-	 * @param servletContext
+	 * @param servletContext ServletContext
 	 * @return The ConnectorFactory to check if the Connector's class was found
 	 */
 	public static IConnectorFactory<?, ?, ?> getConnectorFactory(ServletContext servletContext) {
@@ -67,7 +67,7 @@ public class WebAppController implements ServletContextListener {
 	}
 
 	/**
-	 * @param servletContext
+	 * @param servletContext ServletContext
 	 * @return ConnectorController; is never null
 	 * @throws PropertiesRuntimeException if no ConnectorController was found at startup
 	 */
@@ -81,7 +81,7 @@ public class WebAppController implements ServletContextListener {
 	}
 
 	/**
-	 * @param servletContext
+	 * @param servletContext ServletContext
 	 * @return Error string created during boot of the web application
 	 */
 	public static String getError(ServletContext servletContext) {
@@ -126,10 +126,10 @@ public class WebAppController implements ServletContextListener {
 
 	/**
 	 * At boot time the server tries to find the pipeline and connector classes, reads the 
-	 * properties and starts up everything.<br/>
+	 * properties and starts up everything.<br>
 	 * This might fail for many reasons, e.g. the global.properties file has not been created yet etc.
 	 * In all these cases the web application should start still so a UI to see the error and configure all
-	 * can be presented.<br/>
+	 * can be presented.<br>
 	 * The main consumer of this information is the {@link io.rtdi.bigdata.connector.connectorframework.servlet.IndexPage IndexPage} 
 	 * as this redirects the browser to the appropriate detail page or shows the error itself.
 	 *  

@@ -21,16 +21,16 @@ public interface IConnectorFactory<U extends ConnectionProperties, V extends Pro
 
 	/**
 	 * 
-	 * @param instance
+	 * @param instance ConsumerInstanceController
 	 * @return the concrete consumer class for this connector to be executed by the controller
-	 * @throws IOException
+	 * @throws IOException if network error
 	 */
 	Consumer<U, W> createConsumer(ConsumerInstanceController instance) throws IOException;
 
 	/**
-	 * @param instance
+	 * @param instance ProducerInstanceController
 	 * @return the concrete producer class for this connector to be executed by the controller
-	 * @throws IOException
+	 * @throws IOException if network error
 	 */
 	Producer<U, V> createProducer(ProducerInstanceController instance) throws IOException;
 
@@ -38,7 +38,7 @@ public interface IConnectorFactory<U extends ConnectionProperties, V extends Pro
 	 * 
 	 * @param name Unique name of the connection
 	 * @return ConnectionProperties of this connector with all parameters needed to connect to the system, all values default
-	 * @throws PropertiesException
+	 * @throws PropertiesException if properties are invalid
 	 */
 	U createConnectionProperties(String name) throws PropertiesException;
 
@@ -46,7 +46,7 @@ public interface IConnectorFactory<U extends ConnectionProperties, V extends Pro
 	 * 
 	 * @param name Unique name of the consumer
 	 * @return ConsumerProperties of this connector with all parameters needed to connect to the system, all values default
-	 * @throws PropertiesException
+	 * @throws PropertiesException if properties are invalid
 	 */
 	W createConsumerProperties(String name) throws PropertiesException;
 
@@ -54,7 +54,7 @@ public interface IConnectorFactory<U extends ConnectionProperties, V extends Pro
 	 * 
 	 * @param name Unique name of the producer
 	 * @return ProducerProperties of this connector with all parameters needed to connect to the system, all values default
-	 * @throws PropertiesException
+	 * @throws PropertiesException if properties are invalid
 	 */
 	V createProducerProperties(String name) throws PropertiesException;
 
@@ -63,7 +63,7 @@ public interface IConnectorFactory<U extends ConnectionProperties, V extends Pro
 	 * 
 	 * @param controller ConnectionController of the connection
 	 * @return BrowsingService instance
-	 * @throws IOException
+	 * @throws IOException if network error
 	 */
 	BrowsingService<U> createBrowsingService(ConnectionController controller) throws IOException;
 

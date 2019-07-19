@@ -42,8 +42,7 @@ public class ConnectionController extends Controller<Controller<?>> {
 	 *                           /producers/
 	 *                                     /producername1.json
 	 * 
-	 * @param connectionpath The root directory where the connection settings are stored
-	 * @throws PropertiesException
+	 * @throws PropertiesException if properties are invalid or the configuration file cannot be found
 	 */
 	public void readConfigs() throws PropertiesException {
 		if (connectiondir == null) {

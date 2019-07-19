@@ -36,7 +36,7 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 	 * Create a new consumer session to read data from the PipelineAPI
 	 * 
 	 * @param instance ConsumerInstanceController running this Consumer
-	 * @throws IOException
+	 * @throws IOException if open fails
 	 */
 	public Consumer(ConsumerInstanceController instance) throws IOException {
 		super();
@@ -65,7 +65,7 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 	 * @see #fetchBatchEnd()
 	 * 
 	 * @return # of rows fetched by the consumer session
-	 * @throws IOException
+	 * @throws IOException if network error
 	 */
 	public final int fetchBatch() throws IOException {
 		fetchBatchStart();
@@ -83,7 +83,7 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 	 * Allows the consumer to do something at the beginning of the batch, e.g. create an empty array to hold the batch of records being read.
 	 * The individual rows are then added in either of the two process() methods.
 	 * 
-	 * @throws IOException
+	 * @throws IOException if network error
 	 * 
 	 * @see #process(String, long, int, byte[], byte[])
 	 * @see #process(String, long, int, org.apache.avro.generic.GenericRecord, org.apache.avro.generic.GenericRecord, int, int)
@@ -93,16 +93,16 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 	/**
 	 * Called at the end of a batch and allows the consumer to e.g. write all collected records since {@link #fetchBatchStart()}.
 	 * 
-	 * @throws IOException
+	 * @throws IOException if network error
 	 */
 	public abstract void fetchBatchEnd() throws IOException;
 	
 	/**
-	 * When the controller asks to flush/commit the data, this method is called.<br/>
+	 * When the controller asks to flush/commit the data, this method is called.<br>
 	 * Note that this is not the same as {@link #fetchBatchEnd()}. A Pipeline might support transactional consistency and then 
 	 * 100s of fetchBatch calls together should be committed into the database once.
 	 * 
-	 * @throws IOException
+	 * @throws IOException if network error
 	 */
 	public abstract void flushDataImpl() throws IOException;
 
@@ -146,7 +146,7 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 	 * Asks the consumersession to set all topics it reads from. 
 	 * Used by the controller.
 	 * 
-	 * @throws PropertiesException
+	 * @throws PropertiesException if topics cannot be set
 	 */
 	public void setTopics() throws PropertiesException {
 		consumersession.setTopics();

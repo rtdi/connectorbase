@@ -17,7 +17,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerState;
 
 
 /**
- * An abstract class implementing the common logic for all controllers.<br/>
+ * An abstract class implementing the common logic for all controllers.<br>
  * A controller is a robust implementation that tries to keep its children running, provides
  * monitoring information, restarts automatically etc.
  *
@@ -41,10 +41,9 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	}
 
 	/**
-	 * Starts the controller in a new thread.
+	 * Starts the controller in a new thread and all children as well.
 	 * 
-	 * @return Thread running this controller
-	 * @throws IOException 
+	 * @throws IOException if the controller or one of its children cannot be started 
 	 */
 	public void startController() throws IOException {
 		requestedstate = ControllerRequestedState.RUN;
@@ -81,7 +80,7 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	/**
 	 * Signal this controller to stop and hence does stop all child controllers
 	 * 
-	 * @param exittype
+	 * @param exittype ControllerExitType to tell how forceful the exit should happen
 	 */
 	public void stopController(ControllerExitType exittype) {
 		if (exittype == ControllerExitType.DISABLE) {
@@ -97,7 +96,7 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	/**
 	 * Signal all child controllers to stop
 	 * 
-	 * @param exittype
+	 * @param exittype ControllerExitType to tell how forceful the exit should happen
 	 */
 	protected void stopChildControllers(ControllerExitType exittype) {
 		for (Controller<?> c : childcontrollers.values()) {
@@ -106,7 +105,10 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	}
 
 	/**
-	 * @param exittype
+	 * Wait for all child controllers to terminate to avoid error messages about still running threads during their termination.
+	 * In case the controller is not a thread on its own this means simply to set the state to STOPPED and to trigger the child controllers to stop.
+	 * 
+	 * @param exittype ControllerExitType to tell how forceful the exit should happen
 	 * @return true if all children and this controller have been stopped successfully within a time depending on the exittype
 	 */
 	public boolean joinAll(ControllerExitType exittype) {
@@ -116,12 +118,19 @@ public abstract class Controller<C extends Controller<?>> implements IController
 		return allstopped;
 	}
 
+	/**
+	 * In case the controller needs to do something extra during the wait, it can be implemented here. Example is the thread base controller
+	 * waiting for the thread to actually terminate.
+	 * 
+	 * @param exittype ControllerExitType to tell how forceful the exit should happen
+	 * @return true id the controller was stopped successfully
+	 */
 	protected boolean joinAllImpl(ControllerExitType exittype) {
 		return true;
 	}
 
 	/**
-	 * @param exittype
+	 * @param exittype ControllerExitType to tell how forceful the exit should happen
 	 * @return true if all children have been stopped successfully within a time depending on the exittype
 	 */
 	protected boolean joinChildControllers(ControllerExitType exittype) {
@@ -135,14 +144,14 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	/**
 	 * Allows the individual controller implementations to execute own code at start.
 	 * 
-	 * @throws IOException
+	 * @throws IOException if error
 	 */
 	protected abstract void startControllerImpl() throws IOException;
 	
 	/**
 	 * Allows the individual controller implementations to execute own code at stop.
 	 * 
-	 * @param exittype
+	 * @param exittype ControllerExitType to tell how forceful the exit should happen
 	 */
 	protected abstract void stopControllerImpl(ControllerExitType exittype);
 
@@ -151,7 +160,7 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	 * 
 	 * @param name of the child
 	 * @param controller instance to add
-	 * @throws ConnectorRuntimeException 
+	 * @throws ConnectorRuntimeException if a child controller of same name exists 
 	 */
 	public void addChild(String name, C controller) throws ConnectorRuntimeException {
 		if (childcontrollers.containsKey(name)) {
@@ -172,7 +181,7 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	 * Most Controllers retry temporary connector exceptions only, hence the default implementation returns false always. 
 	 * Override and return true else.
 	 * 
-	 * @return
+	 * @return true if a pipeline temporary exception should be retried
 	 */
 	protected boolean retryPipelineTemporaryExceptions() {
 		return false;
@@ -188,7 +197,8 @@ public abstract class Controller<C extends Controller<?>> implements IController
 
 	/**
 	 * @return true if all children are running, direct and indirect children
-	 * @throws Exception 
+	 * 
+	 * @throws ConnectorRuntimeException if one of the children ran into an error
 	 */
 	public boolean checkChildren() throws ConnectorRuntimeException {
 		for (String childname : childcontrollers.keySet()) {

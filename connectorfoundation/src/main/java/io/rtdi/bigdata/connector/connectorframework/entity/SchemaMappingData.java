@@ -56,12 +56,13 @@ public class SchemaMappingData {
 	}
 	
 	/**
-	 * @param connector
-	 * @param connectionname
-	 * @param remoteschemaname
-	 * @param targetschemaname
-	 * @param active select only the active mappings (true) or drafts as well (false)?
-	 * @return
+	 * Find a mapping from file - including drafts - based on the schema for the logical data model (targetschemaname) and the source schema name (remoteschemaname).
+	 * 
+	 * @param connector ConnectorController
+	 * @param connectionname name of the connection
+	 * @param remoteschemaname name of the source schema
+	 * @param targetschemaname name of the target schema
+	 * @return the matching file including draft versions, latest version, or null
 	 */
 	public static File getLastFilename(ConnectorController connector, String connectionname, String remoteschemaname, String targetschemaname) {
 		File mappingdir = getMappingDir(connector, connectionname, remoteschemaname);
@@ -85,6 +86,14 @@ public class SchemaMappingData {
 		return null;
 	}
 
+	/**
+	 * Find a mapping from file based on the schema for the logical data model (targetschemaname) and the source schema name (remoteschemaname).
+	 * 
+	 * @param connector ConnectorController
+	 * @param connectionname name of the connection
+	 * @param remoteschemaname name of the source schema
+	 * @return the matching file, latest version, or null
+	 */
 	public static File getLastActiveMapping(ConnectorController connector, String connectionname, String remoteschemaname) {
 		File mappingdir = getMappingDir(connector, connectionname, remoteschemaname);
 		if (mappingdir.isDirectory()) {
@@ -117,12 +126,11 @@ public class SchemaMappingData {
 	/**
 	 * Used by the UI to merge the last mapping file with the latest version of the target schema.
 	 * 
-	 * @param connector
-	 * @param connectionname
-	 * @param remoteschemaname
-	 * @param targetschemaname
-	 * @param active select only the active mappings (true) or drafts as well (false)?
-	 * @throws IOException
+	 * @param connector ConnectorController
+	 * @param connectionname name of the connection
+	 * @param remoteschemaname name of the source schema
+	 * @param targetschemaname name of the target schema
+	 * @throws IOException if error
 	 */
 	public SchemaMappingData(ConnectorController connector, String connectionname, String remoteschemaname, String targetschemaname) throws IOException {
 		SchemaHandler schemahandler = connector.getPipelineAPI().getSchema(targetschemaname);
@@ -336,18 +344,18 @@ public class SchemaMappingData {
 	/**
 	 * Save the mapping, the key schema used and the value schema. The latter is used in case the target schema does not exist yet.
 	 * The save logic is to either 
-	 * <OL><LI>save as <I>name</I>_v1_draft in case this is brand new</LI>
-	 * <LI>overwrite the last draft file in case the draft is the latest - continue editing a draft</LI>
-	 * <LI>save as a new <I>name</I>_v2_draft in case the highest file is no draft and has version v1</LI>
-	 * </OL>
+	 * <ol><li>save as <I>name</I>_v1_draft in case this is brand new</li>
+	 * <li>overwrite the last draft file in case the draft is the latest - continue editing a draft</li>
+	 * <li>save as a new <I>name</I>_v2_draft in case the highest file is no draft and has version v1</li>
+	 * </ol>
 	 * 
-	 * @param connector
-	 * @param connectionname
-	 * @param remoteschemaname
-	 * @param targetschemahandler
-	 * @throws JsonGenerationException
-	 * @throws JsonMappingException
-	 * @throws IOException
+	 * @param connector ConnectorController
+	 * @param connectionname name of the connection
+	 * @param remoteschemaname name of the source schema
+	 * @param targetschemahandler SchemaHandler of the target schema
+	 * @throws JsonGenerationException the json cannot be serialized
+	 * @throws JsonMappingException the json write fails
+	 * @throws IOException if error
 	 */
 	public void save(ConnectorController connector, String connectionname, String remoteschemaname, SchemaHandler targetschemahandler) 
 			throws JsonGenerationException, JsonMappingException, IOException {
