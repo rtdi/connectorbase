@@ -10,8 +10,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import io.rtdi.bigdata.connector.connectorframework.WebAppController;
-
 @WebServlet("/ui5/view/*")
 public class UI5View extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -38,8 +36,6 @@ public class UI5View extends HttpServlet {
 				ServletOutputStream out = response.getOutputStream();
 			) {
 			if (in != null) {
-				String error = WebAppController.getError(getServletContext());
-
 				out.println("<mvc:View height=\"100%\" class=\"sapUiSizeCompact\" ");
 				out.print("controllerName=\"com.rtdi.bigdata.connector.ui.controller.");
 				out.print(name);
@@ -67,13 +63,6 @@ public class UI5View extends HttpServlet {
 				out.println("      <f:heading>");
 				out.println("        <Title text=\"{state>/title}\" level=\"H1\" />");
 				out.println("      </f:heading>");
-				if (error != null) {
-					out.println("  <f:content>");
-					out.println("    <GenericTag text=\"" + error + "\" status=\"Warning\">");
-					out.println("      <ObjectAttribute text=\"" + error + "\" emphasized=\"false\" state=\"Warning\"/>");
-					out.println("    </m:GenericTag>");
-					out.println("  </f:content>");
-				}
 				out.println("      <f:navigationActions>");
 				out.println("        <l:HorizontalLayout>");
 				out.println("          <Button icon=\"sap-icon://travel-request\" press=\"onPressStatusLink\" tooltip=\"Connector Status\" />");

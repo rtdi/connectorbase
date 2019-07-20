@@ -41,4 +41,9 @@ public class PropertyPassword extends PropertyAbstract implements IPropertyValue
 		}
 	}
 
+	@Override
+	public boolean hasValue() {
+		return value != null;
+	}
+
 }

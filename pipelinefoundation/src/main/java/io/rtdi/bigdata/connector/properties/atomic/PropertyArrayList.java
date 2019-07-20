@@ -49,4 +49,9 @@ public class PropertyArrayList extends PropertyAbstract implements IPropertyValu
 		}
 	}
 
+	@Override
+	public boolean hasValue() {
+		return value != null && value.size() != 0;
+	}
+
 }

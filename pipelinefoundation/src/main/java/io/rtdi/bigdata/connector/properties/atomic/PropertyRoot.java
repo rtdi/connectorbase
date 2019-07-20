@@ -103,6 +103,14 @@ public class PropertyRoot extends PropertyGroupAbstract {
 					}
 				}
 			}
+			for (IProperty p : nameindex.values()) {
+				if (p instanceof IPropertyValue) {
+					IPropertyValue valueproperty = (IPropertyValue) p;
+					if (valueproperty.getMandatory() && !valueproperty.hasValue()) {
+						throw new PropertiesException("Mandatory parameter \"" + valueproperty.getName() + "\" not set");
+					}
+				}
+			}
 			this.valuesset = true;
 		} else {
 			throw new PropertiesException("PropertyGroup value not of type PropertyGroup");

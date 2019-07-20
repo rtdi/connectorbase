@@ -41,4 +41,9 @@ public class PropertyBoolean extends PropertyAbstract implements IPropertyValue 
 		return String.valueOf(value);
 	}
 
+	@Override
+	public boolean hasValue() {
+		return value != null;
+	}
+
 }

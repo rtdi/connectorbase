@@ -4,13 +4,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.JAXBErrorMessage;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesRuntimeException;
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 
 public class JAXBErrorResponseBuilder {
 	
 	public static Response getJAXBResponse(Throwable e) {
-		if (e instanceof PropertiesRuntimeException) {
-			PropertiesRuntimeException a = (PropertiesRuntimeException) e;
+		if (e instanceof PropertiesException) {
+			PropertiesException a = (PropertiesException) e;
 			return Response.status(mapErrorOrigin(a)).entity(new JAXBErrorMessage(e)).build();
 		} else {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(new JAXBErrorMessage(e)).build();
@@ -21,7 +21,7 @@ public class JAXBErrorResponseBuilder {
 		return Response.status(Status.BAD_REQUEST).entity(new JAXBErrorMessage(string)).build();
 	}
 
-	private static Status mapErrorOrigin(PropertiesRuntimeException e) {
+	private static Status mapErrorOrigin(PropertiesException e) {
 		return Status.INTERNAL_SERVER_ERROR;
 		/*
 		switch (e.getErrorOrigin()) {

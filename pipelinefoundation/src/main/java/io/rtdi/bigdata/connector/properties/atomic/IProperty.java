@@ -20,5 +20,5 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public interface IProperty {
 
 	String getName();
-
+	
 }

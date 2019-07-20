@@ -17,7 +17,6 @@ import javax.servlet.annotation.WebListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
@@ -84,8 +83,8 @@ public class WebAppController implements ServletContextListener {
 	 * @param servletContext ServletContext
 	 * @return Error string created during boot of the web application
 	 */
-	public static String getError(ServletContext servletContext) {
-		return (String) servletContext.getAttribute(ERRORMESSAGE);
+	public static Exception getError(ServletContext servletContext) {
+		return (Exception) servletContext.getAttribute(ERRORMESSAGE);
 	}
 
 	@Override
@@ -112,16 +111,9 @@ public class WebAppController implements ServletContextListener {
 
 	}
 	
-	/**
-	 * @param sce ServletContextEvent
-	 * @param errormessage of the Exception
-	 */
-	private static void setError(ServletContextEvent sce, String errormessage) {
-		sce.getServletContext().setAttribute(ERRORMESSAGE, errormessage);
-	}
 
 	private static void setError(ServletContextEvent sce, Exception e) {
-		sce.getServletContext().setAttribute(ERRORMESSAGE, e.getMessage());
+		sce.getServletContext().setAttribute(ERRORMESSAGE, e);
 	}
 
 	/**
@@ -167,10 +159,9 @@ public class WebAppController implements ServletContextListener {
 			}
 			
 			if (count == 0) {
-				throw new PropertiesException("No class for an IPipelineServer was found. Seems a jar file is missing?");
+				throw new PropertiesException("No class for a pipeline was found. Seems a jar file is missing in the web application?", 10001);
 			} else if (count != 1) {
-				logger.error("More than one IPipelineAPI class was found, hence might be using the wrong one");
-				setError(sce, "More than one IPipelineAPI class was found, hence might be using the wrong one");
+				throw new PropertiesException("More than one IPipelineAPI class was found, hence might be using the wrong one");
 			}
 			sce.getServletContext().setAttribute(API, api);
 
@@ -187,8 +178,7 @@ public class WebAppController implements ServletContextListener {
 			if (count == 0) {
 				throw new PropertiesException("No class for an IConnectorFactory was found. Seems a jar file is missing?");
 			} else if (count != 1) {
-				logger.error("More than one IConnectorFactory class was found, the build of the jar file is wrong");
-				setError(sce, "More than one IConnectorFactory class was found, the build of the jar file is wrong");
+				throw new PropertiesException("More than one IConnectorFactory class was found, the build of the jar file is wrong");
 			}
 
 			sce.getServletContext().setAttribute(CONNECTORFACTORY, connectorfactory);

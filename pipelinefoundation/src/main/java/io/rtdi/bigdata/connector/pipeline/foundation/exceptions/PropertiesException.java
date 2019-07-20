@@ -11,6 +11,7 @@ public class PropertiesException extends IOException {
 	private static final long serialVersionUID = 116063643000518740L;
 	private String hint = null;
 	private String causingobject = null;
+	private Integer errorcode = null;
 
 	public PropertiesException() {
 		super();
@@ -18,6 +19,11 @@ public class PropertiesException extends IOException {
 
 	public PropertiesException(String message) {
 		super(message);
+	}
+
+	public PropertiesException(String message, int errorcode) {
+		super(message);
+		this.errorcode = errorcode;
 	}
 
 	public PropertiesException(Throwable cause) {
@@ -64,4 +70,29 @@ public class PropertiesException extends IOException {
 		return causingobject;
 	}
 
+	public String getErrorHelp() {
+		if (errorcode == null) {
+			return null;
+		} else {
+			return "https://github.com/rtdi/connectorbase/blob/master/docs/errors/" + String.valueOf(errorcode) + ".md";
+		}
+	}
+
+	public String getSourceCodeLink() {
+		StackTraceElement line = getStackTrace()[0];
+		String filename = line.getFileName();
+		int lineno = line.getLineNumber();
+		String link = null;
+		try {
+			Class<?> c = Class.forName(line.getClassName());
+			String jarlocation = c.getProtectionDomain().getCodeSource().getLocation().getPath();
+			String jarfile = jarlocation.substring(jarlocation.lastIndexOf('/')+1);
+			String module = jarfile.substring(0, jarfile.indexOf('-'));
+			String packagename = c.getCanonicalName().substring(0, c.getCanonicalName().lastIndexOf(filename.substring(0, filename.lastIndexOf(".java")))-1);
+			
+			link = "https://github.com/rtdi/connectorbase/blob/master/" + module + "/src/main/java/" + packagename.replace('.', '/') + "/" + filename + "#L" + String.valueOf(lineno);
+		} catch (Exception e) {
+		}
+		return link;
+	}
 }

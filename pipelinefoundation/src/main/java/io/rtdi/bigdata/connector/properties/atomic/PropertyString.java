@@ -41,4 +41,9 @@ public class PropertyString extends PropertyAbstract implements IPropertyValue {
 		return value;
 	}
 
+	@Override
+	public boolean hasValue() {
+		return value != null && value.length() != 0;
+	}
+
 }
