@@ -12,10 +12,11 @@ import javax.ws.rs.core.Response;
 
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.JAXBErrorMessages;
 
 
 @Path("/")
-public class WebAppError {
+public class GlobalError {
 	
 	@Context
     private Configuration configuration;
@@ -31,7 +32,7 @@ public class WebAppError {
 		try {
 			Exception error = WebAppController.getError(servletContext);
 			if (error != null) {
-				return JAXBErrorResponseBuilder.getJAXBResponse(error);
+				return Response.ok().entity(new JAXBErrorMessages(error)).build();
 			} else {
 				return Response.ok().build();
 			}
