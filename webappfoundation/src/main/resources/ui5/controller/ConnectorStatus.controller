@@ -1,5 +1,6 @@
-"sap/m/Button",	"sap/m/Dialog",	"sap/m/Text", "sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
-Button, Dialog, Text, Controller, JSONModel
+showFooter : function() {
+	return false;
+},
 init : function() {
 	this.onPressRefresh(null);
 },
@@ -33,7 +34,7 @@ edit : function(oEvent) {
 	}
 	
 	// if there is no "add" Button yet on the screen
-	if (!aConnections || !!aConnections[aConnections.length-1].connectionname) {
+	if (!aConnections || aConnections.length == 0 || !!aConnections[aConnections.length-1].connectionname) {
 	    aConnections.push( { "connectionname": null } );
 	}
 	oModel.setProperty("/connections", aConnections);
@@ -42,7 +43,7 @@ cancel : function(oEvent) {
     var oModel = this.getView().getModel();
 	var aConnections = oModel.getProperty("/connections");
 	// remove the "+" row for adding new connections
-	if (!!aConnections && !aConnections[aConnections.length-1].connectionname) {
+	if (!!aConnections && aConnections.length > 0 && !aConnections[aConnections.length-1].connectionname) {
 		aConnections.splice(aConnections.length-1, 1);
 	}
 	if (!!aConnections) {
@@ -75,7 +76,6 @@ onPressAddConnection : function(oEvent) {
 onPressRefresh : function(oEvent) {
 	var oModel = new JSONModel();
 	oModel.loadData("../rest/ConnectorStatus", null, false);
-	var oStateModel = this.getView().getModel("state");
 	oStateModel.setProperty("/title", oModel.getProperty("/connectorname"));
 	var aConnections = oModel.getProperty("/connections");
 	if (!!aConnections) {
@@ -113,9 +113,13 @@ onPressDeleteConnection : function(oEvent) {
 		xmlhttp.open("DELETE", "../rest/connections/" + encodeURI(obj.connectionname));
 		xmlhttp.setRequestHeader("Content-Type", "application/json");
 		xmlhttp.onreadystatechange = function() {
-		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-		        alert(xmlhttp.responseText);
-		    }
+		    if (xmlhttp.readyState == 4) {
+		    	if (xmlhttp.status == 200) {
+			        alert(xmlhttp.responseText);
+			    } else {
+			    	alert(xmlhttp.responseText);
+			    }
+			}
 		}
 		xmlhttp.send(null);
 	}
@@ -129,9 +133,13 @@ onPressStopConnection : function(oEvent) {
 		xmlhttp.open("GET", "../rest/connections/" + encodeURI(obj.connectionname) + "/stop");
 		xmlhttp.setRequestHeader("Content-Type", "application/json");
 		xmlhttp.onreadystatechange = function() {
-		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-		        alert(xmlhttp.responseText);
-		    }
+		    if (xmlhttp.readyState == 4) {
+		    	if (xmlhttp.status == 200) {
+			        alert(xmlhttp.responseText);
+			    } else {
+			    	alert(xmlhttp.responseText);
+			    }
+			}
 		}
 		xmlhttp.send(null);
 	}
@@ -145,9 +153,13 @@ onPressStartConnection : function(oEvent) {
 		xmlhttp.open("GET", "../rest/connections/" + encodeURI(obj.connectionname) + "/start");
 		xmlhttp.setRequestHeader("Content-Type", "application/json");
 		xmlhttp.onreadystatechange = function() {
-		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-		        alert(xmlhttp.responseText);
-		    }
+		    if (xmlhttp.readyState == 4) {
+		    	if (xmlhttp.status == 200) {
+			        alert(xmlhttp.responseText);
+			    } else {
+			    	alert(xmlhttp.responseText);
+			    }
+			}
 		}
 		xmlhttp.send(null);
 	}
@@ -170,9 +182,13 @@ onPressStopProducer : function(oEvent) {
 		xmlhttp.open("GET", "../rest/connections/" + encodeURI(obj.connectionname) + "/producers/" + encodeURI(obj.producername) + "/stop");
 		xmlhttp.setRequestHeader("Content-Type", "application/json");
 		xmlhttp.onreadystatechange = function() {
-		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-		        alert(xmlhttp.responseText);
-		    }
+		    if (xmlhttp.readyState == 4) {
+		    	if (xmlhttp.status == 200) {
+			        alert(xmlhttp.responseText);
+			    } else {
+			    	alert(xmlhttp.responseText);
+			    }
+			}
 		}
 		xmlhttp.send(null);
 	}
@@ -188,9 +204,13 @@ onPressStartProducer : function(oEvent) {
 		xmlhttp.open("GET", "../rest/connections/" + encodeURI(obj.connectionname) + "/producers/" + encodeURI(obj.producername) + "/start");
 		xmlhttp.setRequestHeader("Content-Type", "application/json");
 		xmlhttp.onreadystatechange = function() {
-		    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-		        alert(xmlhttp.responseText);
-		    }
+		    if (xmlhttp.readyState == 4) {
+		    	if (xmlhttp.status == 200) {
+			        alert(xmlhttp.responseText);
+			    } else {
+			    	alert(xmlhttp.responseText);
+			    }
+			}
 		}
 		xmlhttp.send(null);
 	}

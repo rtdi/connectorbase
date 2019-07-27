@@ -1,5 +1,6 @@
-"sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
-Controller, JSONModel, InputFormatter
+showFooter : function() {
+	return true;
+},
 init : function() {
 	var oModel = new JSONModel();
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
@@ -7,21 +8,21 @@ init : function() {
 		var sConsumername = jQuery.sap.getUriParameters().get("consumername");
 		if (!sConsumername) {
 			oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/consumer/template");
-			this.onPressEdit(null);
+			oStateModel.setProperty("/title", "New Consumer");
 		} else {
 			oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/consumers/" + sConsumername);
+			oStateModel.setProperty("/title", "Consumer settings");
 		}
 		this.getView().setModel(oModel);
+		oStateModel.setProperty("/breadcrumbs", [ 
+			{"text" : "Homepage", "link" : "./Home"}, 
+			{"text" : "Connections", "link" : "./Connections"},
+			{"text" : "Consumers", "link" : "./Consumers?connectionname=" + encodeURI(sConnectionname) }
+		] );
 	}
-	var oStateModel = this.getView().getModel("state");
-	oStateModel.setProperty("/title", "Consumer settings");
-	oStateModel.setProperty("/breadcrumbs", [ {"text" : "ConnectorStatus", "link" : "./ConnectorStatus"} ] );
-},
-edit : function(oEvent) {
 },
 save : function(oEvent) {
 	var oModel = this.getView().getModel();
-	var oStateModel = this.getView().getModel("state");
 	var data = JSON.stringify(oModel.getJSON());
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	var sConsumername = oStateModel.getProperty("/name");
@@ -29,9 +30,13 @@ save : function(oEvent) {
 	xmlhttp.open("POST", "../rest/connections/" + encodeURI(sConnectionname) + "/consumers/" + encodeURI(sConsumername));
 	xmlhttp.setRequestHeader("Content-Type", "application/json");
 	xmlhttp.onreadystatechange = function() {
-	    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-	        alert(xmlhttp.responseText);
-	    }
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+		        alert(xmlhttp.responseText);
+		    } else {
+		    	alert(xmlhttp.responseText);
+		    }
+		}
 	}
 	xmlhttp.send(oModel.getJSON());
 },

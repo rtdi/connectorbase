@@ -171,8 +171,12 @@ public class UsageStatistics {
 		}
 
 		private Producer getProducerByName(String name) {
-			int index = producerindex.get(name);
-			return producers.get(index);
+			if (producers != null) {
+				int index = producerindex.get(name);
+				return producers.get(index);
+			} else {
+				return null;
+			}
 		}
 		
 		private Producer getProducerByNameFrom(String name, Connection prev) {
@@ -267,6 +271,13 @@ public class UsageStatistics {
 			this.instances = instances;
 		}
 
+		public int getInstancecount() {
+			if (instances != null) {
+				return instances.size();
+			} else {
+				return 0;
+			}
+		}
 	}
 	
 	public static class ProducerInstance {
@@ -371,6 +382,13 @@ public class UsageStatistics {
 			this.instances = instances;
 		}
 
+		public int getInstancecount() {
+			if (instances != null) {
+				return instances.size();
+			} else {
+				return 0;
+			}
+		}
 	}
 	
 	public static class ConsumerInstance {

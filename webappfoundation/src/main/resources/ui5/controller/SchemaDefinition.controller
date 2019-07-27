@@ -1,5 +1,6 @@
-"sap/m/Button",	"sap/m/Dialog",	"sap/m/Text", "sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
-Button, Dialog, Text, Controller, JSONModel
+showFooter : function() {
+	return false;
+},
 init : function() {
 	var oModel = new JSONModel();
 	var sSchemaname = jQuery.sap.getUriParameters().get("name");
@@ -7,13 +8,8 @@ init : function() {
 		oModel.loadData("../rest/schemas/" + sSchemaname);
 		this.getView().setModel(oModel);
 	}
-	var oEdit = this.byId("editid");
-	oEdit.setVisible(false);
-	var oStateModel = this.getView().getModel("state");
 	oStateModel.setProperty("/title", "Schema definition");
-	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Schemas", "link" : "./Schemas"} ] );
-},
-edit : function(oEvent) {
+	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"}, {"text" : "Schemas", "link" : "./Schemas"} ] );
 },
 cancel : function(oEvent) {
 },

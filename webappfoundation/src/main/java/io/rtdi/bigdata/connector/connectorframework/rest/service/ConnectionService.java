@@ -1,6 +1,9 @@
 package io.rtdi.bigdata.connector.connectorframework.rest.service;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.ServletContext;
@@ -19,6 +22,7 @@ import javax.ws.rs.core.Response;
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectionController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
+import io.rtdi.bigdata.connector.connectorframework.entity.UsageStatistics;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
@@ -34,6 +38,19 @@ public class ConnectionService {
 	@Context 
 	private ServletContext servletContext;
 		
+	@GET
+	@Path("/connections")
+    @Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed(ServletSecurityConstants.ROLE_VIEW)
+    public Response getConnections() {
+		try {
+			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
+			return Response.ok(new ConnectionsEntity(connector)).build();
+		} catch (Exception e) {
+			return JAXBErrorResponseBuilder.getJAXBResponse(e);
+		}
+	}
+
 	@GET
 	@Path("/connections/{connectionname}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -94,6 +111,20 @@ public class ConnectionService {
 		}
 	}
 
+	@GET
+	@Path("/connections/{connectionname}/statistics")
+    @Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed(ServletSecurityConstants.ROLE_OPERATOR)
+    public Response getConnectionStatistics(@PathParam("connectionname") String connectionname) {
+		try {
+			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
+			ConnectionController conn = connector.getConnectionOrFail(connectionname);
+			return Response.ok(new UsageStatistics.Connection(conn, null)).build();
+		} catch (Exception e) {
+			return JAXBErrorResponseBuilder.getJAXBResponse(e);
+		}
+	}
+
 	@POST
 	@Path("/connections/{connectionname}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -137,4 +168,71 @@ public class ConnectionService {
 		}
 	}
 
+	public static class ConnectionsEntity {
+
+		private List<ConnectionEntity> connections;
+		
+		public ConnectionsEntity(ConnectorController connector) {
+			if (connector.getConnections() != null) {
+				Collection<ConnectionController> connectionset = connector.getConnections().values();
+				this.connections = new ArrayList<>();
+				for (ConnectionController connection : connectionset) {
+					this.connections.add(new ConnectionEntity(connection));
+				}
+			}
+		}
+		
+		public List<ConnectionEntity> getConnections() {
+			return connections;
+		}
+		
+	}
+	
+	public static class ConnectionEntity {
+
+		private String name;
+		private String desc;
+		private int producers;
+		private int consumers;
+		private int elements;
+
+		public ConnectionEntity(ConnectionController connection) {
+			ConnectionProperties props = connection.getConnectionProperties();
+			this.name = props.getName();
+			this.desc = props.getDescription();
+			if (connection.getProducers() != null) {
+				producers = connection.getProducers().size();
+			} else {
+				producers = 0;
+			}
+			if (connection.getConsumers() != null) {
+				consumers = connection.getConsumers().size();
+			} else {
+				consumers = 0;
+			}
+			elements = producers + consumers;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public String getDesc() {
+			return desc;
+		}
+
+		public int getProducercount() {
+			return producers;
+		}
+
+		public int getConsumercount() {
+			return consumers;
+		}
+
+		public int getElements() {
+			return elements;
+		}
+
+	}
+		
 }

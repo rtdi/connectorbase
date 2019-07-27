@@ -1,0 +1,41 @@
+showFooter : function() {
+	return false;
+},
+init : function() {
+	var oModel = new JSONModel();
+	oModel.loadData("../rest/connections");
+	this.getView().setModel(oModel);
+	oStateModel.setProperty("/title", "Connections");
+	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"} ] );
+},
+save : function(oEvent) {
+},
+cancel : function(oEvent) {
+},
+onTileAdd : function(oEvent) {
+	window.location.href = './Connection?name=';
+},
+onPressConnection : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	window.location.href = './Connection?connectionname=' + encodeURI(obj.name);
+},
+onPressProducers : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	window.location.href = './Producers?connectionname=' + encodeURI(obj.name);
+},
+onPressConsumers : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	window.location.href = './Consumers?connectionname=' + encodeURI(obj.name);
+},
+onPressBrowse : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	window.location.href = './Browse?connectionname=' + encodeURI(obj.name);
+}

@@ -18,4 +18,22 @@ public class ServletSecurityConstants {
 	 */
 	public static final String ROLE_CONFIG = "connectorconfig"; 
 
+	public static enum Roles {
+		ROLE_VIEW(ServletSecurityConstants.ROLE_VIEW),
+		ROLE_SCHEMA(ServletSecurityConstants.ROLE_SCHEMA),
+		ROLE_OPERATOR(ServletSecurityConstants.ROLE_OPERATOR),
+		ROLE_CONFIG(ServletSecurityConstants.ROLE_CONFIG);
+
+		private String rolecode;
+		
+		private Roles(String rolecode) {
+			this.rolecode = rolecode;
+		}
+
+		public String getRolecode() {
+			return rolecode;
+		}
+
+	}
+
 }

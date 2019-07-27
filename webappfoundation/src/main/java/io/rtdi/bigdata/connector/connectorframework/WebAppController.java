@@ -86,6 +86,11 @@ public class WebAppController implements ServletContextListener {
 	public static Exception getError(ServletContext servletContext) {
 		return (Exception) servletContext.getAttribute(ERRORMESSAGE);
 	}
+	
+	public static void clearError(ServletContext sc) {
+		sc.setAttribute(ERRORMESSAGE, null);
+	}
+
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
@@ -116,6 +121,10 @@ public class WebAppController implements ServletContextListener {
 		sce.getServletContext().setAttribute(ERRORMESSAGE, e);
 	}
 
+	public static void setError(ServletContext sc, Exception e) {
+		sc.setAttribute(ERRORMESSAGE, e);
+	}
+
 	/**
 	 * At boot time the server tries to find the pipeline and connector classes, reads the 
 	 * properties and starts up everything.<br>
@@ -142,6 +151,9 @@ public class WebAppController implements ServletContextListener {
 					globalprops = new Properties();
 					globalprops.load(propertiesstream);
 					apiclassname = globalprops.getProperty("api"); // optional
+					if (apiclassname != null) {
+						logger.info("The WEB-INF/global.properties asks to use the class \"{}\"", apiclassname);
+					}
 				}
 			}
 			
@@ -152,8 +164,11 @@ public class WebAppController implements ServletContextListener {
 			for (IPipelineAPI<?,?,?,?> serv : loader) {
 			    api = serv;
 				if (apiclassname != null && apiclassname.equals(serv.getClass().getSimpleName())) {
+					logger.info("The WEB-INF/global.properties asks to use the class \"{}\" and we found it", apiclassname);
 					count = 1;
 					break;
+				} else {
+					logger.info("Found the pipeline class \"{}\"", api.getClass().getSimpleName());
 				}
 			    count++;
 			}
@@ -161,7 +176,7 @@ public class WebAppController implements ServletContextListener {
 			if (count == 0) {
 				throw new PropertiesException("No class for a pipeline was found. Seems a jar file is missing in the web application?", 10001);
 			} else if (count != 1) {
-				throw new PropertiesException("More than one IPipelineAPI class was found, hence might be using the wrong one");
+				throw new PropertiesException("More than one IPipelineAPI class was found, hence do not know which one to use", 10002);
 			}
 			sce.getServletContext().setAttribute(API, api);
 
@@ -176,19 +191,25 @@ public class WebAppController implements ServletContextListener {
 			    count++;
 			}
 			if (count == 0) {
-				throw new PropertiesException("No class for an IConnectorFactory was found. Seems a jar file is missing?");
+				throw new PropertiesException("No class for an IConnectorFactory was found. Seems a jar file is missing?", 10003);
 			} else if (count != 1) {
-				throw new PropertiesException("More than one IConnectorFactory class was found, the build of the jar file is wrong");
+				throw new PropertiesException("More than one IConnectorFactory class was found, the build of the jar file is wrong", 10004);
 			}
 
 			sce.getServletContext().setAttribute(CONNECTORFACTORY, connectorfactory);
 
 			String connectordirpath = sce.getServletContext().getRealPath("WEB-INF/connector");
+			logger.info("The root directory of all connector settings is \"{}\"", connectordirpath);
 
 			connectorcontroller = new ConnectorController(api, connectorfactory, connectordirpath, globalprops); // globalprops can be null
 			sce.getServletContext().setAttribute(CONNECTOR, connectorcontroller);
 
 			// Fourth step is to read the properties of each and start the controller
+			api.setWEBINFDir(webinfdir);
+			if (!api.hasConnectionProperties(webinfdir)) {
+				// Use does not want to see the low level error but the fact that the properties are not set yet. 
+				throw new PropertiesException("No Connection Properties defined yet", "Use the home page to get to the UI for setting them", null, null);
+			}
 			api.loadConnectionProperties(webinfdir);
 			connectorcontroller.readConfigs();
 			connectorcontroller.startController();

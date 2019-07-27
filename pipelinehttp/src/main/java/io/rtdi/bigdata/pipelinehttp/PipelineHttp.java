@@ -456,4 +456,19 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	public String getHostName() {
 		return IOUtils.getHostname();
 	}
+
+	@Override
+	public boolean hasConnectionProperties(File webinfdir) {
+		return properties.hasPropertiesFile(webinfdir);
+	}
+
+	@Override
+	public void reloadConnectionProperties() throws PropertiesException {
+		properties.read(webinfdir);
+	}
+
+	@Override
+	public void setWEBINFDir(File webinfdir) {
+		this.webinfdir = webinfdir;
+	}
 }

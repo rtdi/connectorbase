@@ -1,0 +1,27 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f"
+    xmlns:card="sap.f.cards"
+    >
+	<f:Card
+		class="sapUiMediumMargin"
+		width="200px">
+		<f:header>
+			<card:Header
+				title="{name}"
+				subtitle="{elements}"
+				iconSrc="sap-icon://connected"
+				press="onPressConnection" />
+		</f:header>
+		<f:content>
+			<HBox justifyContent="SpaceBetween">
+				<VBox justifyContent="SpaceBetween">
+					<Button icon="sap-icon://table-row" text="Producers" press="onPressProducers" width="100%" />
+					<Button icon="sap-icon://detail-view" text="Consumers" press="onPressConsumers" width="100%" />
+					<Button icon="sap-icon://database" text="Schemas" press="onPressBrowse" width="100%" />
+				</VBox>
+			</HBox>
+		</f:content>
+	</f:Card>
+</core:FragmentDefinition>

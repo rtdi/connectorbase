@@ -1,0 +1,31 @@
+showFooter : function() {
+	return false;
+},
+init : function() {
+	var oModel = new JSONModel();
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	if (!!sConnectionname) {
+		oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/statistics");
+		this.getView().setModel(oModel);
+	}
+	oStateModel.setProperty("/title", "Producers");
+	oStateModel.setProperty("/breadcrumbs", [ 
+		{"text" : "Homepage", "link" : "./Home"}, 
+		{"text" : "Connections", "link" : "./Connections"}
+	] );
+},
+save : function(oEvent) {
+},
+cancel : function(oEvent) {
+},
+onTileAdd : function(oEvent) {
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	window.location.href = './Consumer?connectionname=' + encodeURI(sConnectionname) + '&producername=';
+},
+onPressProducer : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	window.location.href = './Producer?connectionname=' + encodeURI(sConnectionname) + '&producername=' + encodeURI(obj.producername);
+}

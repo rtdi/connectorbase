@@ -11,7 +11,7 @@ public class ConnectorRuntimeException extends PropertiesException {
 	}
 
 	public ConnectorRuntimeException(String message, String hint, String causingobject) {
-		super(message, hint, causingobject);
+		super(message, hint, null, causingobject);
 	}
 
 	public ConnectorRuntimeException(String message, Throwable cause, String hint, String causingobject) {

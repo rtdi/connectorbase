@@ -1,0 +1,91 @@
+<f:Card
+	class="sapUiMediumMargin"
+	width="200px">
+	<f:header>
+		<card:Header
+			title="Connections"
+			subtitle="{/connectioncount}"
+			iconSrc="sap-icon://connected"
+			press="pressConnections" />
+	</f:header>
+</f:Card>
+
+<f:Card
+	class="sapUiMediumMargin"
+	width="200px">
+	<f:header>
+		<card:Header
+			title="Topics"
+			subtitle="{/topiccount}"
+			iconSrc="sap-icon://batch-payments"
+			press="pressTopics" />
+	</f:header>
+</f:Card>
+
+<f:Card
+	class="sapUiMediumMargin"
+	width="200px">
+	<f:header>
+		<card:Header
+			title="Schemas"
+			subtitle="{/schemacount}"
+			iconSrc="sap-icon://table-row"
+			press="pressSchemas" />
+	</f:header>
+</f:Card>
+
+<f:Card
+	class="sapUiMediumMargin"
+	width="200px">
+	<f:header>
+		<card:Header
+			title="Lineage"
+			iconSrc="sap-icon://combine"
+			press="pressLineage" />
+	</f:header>
+</f:Card>
+
+<f:Card
+	class="sapUiMediumMargin"
+	width="200px">
+	<f:header>
+		<card:Header
+			title="Landscape"
+			iconSrc="sap-icon://background"
+			press="pressLandscape" />
+	</f:header>
+</f:Card>
+
+<f:Card
+	class="sapUiMediumMargin"
+	width="200px">
+	<f:header>
+		<card:Header
+			title="Pipeline"
+			iconSrc="sap-icon://pipeline-analysis"
+			press="pressPipeline" />
+	</f:header>
+</f:Card>
+
+<f:Card
+	class="sapUiMediumMargin"
+	width="200px">
+	<f:header>
+		<card:Header
+			title="Global Schemas"
+			iconSrc="sap-icon://table-chart"
+			press="pressGlobalSchemas" />
+	</f:header>
+</f:Card>
+
+<f:Card
+	class="sapUiMediumMargin"
+	width="200px">
+	<f:header>
+		<card:Header
+			title="Help"
+			iconSrc="sap-icon://sys-help"
+			press="pressHelp" />
+	</f:header>
+</f:Card>
+

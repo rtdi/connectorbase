@@ -41,16 +41,17 @@ public class UI5Controller extends HttpServlet {
 				) {
 			if (in != null) {
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(in));) {
-					out.println("sap.ui.define([");
-					out.println(reader.readLine());
-					out.println("],");
-					out.print("function(");
-					out.print(reader.readLine());
-					out.println(") {");
+					out.println("sap.ui.define([\"sap/ui/core/mvc/Controller\", \"sap/ui/model/json/JSONModel\"],");
+					out.print("function(Controller, JSONModel) {");
 					out.println("\"use strict\";");
+					out.println("var oStateModel = new JSONModel();");
+					out.println("var oGlobalModel = new JSONModel();");
 					out.print("return Controller.extend(\"com.rtdi.bigdata.connector.ui.controller.");
 					out.print(name);
 					out.println("\", {");
+					out.println("onPressHomeLink : function(oEvent) {");
+					out.println("    window.location.href = './Home';");
+					out.println("},");
 					out.println("onPressStatusLink : function(oEvent) {");
 					out.println("    window.location.href = 'ConnectorStatus';");
 					out.println("},");
@@ -69,17 +70,12 @@ public class UI5Controller extends HttpServlet {
 					out.println("onPressBrowseLink : function(oEvent) {");
 					out.println("    window.location.href = './Browse';");
 					out.println("},");
-					out.println("onPressEdit : function(oEvent) { ");
-					out.println("    var page = this.getView().byId(\"dynamicpageid\");");
-					out.println("    page.setShowFooter(true);");
-					out.println("    var oStateModel = this.getView().getModel(\"state\");");
-					out.println("    var ret = oStateModel.setProperty(\"/edit\", true );");
-					out.println("    this.edit(oEvent);");
-					out.println("},");
 					out.println("onInit : function() {");
-					out.println("    var oStateModel = new JSONModel();");
-					out.println("    oStateModel.setData( { \"edit\" : false } );");
 					out.println("    this.getView().setModel(oStateModel, \"state\");");
+					out.println("    oGlobalModel.loadData(\"../rest/state\", null, false);");
+					out.println("    this.getView().setModel(oGlobalModel, \"globalstate\");");
+					out.println("    oStateModel.setProperty(\"/edit\", oGlobalModel.getProperty(\"/roles/config\"));");
+					out.println("    this.getView().byId('dynamicpageid').setShowFooter(this.showFooter());");
 					out.println("    this.init();");
 					out.println("},");
 					out.println("enableControl : function(value) {");
@@ -90,27 +86,44 @@ public class UI5Controller extends HttpServlet {
 					out.println("},");
 					out.println("onPressSave : function(oEvent) {");
 					out.println("    this.save(oEvent)");
-					out.println("    var oStateModel = this.getView().getModel(\"state\");");
-					out.println("    var ret = oStateModel.setProperty(\"/edit\", false );");
-					out.println("    var page = this.getView().byId(\"dynamicpageid\");");
-					out.println("    page.setShowFooter(false);");
 					out.println("},");
 					out.println("onPressCancel : function(oEvent) {");
-					out.println("    var oStateModel = this.getView().getModel(\"state\");");
-					out.println("    var ret = oStateModel.setProperty(\"/edit\", false );");
-					out.println("    var page = this.getView().byId(\"dynamicpageid\");");
-					out.println("    page.setShowFooter(false);");
 					out.println("    this.cancel(oEvent);");
 					out.println("},");
 					out.println("InputFormatter : function(type) {");
-					out.println("    if (type == 'propertyPassword') {");
+					out.println("    if (type == 'PropertyPassword') {");
 					out.println("        return 'Password';");
 					out.println("    } else {");
 					out.println("        return 'Text';");
 					out.println("    }");
 					out.println("},");
+					out.println("onGlobalErrorPopoverPress : function (oEvent) {"); 
+					out.println("    this._getMessagePopover().openBy(oEvent.getSource());"); 
+					out.println("},");
+					
+					out.println("_getMessagePopover : function () {"); 
+					out.println("    if (!this._oMessagePopover) {"); 
+					out.println("        this._oMessagePopover = sap.ui.xmlfragment(this.getView().getId(),\"com.rtdi.bigdata.connector.ui.fragment.xml.globalerror\", this);"); 
+					out.println("        this.getView().addDependent(this._oMessagePopover);"); 
+					out.println("    }"); 
+					out.println("    return this._oMessagePopover;"); 
+					out.println("},");
 
 					String line;
+					
+					// Provide an option for connectors to add more code
+					try (
+							InputStream in2 = this.getClass().getClassLoader().getResourceAsStream("/ui5/controller/" + name + "_pre.controller");
+						) {
+						if (in2 != null) {
+							int len;
+							byte[] buffer = new byte[4096];
+							while ((len = in2.read(buffer)) > -1) {
+								out.write(buffer, 0, len);
+							}
+						}
+					}
+
 					while ((line = reader.readLine()) != null) {
 						out.println(line);
 					}

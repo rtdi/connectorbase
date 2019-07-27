@@ -27,6 +27,10 @@ public class PropertyPassword extends PropertyAbstract implements IPropertyValue
 		return value;
 	}
 
+	public String getPassword() {
+		return value;
+	}
+
 	@Override
 	public String toString() {
 		return "******";

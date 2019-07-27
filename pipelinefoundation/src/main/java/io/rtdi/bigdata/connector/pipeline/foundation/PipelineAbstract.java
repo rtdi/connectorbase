@@ -370,6 +370,11 @@ public abstract class PipelineAbstract<
 	}
 
 	@Override
+	public void reloadConnectionProperties() throws PropertiesException {
+		server.loadConnectionProperties(webinfdir);
+	}
+
+	@Override
 	public void writeConnectionProperties() throws PropertiesException {
 		server.writeConnectionProperties(webinfdir);
 	}
@@ -381,6 +386,11 @@ public abstract class PipelineAbstract<
 	@Override
 	public String getHostName() {
 		return IOUtils.getHostname();
+	}
+
+	@Override
+	public void setWEBINFDir(File webinfdir) {
+		this.webinfdir = webinfdir;
 	}
 
 }

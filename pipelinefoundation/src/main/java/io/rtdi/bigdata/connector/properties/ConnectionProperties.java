@@ -93,6 +93,10 @@ public class ConnectionProperties {
 		properties.read(directory);
 	}
 	
+	public boolean hasPropertiesFile(File webinfdir) {
+		return properties.hasPropertiesFile(webinfdir);
+	}
+
 	/**
 	 * Write the current connection properties into a directory. The file name is derived from the {@link #getName()}.
 	 *  

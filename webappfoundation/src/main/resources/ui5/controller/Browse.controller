@@ -1,57 +1,29 @@
-"sap/m/Button",	"sap/m/Dialog",	"sap/m/Text", "sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
-Button, Dialog, Text, Controller, JSONModel
-init : function() {
-	var oConnectionModel = new JSONModel();
-	oConnectionModel.loadData("../rest/ConnectorStatus", null, false);
-	oConnectionModel.setProperty("/selected", oConnectionModel.getProperty("/connections/0/connectionname"));
-	this.getView().setModel(oConnectionModel, "Connections");
-	
-	var oStateModel = this.getView().getModel("state");
-	oStateModel.setProperty("/title", "Source system schemas");
-	var oEdit = this.byId("editid");
-	oEdit.setVisible(false);
-	this.onConnectionChange(null);
+showFooter : function() {
+	return false;
 },
-edit : function(oEvent) {
+init : function() {
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	if (!!sConnectionname) {
+		var oModel = new JSONModel();
+		oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas");
+		this.getView().setModel(oModel);
+	}	
+	oStateModel.setProperty("/title", "Source system schemas");
+	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"}, {"text" : "Connections", "link" : "./Connections"} ] );
 },
 cancel : function(oEvent) {
 },
 save : function(oEvent) {
 },
-onConnectionChange : function(oEvent) {
-	var oConnectionModel = this.getView().getModel("Connections");
-	var sConnectionname = oConnectionModel.getProperty("/selected");
-	if (!!sConnectionname) {
-		var oModel = new JSONModel();
-		oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas", null, false);
-		var aTables = oModel.getProperty("/tablenames");
-		aTables.push( { "tablename" : null } );
-		oModel.setProperty("/tablenames", aTables);
-		this.getView().setModel(oModel);
-	}
-},
 schemaformatter : function(name) {
-	var oConnectionModel = this.getView().getModel("Connections");
-	if (!!oConnectionModel) {
-		var sConnectionname = oConnectionModel.getProperty("/selected");
-		return "RemoteSchemaDefinition?connectionname=" + encodeURI(sConnectionname) + "&name=" + encodeURI(name);
-	} else {
-		return null;
-	}
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	return "RemoteSchemaDefinition?connectionname=" + encodeURI(sConnectionname) + "&name=" + encodeURI(name);
 },
 mappingformatter : function(name) {
-	var oConnectionModel = this.getView().getModel("Connections");
-	if (!!oConnectionModel) {
-		var sConnectionname = oConnectionModel.getProperty("/selected");
-		return "SchemaMapping?connectionname=" + encodeURI(sConnectionname) + "&name=" + encodeURI(name);
-	} else {
-		return null;
-	}
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	return "SchemaMapping?connectionname=" + encodeURI(sConnectionname) + "&name=" + encodeURI(name);
 },
 onPressAddRemote : function(oEvent) {
-	var oConnectionModel = this.getView().getModel("Connections");
-	if (!!oConnectionModel) {
-		var sConnectionname = oConnectionModel.getProperty("/selected");
-		window.location.href = './EditSchema?connectionname=' + encodeURI(sConnectionname);
-	}
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	window.location.href = './EditSchema?connectionname=' + encodeURI(sConnectionname);
 }

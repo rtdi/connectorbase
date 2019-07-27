@@ -21,7 +21,7 @@ public class PropertiesException extends IOException {
 		super(message);
 	}
 
-	public PropertiesException(String message, int errorcode) {
+	public PropertiesException(String message, Integer errorcode) {
 		super(message);
 		this.errorcode = errorcode;
 	}
@@ -30,8 +30,8 @@ public class PropertiesException extends IOException {
 		super(cause);
 	}
 
-	public PropertiesException(String message, String hint, String causingobject) {
-		super(message);
+	public PropertiesException(String message, String hint, Integer errorcode, String causingobject) {
+		this(message, errorcode);
 		this.hint = hint;
 		this.causingobject = causingobject;
 	}
@@ -40,10 +40,6 @@ public class PropertiesException extends IOException {
 		this(message, cause, hint, null);
 	}
 	
-	public PropertiesException(String message, String hint) {
-		this(message, hint, null);
-	}
-
 	public PropertiesException(String message, Throwable cause) {
 		this(message, cause, null, null);
 	}

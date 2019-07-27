@@ -56,8 +56,8 @@ public class IndexPage extends HttpServlet {
 				response.setContentType("text/html");
 				PrintWriter out = response.getWriter();
 				out.println("<!DOCTYPE html>");
-				out.println("<html><head><meta http-equiv=\"refresh\" content=\"0; URL=ui5/ConnectorStatus\"></head><body>");
-				out.println("Connector has not been setup yet, hence redirecting to the <a href=\"ConnectorStatus.html\">ConnectorStatus page</a></body></html>");
+				out.println("<html><head><meta http-equiv=\"refresh\" content=\"0; URL=ui5/Home\"></head><body>");
+				out.println("Redirecting to the <a href=\"Home.html\">Connector home page</a></body></html>");
 			}
 		}
 	}

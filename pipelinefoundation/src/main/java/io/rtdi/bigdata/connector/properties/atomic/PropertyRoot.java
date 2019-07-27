@@ -35,17 +35,19 @@ public class PropertyRoot extends PropertyGroupAbstract {
 	 */
 	public void read(File directory) throws PropertiesException {
 		if (!directory.exists()) {
-			throw new PropertiesException("File \"" + directory + "\" does not exist");
+			throw new PropertiesException("Directory for the properties files does not exist", "Use the UI or create the file manually", 10005, directory.getAbsolutePath());
 		} else if (!directory.isDirectory()) {
-			throw new PropertiesException("File \"" + directory + "\" is not a directory");
+			throw new PropertiesException("Specified location exists and is no directory", null, 10005, directory.getAbsolutePath());
 		} else { 
 			File file = new File(directory.getAbsolutePath() + File.separatorChar + getName() + ".json");
 			if (!file.canRead()) {
-				throw new PropertiesException("File \"" + file + "\" is not read-able");
+				throw new PropertiesException("Properties file is not read-able", "Check file permissions and users", 10005, file.getAbsolutePath());
 			} else {
 				try {
 				    PropertyRoot pg = mapper.readValue(file, PropertyRoot.class);
 			        parseValue(pg);
+				} catch (PropertiesException e) {
+					throw e; // to avoid nesting the exception
 				} catch (IOException e) {
 					throw new PropertiesException("Cannot parse the json file with the properties", e, "check filename and format", file.getName());
 				}
@@ -53,6 +55,11 @@ public class PropertyRoot extends PropertyGroupAbstract {
 		}
 	}
 	
+	public boolean hasPropertiesFile(File webinfdir) {
+		File f = new File(webinfdir.getAbsolutePath() + File.separatorChar + getName() + ".json");
+		return f.exists();
+	}
+
 	/**
 	 * Write the current properties to a file with its name derived from {@link #getName()}.
 	 * 
@@ -61,17 +68,17 @@ public class PropertyRoot extends PropertyGroupAbstract {
 	 */
 	public void write(File directory) throws PropertiesException {
 		if (!directory.exists()) {
-			throw new PropertiesException("File \"" + directory + "\" does not exist");
+			throw new PropertiesException("Directory for the properties files does not exist", "Use the UI or create the file manually", 10005, directory.getAbsolutePath());
 		} else if (!directory.isDirectory()) {
-			throw new PropertiesException("File \"" + directory + "\" is not a directory");
+			throw new PropertiesException("Specified location exists and is no directory", null, 10005, directory.getAbsolutePath());
 		} else {
 			File file = new File(directory.getAbsolutePath() + File.separatorChar + getName() + ".json");
 			if (file.exists() && !file.canWrite()) { // Either the file does not exist or it exists and is write-able
-				throw new PropertiesException("File \"" + file + "\" is not write-able");
+				throw new PropertiesException("Properties file is not write-able", "Check file permissions and users", 10005, file.getAbsolutePath());
 			} else {
 				/*
 				 * When writing the properties to a file, all the extra elements like description etc should not be stored.
-				 * Therefore a simplified version of the proeprty tree needs to be created.
+				 * Therefore a simplified version of the property tree needs to be created.
 				 */
 				Simplified simplified = new Simplified(this);
 				try {
@@ -89,7 +96,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 			PropertyGroupAbstract pg = (PropertyGroupAbstract) value;
 			for (IProperty v : pg.getValues()) {
 				if (v.getName() == null) {
-					throw new PropertiesException("The passed element \"" + v.toString() + "\" does not have a name");
+					throw new PropertiesException("The passed property element does not have a name", "Should actually be impossible", 10006, v.toString());
 				}
 				IProperty e = nameindex.get(v.getName());
 				if (e == null) {
@@ -107,7 +114,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 				if (p instanceof IPropertyValue) {
 					IPropertyValue valueproperty = (IPropertyValue) p;
 					if (valueproperty.getMandatory() && !valueproperty.hasValue()) {
-						throw new PropertiesException("Mandatory parameter \"" + valueproperty.getName() + "\" not set");
+						throw new PropertiesException("A mandatory parameter in the properties is not set", "Fix the properties settings", 10007, valueproperty.getName());
 					}
 				}
 			}
@@ -123,6 +130,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 		String type;
 		String name;
 		String value;
+		String description;
 		ArrayList<Simplified> values;
 
 		public Simplified() {
@@ -143,6 +151,9 @@ public class PropertyRoot extends PropertyGroupAbstract {
 			// getSimpleName() returns e.g. PropertyString but should be propertyString according to JAXB
 			type = element.getClass().getSimpleName();
 			name = element.getName();
+			if (element instanceof PropertyRoot) {
+				description = ((PropertyRoot) element).getDescription();
+			}
 			if (element instanceof PropertyGroup) {
 				PropertyGroup pg = (PropertyGroup) element;
 				values = new ArrayList<>();
@@ -179,6 +190,12 @@ public class PropertyRoot extends PropertyGroupAbstract {
 		}
 		public void setValues(ArrayList<Simplified> values) {
 			this.values = values;
+		}
+		public String getDescription() {
+			return description;
+		}
+		public void setDescription(String description) {
+			this.description = description;
 		}
 	}
 

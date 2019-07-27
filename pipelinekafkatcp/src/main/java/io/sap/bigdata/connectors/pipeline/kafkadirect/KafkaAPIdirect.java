@@ -1,5 +1,7 @@
 package io.sap.bigdata.connectors.pipeline.kafkadirect;
 
+import java.io.File;
+
 import org.apache.kafka.clients.producer.KafkaProducer;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
@@ -44,6 +46,11 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	@Override
 	public String getConnectionLabel() {
 		return getAPIProperties().getKafkaBootstrapServers();
+	}
+
+	@Override
+	public boolean hasConnectionProperties(File webinfdir) {
+		return getAPIProperties().hasPropertiesFile(webinfdir);
 	}
 
 }

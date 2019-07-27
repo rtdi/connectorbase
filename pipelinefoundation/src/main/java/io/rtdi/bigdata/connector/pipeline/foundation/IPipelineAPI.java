@@ -239,6 +239,8 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 */
 	public void loadConnectionProperties(File webinfdir) throws PropertiesException;
 
+	public void reloadConnectionProperties() throws PropertiesException;
+
 	/**
 	 * Write the current connection properties into a file within the currently active root directory tree. <br>
 	 * <br>
@@ -258,5 +260,9 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @return The hostname the JVM is running on
 	 */
 	public String getHostName();
+
+	boolean hasConnectionProperties(File webinfdir);
+
+	void setWEBINFDir(File webinfdir);
 
 }

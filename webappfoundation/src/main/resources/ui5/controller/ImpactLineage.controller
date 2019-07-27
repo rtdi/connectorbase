@@ -1,10 +1,11 @@
-"sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
-Controller, JSONModel, InputFormatter
+showFooter : function() {
+	return false;
+},
 init : function() {
 	var that = this;
-	var oEdit = this.getView().byId("editid");
-	oEdit.setVisible(false);
 	var oModel = new JSONModel();
+	oStateModel.setProperty("/title", "Impact-Lineage");
+	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"} ] );
 
 	oModel.loadData("../rest/impactlineage");
 	this.getView().setModel(oModel);
@@ -52,8 +53,6 @@ init : function() {
 			visdata,
 			options);
 	});
-},
-edit : function(oEvent) {
 },
 save : function(oEvent) {
 },

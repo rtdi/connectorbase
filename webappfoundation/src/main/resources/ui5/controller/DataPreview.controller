@@ -1,5 +1,6 @@
-"sap/m/Button",	"sap/m/Dialog",	"sap/m/Text", "sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
-Button, Dialog, Text, Controller, JSONModel
+showFooter : function() {
+	return false;
+},
 init : function() {
 	var oModel = new JSONModel();
 	var sTopicname = jQuery.sap.getUriParameters().get("name");
@@ -7,11 +8,11 @@ init : function() {
 		oModel.loadData("../rest/topics/" + sTopicname + "/datapreview");
 		this.getView().setModel(oModel);
 	}
-	var oEdit = this.getView().byId("editid");
-	oEdit.setVisible(false);
-	var oStateModel = this.getView().getModel("state");
 	oStateModel.setProperty("/title", "Recent entries in " + sTopicname);
-	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Topics", "link" : "./Topics"} ] );
+	oStateModel.setProperty("/breadcrumbs", [ 
+		{"text" : "Homepage", "link" : "./Home"}, 
+		{"text" : "Topics", "link" : "./Topics"}
+	] );
 },
 edit : function(oEvent) {
 },

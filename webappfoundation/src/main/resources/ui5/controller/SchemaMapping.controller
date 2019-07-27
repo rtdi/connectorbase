@@ -1,5 +1,6 @@
-"sap/m/Button",	"sap/m/Dialog",	"sap/m/Text", "sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
-Button, Dialog, Text, Controller, JSONModel
+showFooter : function() {
+	return true;
+},
 init : function() {
 	var sSchemaname = jQuery.sap.getUriParameters().get("name");
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
@@ -13,11 +14,11 @@ init : function() {
 	oTargetSchemasModel.loadData("../rest/schemas");
 	this.getView().setModel(oTargetSchemasModel, "targetschemas");
 	
-	var oStateModel = this.getView().getModel("state");
 	oStateModel.setProperty("/title", "Schema mapping");
-	// oStateModel.setProperty("/breadcrumbs", [ {"text" : "Schemas", "link" : "./Schemas"} ] );
-},
-edit : function(oEvent) {
+	oStateModel.setProperty("/breadcrumbs", [ 
+		{"text" : "Homepage", "link" : "./Home"}, 
+		{"text" : "Connections", "link" : "./Connections"},
+		{"text" : "Browse", "link" : "./Browse?connectionname=" + encodeURI(sConnectionname) } ] );
 },
 cancel : function(oEvent) {
 },
@@ -32,9 +33,13 @@ save : function(oEvent) {
 	xmlhttp.open("POST", "../rest/mapping/" + encodeURI(sConnectionname) + "/" + encodeURI(sSchemaname) + "/" + encodeURI(sTargetSchemaname));
 	xmlhttp.setRequestHeader("Content-Type", "application/json");
 	xmlhttp.onreadystatechange = function() {
-	    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-	        alert(xmlhttp.responseText);
-	    }
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+		        alert(xmlhttp.responseText);
+		    } else {
+		    	alert(xmlhttp.responseText);
+		    }
+		}
 	}
 	xmlhttp.send(oTargetModel.getJSON());
 },
@@ -58,10 +63,7 @@ onTargetCollapseAll: function() {
 	oTreeTable.collapseAll();
 },
 onDropMapping: function(oEvent) {
-	var oStateModel = this.getView().getModel("state");
-	var edit = oStateModel.getProperty("/edit");
-
-	if (edit) {
+	if (allowEdit) {
 		var oSourceModel = this.getView().getModel("source");
 		var oSourcePath = oEvent.getParameter("draggedControl").getBindingContext("source").getPath();
 		var oSourceRow = oSourceModel.getProperty(oSourcePath);

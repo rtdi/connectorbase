@@ -1,0 +1,14 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <MessagePopover
+        items="{globalstate>/messages}"
+        initiallyExpanded="true">
+        <MessagePopoverItem
+            type="Error"
+            title="{globalstate>errortext}"
+            description="{globalstate>markup}"
+            markupDescription="true" >
+        </MessagePopoverItem>
+    </MessagePopover>
+</core:FragmentDefinition>

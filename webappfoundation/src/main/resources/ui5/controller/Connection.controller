@@ -1,37 +1,64 @@
-"sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
-Controller, JSONModel, InputFormatter
+showFooter : function() {
+	return true;
+},
 init : function() {
 	var oModel = new JSONModel();
-	var oStateModel = this.getView().getModel("state");
-	var sConnectionname = jQuery.sap.getUriParameters().get("name");
-	if (sConnectionname == null) {
-		oModel.loadData("../rest/connection/template");
-		this.onPressEdit(null);
-		oStateModel.setProperty("/title", "Create new Connection");
-	} else {
+	var oComponentsModel = new JSONModel();
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	if (!!sConnectionname) {
 		oModel.loadData("../rest/connections/" + encodeURI(sConnectionname));
 		oStateModel.setProperty("/title", "Connection settings");
+	} else {
+		oModel.loadData("../rest/connection/template");
+		oStateModel.setProperty("/title", "Create new Connection");
 	}
 	this.getView().setModel(oModel);
-	oStateModel.setProperty("/breadcrumbs", [ {"text" : "ConnectorStatus", "link" : "./ConnectorStatus"} ] );
-},
-edit : function(oEvent) {
+	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"}, {"text" : "Connections", "link" : "./Connections"} ] );
 },
 save : function(oEvent) {
 	var oModel = this.getView().getModel();
-	var oStateModel = this.getView().getModel("state");
 	var data = JSON.stringify(oModel.getJSON());
 	var xmlhttp = new XMLHttpRequest();
-	xmlhttp.open("POST", "../rest/connections/" + encodeURI(oStateModel.getProperty("/title")));
+	xmlhttp.open("POST", "../rest/connections/" + encodeURI(oModel.getProperty("/name")));
 	xmlhttp.setRequestHeader("Content-Type", "application/json");
 	xmlhttp.onreadystatechange = function() {
-	    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-	        window.location.href = './ConnectorStatus';
-	    } else {
-	        alert(xmlhttp.responseText);
-	    }
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+				var oComponents = this.byId("components");
+				oComponents.setVisible(true);
+		    } else {
+		        alert(xmlhttp.responseText);
+		    }
+		}
 	}
 	xmlhttp.send(oModel.getJSON());
 },
 cancel : function(oEvent) {
+},
+onTileProducerAdd : function(oEvent) {
+	var sConnectionname = jQuery.sap.getUriParameters().get("name");
+	window.location.href = './Producer?connectionname=' + encodeURI(sConnectionname);
+},
+onTileConsumerAdd : function(oEvent) {
+	var sConnectionname = jQuery.sap.getUriParameters().get("name");
+	window.location.href = './Consumer?connectionname=' + encodeURI(sConnectionname);
+},
+onTileProducerPress : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel("components");
+	var obj = oModel.getProperty(path);
+	var sConnectionname = jQuery.sap.getUriParameters().get("name");
+	if (oEvent.mParameters.action === "Press") {
+		window.location.href = './Producer?connectionname=' + encodeURI(sConnectionname) + "&producername=" + encodeURI(obj.producername);
+	}
+},
+onTileConsumerPress : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel("components");
+	var obj = oModel.getProperty(path);
+	var sConnectionname = jQuery.sap.getUriParameters().get("name");
+	if (oEvent.mParameters.action === "Press") {
+		window.location.href = './Consumer?connectionname=' + encodeURI(sConnectionname) + "&consumername=" + encodeURI(obj.consumername);
+	}
 }
+

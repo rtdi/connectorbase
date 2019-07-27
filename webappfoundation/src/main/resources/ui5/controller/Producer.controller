@@ -1,8 +1,8 @@
-"sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
-Controller, JSONModel, InputFormatter
+showFooter : function() {
+	return true;
+},
 init : function() {
 	var oModel = new JSONModel();
-	var oStateModel = this.getView().getModel("state");
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	if (!!sConnectionname) {
 		var sProducername = jQuery.sap.getUriParameters().get("producername");
@@ -15,10 +15,12 @@ init : function() {
 			oStateModel.setProperty("/title", "Producer settings");
 		}
 		this.getView().setModel(oModel);
-	}
-	oStateModel.setProperty("/breadcrumbs", [ {"text" : "ConnectorStatus", "link" : "./ConnectorStatus"} ] );
-},
-edit : function(oEvent) {
+		oStateModel.setProperty("/breadcrumbs", [ 
+			{"text" : "Homepage", "link" : "./Home"}, 
+			{"text" : "Connections", "link" : "./Connections"},
+			{"text" : "Producers", "link" : "./Producers?connectionname=" + encodeURI(sConnectionname) }
+		] );
+	}	
 },
 save : function(oEvent) {
 	var oModel = this.getView().getModel();
@@ -29,11 +31,13 @@ save : function(oEvent) {
 	xmlhttp.open("POST", "../rest/connections/" + encodeURI(sConnectionname) + "/producers/" + encodeURI(sProducername));
 	xmlhttp.setRequestHeader("Content-Type", "application/json");
 	xmlhttp.onreadystatechange = function() {
-	    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-	        window.location.href = './ConnectorStatus';
-	    } else {
-	        alert(xmlhttp.responseText);
-	    }
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+	        	window.location.href = './ConnectorStatus';
+		    } else {
+		    	alert(xmlhttp.responseText);
+		    }
+		}
 	}
 	xmlhttp.send(oModel.getJSON());
 },

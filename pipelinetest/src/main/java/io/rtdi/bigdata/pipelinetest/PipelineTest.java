@@ -1,5 +1,7 @@
 package io.rtdi.bigdata.pipelinetest;
 
+import java.io.File;
+
 import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
@@ -32,6 +34,15 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 	@Override
 	public String getConnectionLabel() {
 		return "LocalTest";
+	}
+
+	@Override
+	public boolean hasConnectionProperties(File webinfdir) {
+		return true;
+	}
+
+	@Override
+	public void setWEBINFDir(File webinfdir) {
 	}
 
 }

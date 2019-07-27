@@ -12,8 +12,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
+import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
+import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
 
 
@@ -48,8 +50,16 @@ public class PipelineConnectionService {
 			IPipelineAPI<?, ?, ?, ?> api = WebAppController.getPipelineAPI(servletContext);
 			api.getAPIProperties().setValue(data);
 			api.writeConnectionProperties();
+			api.reloadConnectionProperties();
+			WebAppController.clearError(servletContext);
+			ConnectorController connectorcontroller = WebAppController.getConnector(servletContext);
+			connectorcontroller.stopController(ControllerExitType.ABORT);
+			connectorcontroller.joinAll(ControllerExitType.ABORT);
+			connectorcontroller.readConfigs();
+			connectorcontroller.startController();
 			return Response.ok("created").build();
 		} catch (Exception e) {
+			WebAppController.setError(servletContext, e);
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
 	}

@@ -1,15 +1,12 @@
-"sap/m/Button",	"sap/m/Dialog",	"sap/m/Text", "sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
-Button, Dialog, Text, Controller, JSONModel
+showFooter : function() {
+	return false;
+},
 init : function() {
 	var oModel = new JSONModel();
 	oModel.loadData("../rest/schemas");
 	this.getView().setModel(oModel);
-	var oStateModel = this.getView().getModel("state");
 	oStateModel.setProperty("/title", "All Schemas known by the server");
-	var oEdit = this.byId("editid");
-	oEdit.setVisible(false);
-},
-edit : function(oEvent) {
+	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"} ] );
 },
 cancel : function(oEvent) {
 },

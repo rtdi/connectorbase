@@ -49,6 +49,7 @@ public class UI5View extends HttpServlet {
 				out.println("    xmlns:t=\"sap.ui.table\"");
 				out.println("    xmlns:app=\"http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1\"");
 				out.println("    xmlns:dnd=\"sap.ui.core.dnd\"");
+				out.println("    xmlns:card=\"sap.f.cards\"");
 				out.println("    xmlns:core=\"sap.ui.core\" >");
 				out.println("<f:DynamicPage id=\"dynamicpageid\" showFooter=\"false\" fitContent=\"true\" >");
 				out.println("  <f:title>");
@@ -64,33 +65,56 @@ public class UI5View extends HttpServlet {
 				out.println("        <Title text=\"{state>/title}\" level=\"H1\" />");
 				out.println("      </f:heading>");
 				out.println("      <f:navigationActions>");
-				out.println("        <l:HorizontalLayout>");
+				out.println("          <Button icon=\"sap-icon://home\" press=\"onPressHomeLink\" tooltip=\"Home Page\" />");
 				out.println("          <Button icon=\"sap-icon://travel-request\" press=\"onPressStatusLink\" tooltip=\"Connector Status\" />");
 				out.println("          <Button icon=\"sap-icon://group-2\" press=\"onPressTopicsLink\" tooltip=\"List of Topics\" />");
 				out.println("          <Button icon=\"sap-icon://address-book\" press=\"onPressSchemasLink\" tooltip=\"List of Schemas\" />");
 				out.println("          <Button icon=\"sap-icon://browse-folder\" press=\"onPressBrowseLink\" tooltip=\"Browse the Source\" />");
 				out.println("          <Button icon=\"sap-icon://org-chart\" press=\"onPressImpactLineageLink\" tooltip=\"Show Impact/Lineage diagram\" />");
 				out.println("          <Button icon=\"sap-icon://it-host\" press=\"onPressLandscapeLink\" tooltip=\"Show Landscape diagram\" />");
-				out.println("        </l:HorizontalLayout>");
 				out.println("      </f:navigationActions>");
 				out.println("      <f:actions>");
-				out.println("        <Button id=\"editid\"");
-				out.println("            text=\"Edit\"");
-				out.println("            type=\"Emphasized\"");
-				out.println("            enabled=\"{path: 'state>/edit', formatter: '.disableControl'}\"");
-				out.println("            press=\"onPressEdit\" />");
+				out.println("        <Button");
+				out.println("          icon=\"sap-icon://alert\""); 
+				out.println("          text=\"{= ${globalstate>/messages}.length }\""); 
+				out.println("          visible=\"{= !!${globalstate>/messages} &amp;&amp; ${globalstate>/messages}.length > 0 }\""); 
+				out.println("          type=\"Emphasized\""); 
+				out.println("          press=\"onGlobalErrorPopoverPress\" />"); 
 				out.println("      </f:actions>");
 				out.println("    </f:DynamicPageTitle>");
 				out.println("  </f:title>");
 				out.println("  <f:header>");
 				out.println("  </f:header>");
 				out.println("  <f:content>");
-				
+				out.println("      <Panel height=\"100%\">");
 				int len;
+
+				// Provide an option for connectors to add more controls before
+				try (
+						InputStream in2 = this.getClass().getClassLoader().getResourceAsStream("/ui5/view/" + name + "_pre.view");
+					) {
+					if (in2 != null) {
+						while ((len = in2.read(buffer)) > -1) {
+							out.write(buffer, 0, len);
+						}
+					}
+				}
+				
 				while ((len = in.read(buffer)) > -1) {
 					out.write(buffer, 0, len);
 				}
 				
+				// Provide an option for connectors to add more controls after
+				try (
+						InputStream in2 = this.getClass().getClassLoader().getResourceAsStream("/ui5/view/" + name + "_post.view");
+					) {
+					if (in2 != null) {
+						while ((len = in2.read(buffer)) > -1) {
+							out.write(buffer, 0, len);
+						}
+					}
+				}
+				out.println("      </Panel>");
 				out.println("  </f:content>");
 				out.println("  <f:footer>");
 				out.println("    <OverflowToolbar>");

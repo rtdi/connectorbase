@@ -1,11 +1,12 @@
-"sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
-Controller, JSONModel, InputFormatter
+showFooter : function() {
+	return true;
+},
 init : function() {
 	var oModel = new JSONModel();
 	oModel.loadData("../rest/PipelineConnection", null, false);
 	this.getView().setModel(oModel);
-},
-edit : function(oEvent) {
+	oStateModel.setProperty("/title", "Pipeline settings");
+	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"} ] );
 },
 save : function(oEvent) {
 	var oModel = this.getView().getModel();
@@ -14,9 +15,13 @@ save : function(oEvent) {
 	xmlhttp.open("POST", "../rest/PipelineConnection");
 	xmlhttp.setRequestHeader("Content-Type", "application/json");
 	xmlhttp.onreadystatechange = function() {
-	    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-	        alert(xmlhttp.responseText);
-	    }
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+		        alert(xmlhttp.responseText);
+		    } else {
+		    	alert(xmlhttp.responseText);
+		    }
+		}
 	}
 	xmlhttp.send(oModel.getJSON());
 },

@@ -1,5 +1,6 @@
-"sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel"
-Controller, JSONModel, InputFormatter
+showFooter : function() {
+	return false;
+},
 init : function() {
 	var oModel = new JSONModel();
 	var sTopicname = jQuery.sap.getUriParameters().get("topicname");
@@ -10,23 +11,23 @@ init : function() {
 		oModel.loadData("../rest/topics/" + encodeURI(sTopicname), null, false);
 	}
 	this.getView().setModel(oModel);
-	var oStateModel = this.getView().getModel("state");
 	oStateModel.setProperty("/title", "Topic");
-	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Topics", "link" : "./Topics"} ] );
-},
-edit : function(oEvent) {
+	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"}, {"text" : "Topics", "link" : "./Topics"} ] );
 },
 save : function(oEvent) {
 	var oModel = this.getView().getModel();
-	var oStateModel = this.getView().getModel("state");
 	var data = JSON.stringify(oModel.getJSON());
 	var xmlhttp = new XMLHttpRequest();
-	xmlhttp.open("POST", "../rest/topics/" + encodeURI(oStateModel.getProperty("/topicname")));
+	xmlhttp.open("POST", "../rest/topics/" + encodeURI(oModel.getProperty("/topicname")));
 	xmlhttp.setRequestHeader("Content-Type", "application/json");
 	xmlhttp.onreadystatechange = function() {
-	    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-	        alert(xmlhttp.responseText);
-	    }
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+		        alert(xmlhttp.responseText);
+		    } else {
+		    	alert(xmlhttp.responseText);
+		    }
+		}
 	}
 	xmlhttp.send(oModel.getJSON());
 },
