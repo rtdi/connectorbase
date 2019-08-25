@@ -6,12 +6,12 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 
 public class AvroRecordArray extends AvroRecordAbstract {
 
-	public AvroRecordArray(String name, SchemaBuilder schema, String doc, boolean nullable, Object defaultValue, Order order) throws SchemaException {
-		super(name, Schema.createArray(schema.getSchema()), doc, defaultValue, nullable, order, schema);
+	public AvroRecordArray(String name, SchemaBuilder schema, String doc, Object defaultValue, Order order) throws SchemaException {
+		super(name, Schema.createArray(schema.getSchema()), doc, defaultValue, true, order, schema);
 	}
 
-	public AvroRecordArray(String name, SchemaBuilder schema, String doc, boolean nullable, Object defaultValue) throws SchemaException {
-		super(name, Schema.createArray(schema.getSchema()), doc, nullable, defaultValue, schema);
+	public AvroRecordArray(String name, SchemaBuilder schema, String doc, Object defaultValue) throws SchemaException {
+		super(name, Schema.createArray(schema.getSchema()), doc, true, defaultValue, schema);
 	}
 
 	public SchemaBuilder getArrayElementSchemaBuilder() {

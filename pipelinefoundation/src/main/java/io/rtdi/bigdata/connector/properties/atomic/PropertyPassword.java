@@ -37,9 +37,13 @@ public class PropertyPassword extends PropertyAbstract implements IPropertyValue
 	}
 
 	@Override
-	public void parseValue(IProperty property) throws PropertiesException {
+	public void parseValue(IProperty property, boolean ignorepasswords) throws PropertiesException {
 		if (property instanceof PropertyPassword) {
-			this.value = ((PropertyPassword) property).getValue();
+			if (ignorepasswords) {
+				this.value = null;
+			} else {
+				this.value = ((PropertyPassword) property).getValue();
+			}
 		} else {
 			throw new PropertiesException("PropertyPassword's value not of type PropertyPassword");
 		}
@@ -48,6 +52,11 @@ public class PropertyPassword extends PropertyAbstract implements IPropertyValue
 	@Override
 	public boolean hasValue() {
 		return value != null;
+	}
+
+	@Override
+	public IProperty clone(boolean ignorepasswords) {
+		return new PropertyPassword(this.getName(), this.getDisplayname(), this.getDescription(), this.getIcon(), (ignorepasswords==false?this.getValue():"******"), this.getMandatory());
 	}
 
 }

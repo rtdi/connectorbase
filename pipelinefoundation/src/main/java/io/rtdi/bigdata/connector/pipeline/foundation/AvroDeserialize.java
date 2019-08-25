@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DecoderFactory;
@@ -30,7 +29,15 @@ public class AvroDeserialize {
 		LogicalDataTypesRegistry.registerAll();
 	}
 
-	public static GenericRecord deserialize(byte[] data, ISchemaRegistrySource registry) throws IOException {
+	/**
+	 * Avoid using this version as it requests the schema from the server always, no caching.
+	 * 
+	 * @param data as binary
+	 * @param registry used to get the schema from
+	 * @return the JexlRecord, an extended Avro GenericRecord
+	 * @throws IOException in case the byte array cannot be converted to a record
+	 */
+	public static JexlRecord deserialize(byte[] data, ISchemaRegistrySource registry) throws IOException {
 		return deserialize(data, registry, null, null);
 	}
 
@@ -67,7 +74,7 @@ public class AvroDeserialize {
 						schema = registry.getSchema(schemaid);
 						if (schema == null) {
 							throw new PipelineRuntimeException("Schema " + schemaid + " not found");
-						} else {
+						} else if (schemacache != null) {
 							schemacache.put(schemaid, schema);
 						}
 					}

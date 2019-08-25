@@ -27,6 +27,9 @@ public class UI5Controller extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		long expiry = System.currentTimeMillis() + UI5ServletAbstract.BROWSER_CACHING_IN_SECS*1000;
+		response.setDateHeader("Expires", expiry);
+		response.setHeader("Cache-Control", "max-age="+ UI5ServletAbstract.BROWSER_CACHING_IN_SECS);
 		String resource = request.getPathInfo();
 		if (resource.indexOf('/', 1) != -1) {
 			throw new ServletException("The requested resource contains relative path information");
@@ -45,37 +48,20 @@ public class UI5Controller extends HttpServlet {
 					out.print("function(Controller, JSONModel) {");
 					out.println("\"use strict\";");
 					out.println("var oStateModel = new JSONModel();");
-					out.println("var oGlobalModel = new JSONModel();");
 					out.print("return Controller.extend(\"com.rtdi.bigdata.connector.ui.controller.");
 					out.print(name);
 					out.println("\", {");
 					out.println("onPressHomeLink : function(oEvent) {");
 					out.println("    window.location.href = './Home';");
 					out.println("},");
-					out.println("onPressStatusLink : function(oEvent) {");
-					out.println("    window.location.href = 'ConnectorStatus';");
-					out.println("},");
-					out.println("onPressTopicsLink : function(oEvent) {");
-					out.println("    window.location.href = './Topics';");
-					out.println("},");
-					out.println("onPressSchemasLink : function(oEvent) {");
-					out.println("    window.location.href = './Schemas';");
-					out.println("},");
-					out.println("onPressImpactLineageLink : function(oEvent) {");
-					out.println("    window.location.href = './ImpactLineage';");
-					out.println("},");
-					out.println("onPressLandscapeLink : function(oEvent) {");
-					out.println("    window.location.href = './Landscape';");
-					out.println("},");
-					out.println("onPressBrowseLink : function(oEvent) {");
-					out.println("    window.location.href = './Browse';");
+					out.println("onPressLogoutLink : function(oEvent) {");
+					out.println("    window.location.href = '../logout';");
 					out.println("},");
 					out.println("onInit : function() {");
+					out.println("    oStateModel.loadData(\"../rest/state\", null, false);");
 					out.println("    this.getView().setModel(oStateModel, \"state\");");
-					out.println("    oGlobalModel.loadData(\"../rest/state\", null, false);");
-					out.println("    this.getView().setModel(oGlobalModel, \"globalstate\");");
-					out.println("    oStateModel.setProperty(\"/edit\", oGlobalModel.getProperty(\"/roles/config\"));");
-					out.println("    this.getView().byId('dynamicpageid').setShowFooter(this.showFooter());");
+					out.println("    var editpermissions = oStateModel.getProperty(\"/roles/config\");");
+					out.println("    this.getView().byId('dynamicpageid').setShowFooter(this.showFooter() && editpermissions);");
 					out.println("    this.init();");
 					out.println("},");
 					out.println("enableControl : function(value) {");
@@ -107,6 +93,17 @@ public class UI5Controller extends HttpServlet {
 					out.println("        this.getView().addDependent(this._oMessagePopover);"); 
 					out.println("    }"); 
 					out.println("    return this._oMessagePopover;"); 
+					out.println("},");
+					out.println("displayError : function(mesg) {");
+					out.println("    var messages = oStateModel.getProperty(\"/messages\");"); 
+					out.println("    var e = {\"errortext\" : mesg.message + \" \" + mesg.statusCode, \"markup\" : mesg.responseText};");
+					out.println("    if (!!messages) {");
+					out.println("        messages.push(e);");
+					out.println("    } else {");
+					out.println("        messages = [e];");
+					out.println("    }");
+					out.println("    oStateModel.setProperty(\"/messages\", messages);");
+					out.println("    sap.m.MessageToast.show(mesg.message + \" \" + mesg.statusCode);");
 					out.println("},");
 
 					String line;

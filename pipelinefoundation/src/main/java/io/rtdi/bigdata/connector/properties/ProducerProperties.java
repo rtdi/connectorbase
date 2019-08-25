@@ -24,7 +24,7 @@ public class ProducerProperties {
 			throw new PropertiesException("Producer properties must have a name");
 		} */
 		properties = new PropertyRoot(name);
-		properties.addIntegerProperty(PRODUCER_COUNT, PRODUCER_COUNT, null, null, 1, false);
+		properties.addIntegerProperty(PRODUCER_COUNT, PRODUCER_COUNT, null, null, 1, true);
 	}
 	
 	public ProducerProperties(File dir, String name) throws PropertiesException {
@@ -53,10 +53,10 @@ public class ProducerProperties {
 	 * @param pg PropertyRoot to take the values from
 	 * @throws PropertiesException if one of the data types does not match
 	 * 
-	 * @see PropertyRoot#parseValue(PropertyRoot)
+	 * @see PropertyRoot#parseValue(PropertyRoot, boolean)
 	 */
 	public void setValue(PropertyRoot pg) throws PropertiesException {
-		properties.parseValue(pg);
+		properties.parseValue(pg, false);
 	}
 
 	/**
@@ -64,6 +64,12 @@ public class ProducerProperties {
 	 */
 	public PropertyRoot getPropertyGroup() {
 		return properties;
+	}
+
+	public PropertyRoot getPropertyGroupNoPasswords() throws PropertiesException {
+		PropertyRoot clone = new PropertyRoot(properties.getName());
+		clone.parseValue(properties, true);
+		return clone;
 	}
 
 	@Override

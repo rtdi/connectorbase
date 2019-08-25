@@ -59,8 +59,8 @@ public class LiveCycleTest {
 
 	private Schema getValueSchema() throws SchemaException {
 		ValueSchema valuebuilder = new ValueSchema("HWMonitor", "HWMonitor structure contains detailed data about the hardware utilization");
-		valuebuilder.add("HOST", AvroString.getSchema(), "The ip address of the computer being monitored", false).isPrimaryKey();
-		valuebuilder.add("TIMESTAMP", AvroTimestamp.getSchema(), "The timestamp (Unix epoch format) of this event", false).isPrimaryKey();
+		valuebuilder.add("HOST", AvroString.getSchema(), "The ip address of the computer being monitored", false).setPrimaryKey();
+		valuebuilder.add("TIMESTAMP", AvroTimestamp.getSchema(), "The timestamp (Unix epoch format) of this event", false).setPrimaryKey();
 		valuebuilder.add("DURATION", AvroInt.getSchema(), "The duration for all relative values like CPU_USER", true);
 		valuebuilder.add("CPU_USER", AvroLong.getSchema(), "Overall CPU time spent in user mode within the given duration [see Linux /proc/stat]", true);
 		valuebuilder.add("CPU_SYSTEM", AvroLong.getSchema(), "Overall CPU time spent in system mode within the given duration [see Linux /proc/stat]", true);
@@ -69,7 +69,7 @@ public class LiveCycleTest {
 		valuebuilder.add("PROCESSES_COUNT", AvroInt.getSchema(), "Overall number of processes [see Linux /proc/stat]", true);
 		valuebuilder.add("PROCESSES_RUNNING", AvroInt.getSchema(), "Nnumber of running processes [see Linux /proc/stat]", true);
 		valuebuilder.add("PROCESSES_BLOCKED", AvroInt.getSchema(), "Number of processes waiting for I/O to complete [see Linux /proc/stat]", true);
-		AvroRecordArray cpucorefield = valuebuilder.addColumnRecordArray("CPU_CORES", "Data about the individual cores", true, "CPU_CORES", "Data per CPU core [see Linux /proc/stat]");
+		AvroRecordArray cpucorefield = valuebuilder.addColumnRecordArray("CPU_CORES", "Data about the individual cores", "CPU_CORES", "Data per CPU core [see Linux /proc/stat]");
 		cpucorefield.add("CPU_ID", AvroInt.getSchema(), "The individual CPU id [see Linux /proc/stat]", true);
 		cpucorefield.add("CPU_USER", AvroLong.getSchema(), "Overall CPU time spent in user mode within the given duration [see Linux /proc/stat]", true);
 		cpucorefield.add("CPU_SYSTEM", AvroLong.getSchema(), "Overall CPU time spent in system mode within the given duration [see Linux /proc/stat]", true);

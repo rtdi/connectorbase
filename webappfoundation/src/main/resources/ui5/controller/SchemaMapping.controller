@@ -35,9 +35,9 @@ save : function(oEvent) {
 	xmlhttp.onreadystatechange = function() {
 	    if (xmlhttp.readyState == 4) {
 	    	if (xmlhttp.status == 200) {
-		        alert(xmlhttp.responseText);
+		        sap.m.MessageToast.show("Saved");
 		    } else {
-		    	alert(xmlhttp.responseText);
+		        this.displayError({ "message" : xmlhttp.responseText });
 		    }
 		}
 	}
@@ -50,6 +50,15 @@ onTargetSchemaChange : function(oEvent) {
 		var sSchemaname = jQuery.sap.getUriParameters().get("name");
 		var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 		var oModel = new JSONModel();
+		var that = this;
+		oModel.attachRequestFailed(function(oEvent) {
+			that.displayError({
+				message: oEvent.getParameter("message"),
+				responseText:oEvent.getParameter("responseText"),
+				statusCode:oEvent.getParameter("statusCode"),
+				statusText:oEvent.getParameter("statusText")
+			});
+		});
 		oModel.loadData("../rest/mapping/" + encodeURI(sConnectionname) + "/" + encodeURI(sSchemaname) + "/" + encodeURI(sTargetSchemaname));
 		this.getView().setModel(oModel, "target");
 	}

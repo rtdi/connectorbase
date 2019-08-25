@@ -1,6 +1,7 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 
 import org.apache.avro.LogicalType;
+import org.apache.avro.LogicalTypes.Decimal;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 
@@ -122,7 +123,11 @@ public enum AvroType {
 	/**
 	 * A Record of its own
 	 */
-	AVRORECORD;
+	AVRORECORD,
+	/**
+	 * An union of multiple primitive datatypes, e.g. used for extensions
+	 */
+	AVROANYPRIMITIVE;
 	
 	public static AvroType getType(Schema schema) {
 		LogicalType l = schema.getLogicalType();
@@ -159,10 +164,53 @@ public enum AvroType {
 		case STRING: return AVROSTRING;
 		case ARRAY: return AVROARRAY;
 		case RECORD: return AVRORECORD;
+		case UNION: 
+			if (schema.equals(AvroAnyPrimitive.getSchema())) {
+				return AVROANYPRIMITIVE;
+			}
 		default: return null;
 		}
 	}
-	
+
+	public static IAvroDatatype getAvroDataType(Schema schema) {
+        Schema baseschema = IOUtils.getBaseSchema(schema);
+		LogicalType l = baseschema.getLogicalType();
+		if (l != null) {
+			if (l instanceof IAvroDatatype) {
+				return (IAvroDatatype) l;
+			} else {
+				switch (l.getName()) {
+				case "date": return AvroDate.create();
+				case "decimal": return AvroDecimal.create((Decimal) l);
+				case "time-millis": return AvroTime.create();
+				case "time-micros": return AvroTimeMicros.create();
+				case "timestamp-millis": return AvroTimestamp.create();
+				case "timestamp-micros": return AvroTimestampMicros.create();
+				case "uuid": return AvroUUID.create();
+				}
+			}
+		}
+		switch (baseschema.getType()) {
+		case BOOLEAN: return AvroBoolean.create();
+		case BYTES: return AvroBytes.create();
+		case DOUBLE: return AvroDouble.create();
+		case ENUM: return AvroEnum.create();
+		case FIXED: return AvroFixed.create();
+		case FLOAT: return AvroFloat.create();
+		case INT: return AvroInt.create();
+		case LONG: return AvroLong.create();
+		case MAP: return AvroMap.create();
+		case STRING: return AvroString.create();
+		case ARRAY: return AvroArray.create();
+		case RECORD: return AvroRecord.create();
+		case UNION: 
+			if (schema.equals(AvroAnyPrimitive.getSchema())) {
+				return AvroAnyPrimitive.create();
+			}
+		default: return null;
+		}
+	}
+
 	public static String getAvroDatatype(Schema schema) {
 		if (schema.getType() == Type.UNION) {
 			if (schema.getTypes().size() > 2) {

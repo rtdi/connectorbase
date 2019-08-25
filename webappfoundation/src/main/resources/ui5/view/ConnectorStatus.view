@@ -20,12 +20,12 @@
 			<cells>
 				<HBox alignItems="Center">
 					<core:Icon src="sap-icon://add" class="sapUiTinyMarginBeginEnd" visible="{= !${connectionname} }" press="onPressAddConnection" />
-					<core:Icon src="sap-icon://delete" class="sapUiTinyMarginBeginEnd" visible="{= !!${connectionname} &amp;&amp; !!${state>/edit} }" press="onPressDeleteConnection" />
+					<core:Icon src="sap-icon://delete" class="sapUiTinyMarginBeginEnd" visible="{= !!${connectionname} &amp;&amp; !!${state>/roles/config} }" press="onPressDeleteConnection" />
 					<Link text="{connectionname}" visible="{= !!${connectionname} }" 
 							href="{path: 'connectionname', formatter: '.connectionnameformatter'}"
 					/>
-					<core:Icon src="sap-icon://restart" class="sapUiTinyMarginBeginEnd" visible="{= !!${connectionname} &amp;&amp; !${state>/edit} }" press="onPressStartConnection" />
-					<core:Icon src="sap-icon://stop" class="sapUiTinyMarginBeginEnd" visible="{= !!${connectionname} &amp;&amp; !${state>/edit} }" press="onPressStopConnection" />
+					<core:Icon src="sap-icon://restart" class="sapUiTinyMarginBeginEnd" visible="{= !!${connectionname} &amp;&amp; !${state>/roles/config} }" press="onPressStartConnection" />
+					<core:Icon src="sap-icon://stop" class="sapUiTinyMarginBeginEnd" visible="{= !!${connectionname} &amp;&amp; !${state>/roles/config} }" press="onPressStopConnection" />
 				</HBox>				
 				<Button text="last error" press="handleConnectionLastError" enabled="{path: 'errors', formatter: '.disableControl'}" />
 				<l:VerticalLayout>
@@ -45,12 +45,12 @@
 								<cells>
 									<HBox alignItems="Center">
 										<core:Icon src="sap-icon://add" class="sapUiTinyMarginBeginEnd" visible="{= !${producername} }" press="onPressAddProducer" />
-										<core:Icon src="sap-icon://delete" class="sapUiTinyMarginBeginEnd" visible="{= !!${producername} &amp;&amp; !!${state>/edit} }" press="onPressDeleteProducer" />
+										<core:Icon src="sap-icon://delete" class="sapUiTinyMarginBeginEnd" visible="{= !!${producername} &amp;&amp; !!${state>/roles/config} }" press="onPressDeleteProducer" />
 										<Link text="{producername}" visible="{= !!${producername} }" 
 												href="{parts : [ 'connectionname', 'producername' ], formatter: '.producernameformatter'}"
 										/>
-										<core:Icon src="sap-icon://restart" class="sapUiTinyMarginBeginEnd" visible="{= !!${producername} &amp;&amp; !${state>/edit} }" press="onPressStartProducer" />
-										<core:Icon src="sap-icon://stop" class="sapUiTinyMarginBeginEnd" visible="{= !!${producername} &amp;&amp; !${state>/edit} }" press="onPressStopProducer" />
+										<core:Icon src="sap-icon://restart" class="sapUiTinyMarginBeginEnd" visible="{= !!${producername} &amp;&amp; !${state>/roles/config} }" press="onPressStartProducer" />
+										<core:Icon src="sap-icon://stop" class="sapUiTinyMarginBeginEnd" visible="{= !!${producername} &amp;&amp; !${state>/roles/config} }" press="onPressStopProducer" />
 									</HBox>				
 									<Table visible="{path: 'producername', formatter: '.enableControl'}"
 										items="{path:'instances', templateShareable:false}">
@@ -103,12 +103,12 @@
 								<cells>
 									<HBox alignItems="Center">
 										<core:Icon src="sap-icon://add" class="sapUiTinyMarginBeginEnd" visible="{= !${consumername} }" press="onPressAddConsumer" />
-										<core:Icon src="sap-icon://delete" class="sapUiTinyMarginBeginEnd" visible="{= !!${consumername} &amp;&amp; !!${state>/edit} }" press="onPressDeleteConsumer" />
+										<core:Icon src="sap-icon://delete" class="sapUiTinyMarginBeginEnd" visible="{= !!${consumername} &amp;&amp; !!${state>/roles/config} }" press="onPressDeleteConsumer" />
 										<Link text="{consumername}" visible="{= !!${consumername} }" 
 												href="{parts : [ 'connectionname', 'consumername' ], formatter: '.consumernameformatter'}"
 										/>
-										<core:Icon src="sap-icon://restart" class="sapUiTinyMarginBeginEnd" visible="{= !!${consumername} &amp;&amp; !${state>/edit} }" press="onPressStartConsumer" />
-										<core:Icon src="sap-icon://stop" class="sapUiTinyMarginBeginEnd" visible="{= !!${consumername} &amp;&amp; !${state>/edit} }" press="onPressStopConsumer" />
+										<core:Icon src="sap-icon://restart" class="sapUiTinyMarginBeginEnd" visible="{= !!${consumername} &amp;&amp; !${state>/roles/config} }" press="onPressStartConsumer" />
+										<core:Icon src="sap-icon://stop" class="sapUiTinyMarginBeginEnd" visible="{= !!${consumername} &amp;&amp; !${state>/roles/config} }" press="onPressStopConsumer" />
 									</HBox>				
 									<Table visible="{path: 'consumername', formatter: '.enableControl'}"
 										items="{path:'instances', templateShareable:false}">

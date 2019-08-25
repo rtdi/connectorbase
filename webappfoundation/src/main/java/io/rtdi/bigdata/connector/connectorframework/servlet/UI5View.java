@@ -22,6 +22,9 @@ public class UI5View extends HttpServlet {
     }
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		long expiry = System.currentTimeMillis() + UI5ServletAbstract.BROWSER_CACHING_IN_SECS*1000;
+		response.setDateHeader("Expires", expiry);
+		response.setHeader("Cache-Control", "max-age="+ UI5ServletAbstract.BROWSER_CACHING_IN_SECS);
 		byte[] buffer = new byte[4096];
 		String resource = request.getPathInfo();
 		if (resource.indexOf('/', 1) != -1) {
@@ -49,6 +52,7 @@ public class UI5View extends HttpServlet {
 				out.println("    xmlns:t=\"sap.ui.table\"");
 				out.println("    xmlns:app=\"http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1\"");
 				out.println("    xmlns:dnd=\"sap.ui.core.dnd\"");
+				out.println("    xmlns:components=\"com.rtdi.bigdata.connector.ui.components\"");
 				out.println("    xmlns:card=\"sap.f.cards\"");
 				out.println("    xmlns:core=\"sap.ui.core\" >");
 				out.println("<f:DynamicPage id=\"dynamicpageid\" showFooter=\"false\" fitContent=\"true\" >");
@@ -66,18 +70,13 @@ public class UI5View extends HttpServlet {
 				out.println("      </f:heading>");
 				out.println("      <f:navigationActions>");
 				out.println("          <Button icon=\"sap-icon://home\" press=\"onPressHomeLink\" tooltip=\"Home Page\" />");
-				out.println("          <Button icon=\"sap-icon://travel-request\" press=\"onPressStatusLink\" tooltip=\"Connector Status\" />");
-				out.println("          <Button icon=\"sap-icon://group-2\" press=\"onPressTopicsLink\" tooltip=\"List of Topics\" />");
-				out.println("          <Button icon=\"sap-icon://address-book\" press=\"onPressSchemasLink\" tooltip=\"List of Schemas\" />");
-				out.println("          <Button icon=\"sap-icon://browse-folder\" press=\"onPressBrowseLink\" tooltip=\"Browse the Source\" />");
-				out.println("          <Button icon=\"sap-icon://org-chart\" press=\"onPressImpactLineageLink\" tooltip=\"Show Impact/Lineage diagram\" />");
-				out.println("          <Button icon=\"sap-icon://it-host\" press=\"onPressLandscapeLink\" tooltip=\"Show Landscape diagram\" />");
+				out.println("          <Button icon=\"sap-icon://log\" press=\"onPressLogoutLink\" tooltip=\"Logout\" />");
 				out.println("      </f:navigationActions>");
 				out.println("      <f:actions>");
 				out.println("        <Button");
 				out.println("          icon=\"sap-icon://alert\""); 
-				out.println("          text=\"{= ${globalstate>/messages}.length }\""); 
-				out.println("          visible=\"{= !!${globalstate>/messages} &amp;&amp; ${globalstate>/messages}.length > 0 }\""); 
+				out.println("          text=\"{= ${state>/messages}.length }\""); 
+				out.println("          visible=\"{= !!${state>/messages} &amp;&amp; ${state>/messages}.length > 0 }\""); 
 				out.println("          type=\"Emphasized\""); 
 				out.println("          press=\"onGlobalErrorPopoverPress\" />"); 
 				out.println("      </f:actions>");

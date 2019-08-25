@@ -23,6 +23,10 @@ public class PropertyArrayList extends PropertyAbstract implements IPropertyValu
 		}
 	}
 
+	public PropertyArrayList(String name, String displayname, String description, String icon, Boolean mandatory) {
+		super(name, displayname, description, icon, mandatory);
+	}
+	
 	public void setValue(ArrayList<PropertyString> value) {
 		this.value = value;
 	}
@@ -41,7 +45,7 @@ public class PropertyArrayList extends PropertyAbstract implements IPropertyValu
 		return value;
 	}
 	
-	public void parseValue(IProperty property) {
+	public void parseValue(IProperty property, boolean ignorepasswords) {
 		if (property instanceof PropertyArrayList) {
 			this.value = ((PropertyArrayList) property).getValue();
 		} else {
@@ -52,6 +56,14 @@ public class PropertyArrayList extends PropertyAbstract implements IPropertyValu
 	@Override
 	public boolean hasValue() {
 		return value != null && value.size() != 0;
+	}
+
+	@Override
+	public IProperty clone(boolean ignorepasswords) {
+		PropertyArrayList c = new PropertyArrayList(this.getName(), this.getDisplayname(), this.getDescription(), this.getIcon(), this.getMandatory());
+		// TODO: Copy values instead of replacing the array
+		c.setValue(getValue());
+		return c;
 	}
 
 }

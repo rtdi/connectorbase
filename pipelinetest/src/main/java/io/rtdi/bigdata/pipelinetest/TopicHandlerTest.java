@@ -8,7 +8,7 @@ import org.apache.avro.generic.GenericRecord;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
-import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayload;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.TopicMetadata;
 

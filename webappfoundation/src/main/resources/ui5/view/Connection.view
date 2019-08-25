@@ -3,8 +3,11 @@
 	items="{/values}">
 	<headerToolbar>
 		<OverflowToolbar>
-		    <Title id="title" text="{/name}" visible="{path: '/name', formatter: '.enableControl'}" />
-		    <Input value="{/name}" width="50%" visible="{path: '/name', formatter: '.disableControl'}" />
+            <Label text="Connection name" />
+            <Input value="{/name}" width="30%" enabled="{path: 'state>/new', formatter: '.enableControl'}" />
+            <ToolbarSpacer/>
+            <Button text="Collapse all" press="onCollapseAll"/>
+            <Button text="Expand first level" press="onExpandFirstLevel"/>
 		</OverflowToolbar>
 	</headerToolbar>
 	<columns>
@@ -27,11 +30,9 @@
                     	<core:Icon src="{icon}"/>
             		</items>
                 </FlexBox>
-                <Input type="{path:'type', formatter:'.InputFormatter'}" value="{value}" enabled="{path: 'state>/edit', formatter: '.enableControl'}" />
-                <Text text="{properties>description}"/>
+                <Input type="{path:'type', formatter:'.InputFormatter'}" value="{value}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
+                <Text text="{description}"/>
 			</cells>
 		</ColumnListItem>
 	</items>
 </Table>
-<Label text="Description" labelFor="description"/>
-<TextArea id="description" value="{/description}" width="100%" enabled="{path: 'state>/edit', formatter: '.enableControl'}" />

@@ -24,4 +24,5 @@ public enum RuleResult {
 			return PASS;
 		}
 	}
+
 }

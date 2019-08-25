@@ -1,13 +1,14 @@
 package io.rtdi.bigdata.connector.pipeline.foundation;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.properties.ConnectionProperties;
 
 /**
  * The getSchema/getTopic
- *
+ * @param <S> ConnectionProperties
  * @param <T> TopicHandler
  */
-public interface IPipelineBase<T extends TopicHandler> extends ISchemaRegistrySource {
+public interface IPipelineBase<S extends ConnectionProperties, T extends TopicHandler> extends ISchemaRegistrySource {
 
 	/**
 	 * Get the TopicHandler of an already existing topic
@@ -26,5 +27,7 @@ public interface IPipelineBase<T extends TopicHandler> extends ISchemaRegistrySo
 	 * @throws PropertiesException if something goes wrong
 	 */
 	SchemaHandler getSchema(SchemaName schemaname) throws PropertiesException;
+
+	S getAPIProperties();
 
 }

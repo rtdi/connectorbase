@@ -3,7 +3,6 @@ package io.rtdi.bigdata.pipelinehttp;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -32,15 +31,15 @@ public class ConsumerSessionHttp extends ConsumerSession<TopicHandlerHttp> {
 			String password = api.getAPIProperties().getPassword();
 			http = new HttpUtil(username, password);
 		} catch (MalformedURLException e) {
-			throw new PipelineCallerException("The generated URL for fetching the data via http is not a proper url", e, api.getTransactionEndpointForFetch().toString());
+			throw new PipelineCallerException("The generated URL for fetching the data via http is not a proper url", e, null, api.getTransactionEndpointForFetch().toString());
 		}
 	}
 
 	@Override
 	public int fetchBatch(IProcessFetchedRow processor) throws IOException {
-		HttpURLConnection conn = http.getHttpConnection(url, "GET");
+		http.getHttpConnection(url, "GET");
 		int rowsfetched = 0;
-		try (InputStream in = conn.getInputStream();) {
+		try (InputStream in = http.getConnection().getInputStream();) {
 			state = OperationState.FETCHWAITINGFORDATA;
 			while (io.readNextIntValue(in) && isRunning()) {
 				switch (io.getNextIntValue()) {
@@ -66,7 +65,6 @@ public class ConsumerSessionHttp extends ConsumerSession<TopicHandlerHttp> {
 				state = OperationState.FETCHWAITINGFORDATA;
 			}
 		}
-		http.updateSessionCookie(conn);
 		return rowsfetched;
 	}
 
@@ -77,15 +75,14 @@ public class ConsumerSessionHttp extends ConsumerSession<TopicHandlerHttp> {
 	@Override
 	public void open() throws IOException {
 		state = OperationState.OPEN;
-		HttpURLConnection conn = http.getHttpConnection(url, "POST");
-		try (OutputStream out = conn.getOutputStream();) {
+		http.getHttpConnection(url, "POST");
+		try (OutputStream out = http.getConnection().getOutputStream();) {
 			io.sendString(out, getTenantId());
 			io.sendString(out, getProperties().getName());
 			io.sendString(out, getProperties().getTopicPattern());
 			io.sendInt(out, getProperties().getFlushMaxRecords());
 			io.sendLong(out, getProperties().getFlushMaxTime());
 		}
-		http.updateSessionCookie(conn);
 		state = OperationState.DONEOPEN;
 	}
 
@@ -93,11 +90,10 @@ public class ConsumerSessionHttp extends ConsumerSession<TopicHandlerHttp> {
 	public void close() {
 		try {
 			state = OperationState.CLOSE;
-			HttpURLConnection conn = http.getHttpConnection(url, "DELETE");
-			int status = conn.getResponseCode();
-			http.updateSessionCookie(null);
+			http.getHttpConnection(url, "DELETE");
+			int status = http.getConnection().getResponseCode();
 			if (status < 200 || status >= 300) {
-				logger.info("Close failed on server", conn.getResponseMessage());
+				logger.info("Close failed on server", http.getConnection().getResponseMessage());
 			}
 		} catch (IOException e) {
 			logger.info("Close failed with exception", e);
@@ -108,10 +104,10 @@ public class ConsumerSessionHttp extends ConsumerSession<TopicHandlerHttp> {
 	@Override
 	public void commit() throws IOException {
 		state = OperationState.DOEXPLICITCOMMIT;
-		HttpURLConnection conn = http.getHttpConnection(url, "PUT");
-		int status = conn.getResponseCode();
+		http.getHttpConnection(url, "PUT");
+		int status = http.getConnection().getResponseCode();
 		if (status < 200 || status >= 300) {
-			throw new PipelineTemporaryException(conn.getResponseMessage());
+			throw new PipelineTemporaryException(http.getConnection().getResponseMessage());
 		}
 		state = OperationState.DONEEXPLICITCOMMIT;
 	}

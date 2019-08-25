@@ -82,13 +82,12 @@ public class SchemaBuilder {
 	 * @param columnname of the array column
 	 * @param arrayelement One of the Avroxxxx schemas like {@link AvroInt#getSchema()}
 	 * @param description explaining the use of the field
-	 * @param nullable is true if optional
 	 * @return AvroArray, the added column
 	 * @throws SchemaException if the schema is invalid
 	 */
-	public AvroArray addColumnArray(String columnname, Schema arrayelement, String description, boolean nullable) throws SchemaException {
+	public AvroArray addColumnArray(String columnname, Schema arrayelement, String description) throws SchemaException {
 		validate(columnname);
-		AvroArray field = new AvroArray(columnname, arrayelement, description, nullable, JsonProperties.NULL_VALUE);
+		AvroArray field = new AvroArray(columnname, arrayelement, description, JsonProperties.NULL_VALUE);
 		add(field);
 		return field;
 	}
@@ -99,13 +98,13 @@ public class SchemaBuilder {
 	 * @param columnname of the array column
 	 * @param arrayelement created via {@link ValueSchema#createNewSchema(String, String)}
 	 * @param description explaining the use of the field
-	 * @param nullable is true if optional
 	 * @return AvroRecordArray, the added column
 	 * @throws SchemaException if the schema is invalid
 	 */
-	protected AvroRecordArray addColumnRecordArray(String columnname, SchemaBuilder arrayelement, String description, boolean nullable) throws SchemaException {
+	protected AvroRecordArray addColumnRecordArray(String columnname, SchemaBuilder arrayelement, String description) throws SchemaException {
 		validate(columnname);
-		AvroRecordArray field = new AvroRecordArray(columnname, arrayelement, description, nullable, JsonProperties.NULL_VALUE);
+		
+		AvroRecordArray field = new AvroRecordArray(columnname, arrayelement, description, JsonProperties.NULL_VALUE);
 		add(field);
 		childbuilders.put(columnname, arrayelement);
 		return field;
@@ -114,15 +113,14 @@ public class SchemaBuilder {
 	/**
 	 * @param columnname of the field to add
 	 * @param description optional
-	 * @param nullable is true if the column can be null
 	 * @param schemaname of the schema to be created; if null the column name is used
 	 * @param schemadescription of the schema to be created; if null the column description is used
 	 * @return AvroRecordArray
 	 * @throws SchemaException if the schema is invalid
 	 */
-	public AvroRecordArray addColumnRecordArray(String columnname, String description, boolean nullable, String schemaname, String schemadescription) throws SchemaException {
+	public AvroRecordArray addColumnRecordArray(String columnname, String description, String schemaname, String schemadescription) throws SchemaException {
 		SchemaBuilder subschema = createNewSchema((schemaname != null?schemaname:columnname), (schemadescription != null?schemadescription:description));
-		return addColumnRecordArray(columnname, subschema, description, nullable);
+		return addColumnRecordArray(columnname, subschema, description);
 	}
 
 	/**

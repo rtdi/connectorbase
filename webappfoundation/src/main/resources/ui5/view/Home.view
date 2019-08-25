@@ -1,4 +1,4 @@
-<f:Card
+<f:Card visible="{path: '/supportconnections', formatter: '.enableControl'}"
 	class="sapUiMediumMargin"
 	width="200px">
 	<f:header>
@@ -7,6 +7,18 @@
 			subtitle="{/connectioncount}"
 			iconSrc="sap-icon://connected"
 			press="pressConnections" />
+	</f:header>
+</f:Card>
+
+<f:Card visible="{path: '/supportservices', formatter: '.enableControl'}"
+	class="sapUiMediumMargin"
+	width="200px">
+	<f:header>
+		<card:Header
+			title="Services"
+			subtitle="{/servicecount}"
+			iconSrc="sap-icon://commission-check"
+			press="pressServices" />
 	</f:header>
 </f:Card>
 
@@ -29,7 +41,7 @@
 		<card:Header
 			title="Schemas"
 			subtitle="{/schemacount}"
-			iconSrc="sap-icon://table-row"
+			iconSrc="sap-icon://database"
 			press="pressSchemas" />
 	</f:header>
 </f:Card>

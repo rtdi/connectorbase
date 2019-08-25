@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import io.rtdi.bigdata.connector.connectorframework.servlet.UI5ServletAbstract;
+
 @WebServlet("/images/*")
 public class Image extends HttpServlet {
 
@@ -29,7 +31,9 @@ public class Image extends HttpServlet {
 		}
 		
 		response.setContentType("image/png");
-		response.setHeader("Cache-Control","public");
+		long expiry = System.currentTimeMillis() + UI5ServletAbstract.BROWSER_CACHING_IN_SECS*1000;
+		response.setDateHeader("Expires", expiry);
+		response.setHeader("Cache-Control", "max-age="+ UI5ServletAbstract.BROWSER_CACHING_IN_SECS);
 
 		try (
 				InputStream in = this.getClass().getClassLoader().getResourceAsStream("/images" + resource);

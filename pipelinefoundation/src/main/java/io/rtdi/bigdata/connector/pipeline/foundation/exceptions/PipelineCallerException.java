@@ -20,8 +20,8 @@ public class PipelineCallerException extends PipelineTemporaryException {
 		super(message, hint);
 	}
 
-	public PipelineCallerException(String message, Throwable cause, String hint) {
-		super(message, cause, hint);
+	public PipelineCallerException(String message, Throwable cause, String hint, String causingobject) {
+		super(message, cause, hint, causingobject);
 	}
 
 }

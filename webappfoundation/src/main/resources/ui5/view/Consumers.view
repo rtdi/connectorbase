@@ -1,17 +1,14 @@
-<l:HorizontalLayout
-	allowWrapping="true"
-	content="{/consumers}">
-	<core:Fragment fragmentName="com.rtdi.bigdata.connector.ui.fragment.xml.consumer" type="XML" />
-</l:HorizontalLayout>
-
-<f:Card
-	class="sapUiMediumMargin"
-	width="200px"
-	enabled="{path: 'state>/edit', formatter: '.enableControl'}" >
-	<f:header>
-		<card:Header
-			title="Add new"
-			iconSrc="sap-icon://add"
-			press="onTileAdd" />
-	</f:header>
-</f:Card>
+<Panel height="100%">
+	<headerToolbar>
+		<OverflowToolbar>
+			<Button icon="sap-icon://refresh" text="Reload" press="onPressRefresh" />
+		</OverflowToolbar>
+	</headerToolbar>
+	<l:HorizontalLayout
+		allowWrapping="true"
+		content="{/consumers}">
+		<core:Fragment fragmentName="com.rtdi.bigdata.connector.ui.fragment.xml.consumer" type="XML" />
+	</l:HorizontalLayout>
+	
+	<core:Fragment fragmentName="com.rtdi.bigdata.connector.ui.fragment.xml.consumeradd" type="XML" />
+</Panel>

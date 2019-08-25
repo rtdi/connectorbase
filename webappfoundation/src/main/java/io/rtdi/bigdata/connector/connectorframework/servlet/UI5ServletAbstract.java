@@ -16,9 +16,7 @@ import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorControll
 @ServletSecurity(@HttpConstraint(rolesAllowed = ServletSecurityConstants.ROLE_VIEW))
 public abstract class UI5ServletAbstract extends HttpServlet {
 
-	/**
-	 * 
-	 */
+	public static final int BROWSER_CACHING_IN_SECS = 1800;
 	private static final long serialVersionUID = -5206967866294005565L;
 	private String title;
 	private String view;
@@ -30,6 +28,9 @@ public abstract class UI5ServletAbstract extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		long expiry = System.currentTimeMillis() + BROWSER_CACHING_IN_SECS*1000;
+		response.setDateHeader("Expires", expiry);
+		response.setHeader("Cache-Control", "max-age="+ BROWSER_CACHING_IN_SECS);
 		ConnectorController connector = WebAppController.getConnectorOrFail(getServletContext());
 		PrintWriter out = response.getWriter();
 		out.println("<!DOCTYPE html>");

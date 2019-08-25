@@ -20,7 +20,7 @@ public class TopicUtil {
 		}
 	}
 
-	public static String extractName(String fqn) throws PropertiesException {
+	public static String extractTopicName(String fqn) throws PropertiesException {
 		if (fqn == null) {
 			return null;
 		} else {
@@ -33,7 +33,19 @@ public class TopicUtil {
 		}
 	}
 	
-	
+	public static String extractSchemaName(String fqn) throws PropertiesException {
+		if (fqn == null) {
+			return null;
+		} else {
+			int pos = fqn.indexOf('-');
+			if (pos == -1 || pos >= fqn.length()) {
+				throw new PropertiesException("Not a valid <Tenant>-<Schemaname> fqn (\"" + fqn + "\")");
+			} else {
+				return fqn.substring(pos+1);
+			}
+		}
+	}
+
 	/**
 	 * Used to combine tenant and topic name without validation. Useful for example when the topic name is actually a regex pattern.
 	 * @param tenantid as string

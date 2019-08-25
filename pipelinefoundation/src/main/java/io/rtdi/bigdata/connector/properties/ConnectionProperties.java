@@ -50,7 +50,7 @@ public class ConnectionProperties {
 	 * @throws PropertiesException if one of the properties in invalid
 	 */
 	public void setValue(PropertyRoot pg) throws PropertiesException {
-		properties.parseValue(pg);
+		properties.parseValue(pg, false);
 	}
 
 	
@@ -61,27 +61,13 @@ public class ConnectionProperties {
 		return properties;
 	}
 
+	public PropertyRoot getPropertyGroupNoPasswords() throws PropertiesException {
+		return properties.clone(true); 
+	}
+
 	@Override
 	public String toString() {
 		return properties.toString();
-	}
-
-	/**
-	 * Helper method to set the RemoteSourceProperties description into the backing PropertyGroup.
-	 * 
-	 * @param description The long text description of the RemoteSourceProperties object
-	 */
-	public void setDescription(String description) {
-		properties.setDescription(description);
-	}
-
-	/**
-	 * Helper method to get the RemoteSourceProperties description from the backing PropertyGroup.
-	 * 
-	 * @return description string
-	 */
-	public String getDescription() {
-		return properties.getDescription();
 	}
 
 	/**

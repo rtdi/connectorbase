@@ -21,7 +21,7 @@ public class ProducerSessionTest extends ProducerSession<TopicHandlerTest> {
 
 	private Cache<Integer, Schema> schemaidcache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(1000).build();
 
-	public ProducerSessionTest(ProducerProperties properties, String tenantid, IPipelineBase<TopicHandlerTest> api) {
+	public ProducerSessionTest(ProducerProperties properties, String tenantid, IPipelineBase<?, TopicHandlerTest> api) {
 		super(properties, tenantid, api);
 	}
 

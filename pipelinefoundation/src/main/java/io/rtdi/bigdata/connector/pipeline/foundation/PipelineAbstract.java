@@ -12,10 +12,14 @@ import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEntity;
-import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayload;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
+import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
+import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.PipelineConnectionProperties;
 import io.rtdi.bigdata.connector.properties.PipelineConnectionServerProperties;
@@ -97,7 +101,7 @@ public abstract class PipelineAbstract<
 	@Override
 	public SchemaHandler registerSchema(SchemaName schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
 		if (schemaname.getTenant().equals(getTenantID())) {
-			return server.registerSchema(schemaname, description, keyschema, valueschema);
+			return server.getOrCreateSchema(schemaname, description, keyschema, valueschema);
 		} else {
 			throw new PipelineRuntimeException("registerSchema() request failed, the request is not within the current tenant");
 		}
@@ -108,7 +112,16 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public SchemaHandler registerSchema(String schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
-		return server.registerSchema(new SchemaName(getTenantID(), schemaname), description, keyschema, valueschema);
+		return server.getOrCreateSchema(new SchemaName(getTenantID(), schemaname), description, keyschema, valueschema);
+	}
+
+	@Override
+	public SchemaHandler registerSchema(ValueSchema schema) throws PropertiesException {
+		try {
+			return registerSchema(schema.getName(), schema.getDescription(), KeySchema.create(schema.getSchema()), schema.getSchema());
+		} catch (SchemaException e) {
+			throw new PropertiesException("Cannot create the Avro schema out of the ValueSchema", e);
+		}
 	}
 
 	
@@ -330,6 +343,11 @@ public abstract class PipelineAbstract<
 		server.addProducerMetadata(getTenantID(), producer);
 	}
 
+	@Override
+	public void addServiceMetadata(ServiceEntity service) throws IOException {
+		server.addServiceMetadata(getTenantID(), service);
+	}
+
 	/* (non-Javadoc)
 	 * @see io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI#addConsumerMetadata(java.lang.String, java.util.Map)
 	 */
@@ -354,6 +372,11 @@ public abstract class PipelineAbstract<
 		return server.getConsumerMetadata(getTenantID());
 	}
 	
+	@Override
+	public ServiceMetadataEntity getServiceMetadata() throws IOException {
+		return server.getServiceMetadata(getTenantID());
+	}
+
 	/* (non-Javadoc)
 	 * @see io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI#getAPIProperties()
 	 */
@@ -392,5 +415,5 @@ public abstract class PipelineAbstract<
 	public void setWEBINFDir(File webinfdir) {
 		this.webinfdir = webinfdir;
 	}
-
+	
 }

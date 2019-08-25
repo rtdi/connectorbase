@@ -4,6 +4,14 @@ showFooter : function() {
 init : function() {
 	var that = this;
 	var oModel = new JSONModel();
+	oModel.attachRequestFailed(function(oEvent) {
+		that.displayError({
+			message: oEvent.getParameter("message"),
+			responseText:oEvent.getParameter("responseText"),
+			statusCode:oEvent.getParameter("statusCode"),
+			statusText:oEvent.getParameter("statusText")
+		});
+	});
 	oStateModel.setProperty("/title", "Impact-Lineage");
 	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"} ] );
 
@@ -20,17 +28,24 @@ init : function() {
 		var data = oModel.getData();
 		for (var i in data.nodes) {
 			var n = data.nodes[i];
-			n.shape = 'circularImage';
+			n.shape = 'icon';
+			n.icon = {face: 'SAP-icons',
+				      size: 20,
+				      color: '#000000'};
 			n.color = '#eeeeee';
 			n.scaling = {
 		    	label: false
 			};
 			if (n.type === 'PRODUCER') {
-				n.image = '../images/producer.png';			
-			} else if (n.type === 'TOPIC') {
-				n.image = '../images/topic.png';			
+				n.icon.code = '\ue27e';			
 			} else if (n.type === 'CONSUMER') {
-				n.image = '../images/consumer.png';			
+				n.icon.code = '\ue168';			
+			} else if (n.type === 'SERVICE') {
+				n.icon.code = '\ue0e5';			
+			} else if (n.type === 'TOPIC') {
+				n.icon.code = '\ue061';			
+			} else {
+				n.icon.code = '\ue1c4';			
 			}
 		}
 		for (var i in data.edges) {

@@ -172,29 +172,11 @@ public class PropertyGroup extends PropertyGroupAbstract implements IProperty, I
 		this.erroricon = erroricon;
 	}
 
-	public void parseValue(IProperty value) throws PropertiesException {
-		if (value instanceof PropertyGroupAbstract) {
-			PropertyGroupAbstract pg = (PropertyGroupAbstract) value;
-			for (IProperty v : pg.getValues()) {
-				if (v.getName() == null) {
-					throw new PropertiesException("The passed element \"" + v.toString() + "\" does not have a name");
-				}
-				IProperty e = nameindex.get(v.getName());
-				if (e == null) {
-					nameindex.put(v.getName(), v);
-					propertylist.add(v);
-				} else {
-					if (e instanceof PropertyGroup) {
-						((PropertyGroup) e).parseValue(v);
-					} else if (e instanceof IPropertyValue) {
-						((IPropertyValue) e).parseValue(v);						
-					}
-				}
-			}
-			this.valuesset = true;
-		} else {
-			throw new PropertiesException("PropertyGroup value not of type PropertyGroup");
-		}
+	@Override
+	public IProperty clone(boolean ignorepasswords) throws PropertiesException {
+		PropertyGroup c = new PropertyGroup(this.getName(), this.getDisplayname(), this.getDescription(), this.getIcon(), this.getMandatory());
+		c.parseValue(this, ignorepasswords);
+		return c;
 	}
 
 }

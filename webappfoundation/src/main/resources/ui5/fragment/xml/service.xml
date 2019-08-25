@@ -1,0 +1,32 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    >
+	<VBox justifyContent="SpaceBetween" width="200px" backgroundDesign="Solid" class="sapUiSmallMargin" >
+		<VBox class="sapUiSmallMargin">
+			<HBox justifyContent="SpaceBetween">
+				<core:Icon src="sap-icon://commission-check" size="2.625rem" color="Default" class="sapUiTinyMarginBottom"/>
+				<ObjectStatus text="{state}" state="Success" />
+			</HBox>
+			<Title text="{name}" wrapping="true"/>
+			<Text text="{text}" wrapping="true"  class="sapUiTinyMarginTop" />
+			<HBox justifyContent="SpaceBetween" class="sapUiSmallMarginTopBottom">
+				<Label text="Rows Processed" />
+				<ObjectNumber
+					number="{rowsprocessedcount}"
+					textAlign="End"
+					state="Success"
+					unit="rows" >
+				</ObjectNumber>
+			</HBox>
+		</VBox>
+		<OverflowToolbar design="Transparent">
+			<ToolbarSpacer/>
+			<Button icon="sap-icon://edit" type="Transparent" press="onPressService" />
+			<Button icon="sap-icon://delete" type="Transparent" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
+			<Button icon="sap-icon://restart" type="Transparent" press="onPressStart" enabled="{path: 'state>/roles/operator', formatter: '.enableControl'}" />
+			<Button icon="sap-icon://stop" type="Transparent" press="onPressStop" enabled="{path: 'state>/roles/operator', formatter: '.enableControl'}" />
+		</OverflowToolbar>
+	</VBox>
+
+</core:FragmentDefinition>

@@ -13,10 +13,12 @@ import io.rtdi.bigdata.connector.connectorframework.BrowsingService;
 import io.rtdi.bigdata.connector.connectorframework.Consumer;
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
 import io.rtdi.bigdata.connector.connectorframework.Producer;
+import io.rtdi.bigdata.connector.connectorframework.Service;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectionController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConsumerInstanceController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ProducerInstanceController;
+import io.rtdi.bigdata.connector.connectorframework.controller.ServiceController;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeException;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
@@ -35,6 +37,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
+import io.rtdi.bigdata.connector.properties.ServiceProperties;
 import io.rtdi.bigdata.pipelinetest.PipelineTest;
 
 public class ProducerControllerTests {
@@ -63,7 +66,7 @@ public class ProducerControllerTests {
 	@Test
 	public void test() {
 		try {
-			connector.startController();
+			connector.startController(false);
 			Thread.sleep(360000);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -115,7 +118,42 @@ public class ProducerControllerTests {
 		public BrowsingService<ConnectionProperties> createBrowsingService(ConnectionController controller) throws IOException {
 			return null;
 		}
+
+		@Override
+		public Service createService(ServiceController instance) throws PropertiesException {
+			return null;
+		}
+
+		@Override
+		public ServiceProperties<?> createServiceProperties(String servicename) throws PropertiesException {
+			return null;
+		}
 		
+		@Override
+		public boolean supportsConnections() {
+			return true;
+		}
+
+		@Override
+		public boolean supportsServices() {
+			return false;
+		}
+
+		@Override
+		public boolean supportsProducers() {
+			return true;
+		}
+
+		@Override
+		public boolean supportsConsumers() {
+			return false;
+		}
+
+		@Override
+		public boolean supportsBrowsing() {
+			return false;
+		}
+
 	}
 
 	public static class FailingProducer extends Producer<ConnectionProperties, ProducerProperties> {

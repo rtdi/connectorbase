@@ -5,6 +5,15 @@ init : function() {
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	if (!!sConnectionname) {
 		var oModel = new JSONModel();
+		var that = this;
+		oModel.attachRequestFailed(function(oEvent) {
+			that.displayError({
+				message: oEvent.getParameter("message"),
+				responseText:oEvent.getParameter("responseText"),
+				statusCode:oEvent.getParameter("statusCode"),
+				statusText:oEvent.getParameter("statusText")
+			});
+		});
 		oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas");
 		this.getView().setModel(oModel);
 	}	

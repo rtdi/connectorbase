@@ -5,9 +5,9 @@ import java.io.IOException;
 import io.rtdi.bigdata.connector.connectorframework.Consumer;
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
-import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporaryException;
@@ -19,11 +19,9 @@ public class ConsumerInstanceController extends ThreadBasedController<Controller
 	private ConsumerController consumercontroller;
 	private long rowsprocessed = 0;
 	private Long lastdatatimestamp = null;
-	private long nextmetadatachangecheck = 0;
-	private int metadatacheckcount = 0;
-	private long lastmetadatachange = 0;
 	private long lastoffset = 0;
 	private int fetchcalls = 0;
+	private boolean updateConsumerMetadata;
 
 	public ConsumerInstanceController(String name, ConsumerController consumercontroller) {
 		super(name);
@@ -41,6 +39,7 @@ public class ConsumerInstanceController extends ThreadBasedController<Controller
 	@Override
 	public void runUntilError() throws IOException {
 		do {
+			updateConsumerMetadata = true;
 			try (Consumer<?,?> consumer = getConnectorFactory().createConsumer(this);) {
 				long flushtime = getProperties().getFlushMaxTime();
 				long maxrows = getProperties().getFlushMaxRecords();
@@ -61,20 +60,24 @@ public class ConsumerInstanceController extends ThreadBasedController<Controller
 						rowslimit = rowsprocessed + maxrows;
 						consumer.flushData(); // flush/commit.
 					}
-					if (nextmetadatachangecheck < System.currentTimeMillis()) {
-						nextmetadatachangecheck = System.currentTimeMillis() + IOUtils.METADATAREFERSH_CHANGE_CHECK_FREQUENCY;
-						// whenever something changed or all 12 hours update the metadata
-						if (lastmetadatachange < consumer.getLastMetadataChange() || metadatacheckcount % 60*12 == 0) { 
-							lastmetadatachange = consumer.getLastMetadataChange();
-							
-							getPipelineAPI().addConsumerMetadata(
-									new ConsumerEntity(
-											consumercontroller.getName(),
-											consumercontroller.getConnectionProperties().getName(),
-											this.getPipelineAPI(),
-											consumer.getTopics()));
+					if (updateConsumerMetadata) {
+						getPipelineAPI().addConsumerMetadata(
+								new ConsumerEntity(
+										consumercontroller.getName(),
+										consumercontroller.getConnectionProperties().getName(),
+										this.getPipelineAPI(),
+										consumer.getTopics()));
+						String bs = getPipelineAPI().getBackingServerConnectionLabel();
+						if (bs != null) {
+							getPipelineAPI().addServiceMetadata(
+									new ServiceEntity(
+											bs,
+											bs,
+											getPipelineAPI().getConnectionLabel(),
+											null,
+											null));
 						}
-						metadatacheckcount++;
+						updateConsumerMetadata = false;
 					}
 				}
 			} catch (PipelineTemporaryException | ConnectorTemporaryException e) { 
@@ -113,16 +116,25 @@ public class ConsumerInstanceController extends ThreadBasedController<Controller
 		return rowsprocessed;
 	}
 	
-	public Long getLastDataFetched() {
-		return lastdatatimestamp;
-	}
-
 	public Long getLastOffset() {
 		return lastoffset;
 	}
 	
 	public int getFetchCalls() {
 		return fetchcalls;
+	}
+
+	public Long getLastProcessed() {
+		return lastdatatimestamp;
+	}
+
+	@Override
+	protected void updateLandscape() {
+		this.updateConsumerMetadata = true;
+	}
+
+	@Override
+	protected void updateSchemaCache() {
 	}
 	
 }

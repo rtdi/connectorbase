@@ -50,6 +50,8 @@ public abstract class PropertyGroupAbstract {
 			((PropertyString)element).setValue(value);
 		} else if (element instanceof PropertyPassword) {
 			((PropertyPassword)element).setValue(value);
+		} else if (element instanceof PropertyText) {
+			((PropertyText)element).setValue(value);
 		} else {
 			throw new PropertiesException("A property of the name \"" + name + "\" exists but is not of a string type");
 		}
@@ -172,32 +174,36 @@ public abstract class PropertyGroupAbstract {
 	}
 
 	
-	public void addPasswordProperty(String name, String displayname, String description, String icon, String defaultvalue, boolean optional) {
-		addProperty(new PropertyPassword(name, displayname, description, icon, defaultvalue, optional));
+	public void addPasswordProperty(String name, String displayname, String description, String icon, String defaultvalue, boolean mandatory) {
+		addProperty(new PropertyPassword(name, displayname, description, icon, defaultvalue, mandatory));
 	}
 
-	public void addIntegerProperty(String name, String displayname, String description, String icon, Integer defaultvalue, boolean optional) {
-		addProperty(new PropertyInt(name, displayname, description, icon, defaultvalue, optional));
+	public void addIntegerProperty(String name, String displayname, String description, String icon, Integer defaultvalue, boolean mandatory) {
+		addProperty(new PropertyInt(name, displayname, description, icon, defaultvalue, mandatory));
 	}
 
-	public void addLongProperty(String name, String displayname, String description, String icon, Long defaultvalue, boolean optional) {
-		addProperty(new PropertyLong(name, displayname, description, icon, defaultvalue, optional));
+	public void addLongProperty(String name, String displayname, String description, String icon, Long defaultvalue, boolean mandatory) {
+		addProperty(new PropertyLong(name, displayname, description, icon, defaultvalue, mandatory));
 	}
 
-	public void addStringProperty(String name, String displayname, String description, String icon, String defaultvalue, boolean optional) {
-		addProperty(new PropertyString(name, displayname, description, icon, defaultvalue, optional));
+	public void addStringProperty(String name, String displayname, String description, String icon, String defaultvalue, boolean mandatory) {
+		addProperty(new PropertyString(name, displayname, description, icon, defaultvalue, mandatory));
+	}
+	
+	public void addTextProperty(String name, String displayname, String description, String icon, String defaultvalue, boolean mandatory) {
+		addProperty(new PropertyText(name, displayname, description, icon, defaultvalue, mandatory));
 	}
 
-	public void addBooleanProperty(String name, String displayname, String description, String icon, Boolean defaultvalue, boolean optional) {
-		addProperty(new PropertyBoolean(name, displayname, description, icon, defaultvalue, optional));
+	public void addBooleanProperty(String name, String displayname, String description, String icon, Boolean defaultvalue, boolean mandatory) {
+		addProperty(new PropertyBoolean(name, displayname, description, icon, defaultvalue, mandatory));
 	}
 
-	public void addArrayListProperty(String name, String displayname, String description, String icon, boolean optional) {
-		addProperty(new PropertyArrayList(name, displayname, description, icon, null, null, optional));
+	public void addArrayListProperty(String name, String displayname, String description, String icon, boolean mandatory) {
+		addProperty(new PropertyArrayList(name, displayname, description, icon, null, null, mandatory));
 	}
 
-	public PropertyGroup addPropertyGroupProperty(String name, String displayname, String description, String icon, boolean optional) {
-		PropertyGroup p = new PropertyGroup(name, displayname, description, icon, optional);
+	public PropertyGroup addPropertyGroupProperty(String name, String displayname, String description, String icon, boolean mandatory) {
+		PropertyGroup p = new PropertyGroup(name, displayname, description, icon, mandatory);
 		addProperty(p);
 		return p;
 	}
@@ -210,6 +216,39 @@ public abstract class PropertyGroupAbstract {
 	@Override
 	public String toString() {
 		return String.valueOf(propertylist);
+	}
+
+	public void parseValue(PropertyGroupAbstract value, boolean ignorepasswords) throws PropertiesException {
+		this.valuesset = false;
+		PropertyGroupAbstract pg = (PropertyGroupAbstract) value;
+		for (IProperty v : pg.getValues()) {
+			if (v.getName() == null) {
+				throw new PropertiesException("The passed property element does not have a name", "Should actually be impossible", 10006, v.toString());
+			}
+			IProperty e = nameindex.get(v.getName());
+			if (e == null) {
+				IProperty n = v.clone(ignorepasswords);
+				nameindex.put(n.getName(), n);
+				propertylist.add(n);
+			} else {
+				if (e instanceof PropertyGroup) {
+					((PropertyGroup) e).parseValue((PropertyGroup) v, ignorepasswords);
+				} else if (e instanceof IPropertyValue) {
+					((IPropertyValue) e).parseValue(v, ignorepasswords);						
+				}
+			}
+		}
+		
+		// Check all mandatory parameters are set
+		for (IProperty p : nameindex.values()) {
+			if (p instanceof IPropertyValue) {
+				IPropertyValue valueproperty = (IPropertyValue) p;
+				if (valueproperty.getMandatory() != null && valueproperty.getMandatory().booleanValue() && !valueproperty.hasValue()) {
+					throw new PropertiesException("A mandatory parameter in the properties is not set", "Fix the properties settings", 10007, valueproperty.getName());
+				}
+			}
+		}
+		this.valuesset = true;
 	}
 
 }

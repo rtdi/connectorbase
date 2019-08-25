@@ -6,4 +6,7 @@ public class PrimitiveMapping extends Mapping {
 		super(e);
 	}
 	
+	public PrimitiveMapping() {
+		super();
+	}
 }

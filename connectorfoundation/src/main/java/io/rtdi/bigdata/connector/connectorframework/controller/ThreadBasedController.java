@@ -6,11 +6,11 @@ import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporar
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerRequestedState;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerState;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporaryException;
 
 public abstract class ThreadBasedController<C extends Controller<?>> extends Controller<C> implements Runnable {
 
 	private Thread thread = null;
+	protected boolean interruptedflag = false;
 	/**
 	 * The last un-recoverable exception
 	 */
@@ -21,9 +21,10 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 	}
 
 	@Override
-	public void startController() throws IOException {
+	public void startController(boolean force) throws IOException {
 		requestedstate = ControllerRequestedState.RUN;
 		state = ControllerState.STARTING;
+		interruptedflag = false;
 		startControllerImpl();
 	}
 
@@ -85,6 +86,8 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 					break;
 				}
 			} catch (InterruptedException e) {
+				lastexception = e;
+				interruptedflag = true;
 			}
 			return !thread.isAlive();
 		} else {
@@ -96,7 +99,7 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 	public boolean isRunning() {
 		return super.isRunning() && 
 				thread != null && 
-				!thread.isInterrupted() && 
+				!thread.isInterrupted() && !interruptedflag &&
 				thread.isAlive();
 	}
 
@@ -105,11 +108,11 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 		lastexception = null;
 		try {
 			logger.info("Controller thread {} started", Thread.currentThread().getName());
+			startThreadControllerImpl(); // start this thread
 			while (isRunning()) {
 				state = ControllerState.STARTING;
 				try {
-					startThreadControllerImpl();
-					startChildController();
+					startChildController(false);
 					state = ControllerState.STARTED;
 					runUntilError();
 					// In the normal shutdown case wait for the children to terminate and then end as well
@@ -118,19 +121,10 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 					errors.addError(e);
 					logger.error("Controller ran into a temporary error, retrying", e);
 					state = ControllerState.TEMPORARYERROR;
-				} catch (PipelineTemporaryException e) {
-					if (retryPipelineTemporaryExceptions()) {
-						errors.addError(e);
-						logger.error("Controller ran into a temporary pipeline error, retrying", e);
-						state = ControllerState.TEMPORARYERROR;
-					} else {
-						throw e;
-					}
 				} finally {
 					// Failsafe to stop left over threads that did not stop without a Thread.interrupt() signal
 					stopChildControllers(ControllerExitType.ABORT);
 					joinChildControllers(ControllerExitType.ABORT);
-					stopThreadControllerImpl(ControllerExitType.ABORT);
 				}
 				
 			}
@@ -140,6 +134,7 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 		} finally {
 			stopChildControllers(ControllerExitType.ABORT);
 			joinChildControllers(ControllerExitType.ABORT);
+			stopThreadControllerImpl(ControllerExitType.ABORT);
 			logger.info("Controller thread {} stopped", Thread.currentThread().getName());
 		}
 	}
@@ -149,12 +144,18 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 	 * @throws Exception if error
 	 */
 	protected void runUntilError() throws Exception {
-		int executioncounter = 0;
+		long executioncounter = 0;
 		while (isRunning() && checkChildren()) {
-			controllerLoop(executioncounter++);
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
+			if (isRunning()) {
+				periodictask(executioncounter);
+				executioncounter++;
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					lastexception = e;
+					interruptedflag = true;
+					return;
+				}
 			}
 		}
 	}
@@ -165,25 +166,7 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 	 * 
 	 * @param executioncounter providing the number of executions since start (within the runUntilError() method)
 	 */
-	protected void controllerLoop(int executioncounter) {
+	protected void periodictask(long executioncounter) {
 	}
-
-	/*
-	protected void testChildControllers() throws IOException {
-		for (String childname : childcontrollers.keySet()) {
-			Controller<?> t = childcontrollers.get(childname);
-			if (t.getException() != null) {
-				if (t.getException() instanceof IOException) {
-					throw (IOException) t.getException();
-				} else {
-					throw new ConnectorTemporaryException("Child controller ran into an error", t.getException(), null, t.getThread().getName());
-				}
-			} else if (t.getRequestedState() != ControllerRequestedState.DISABLE && (t.getThread() == null || !t.getThread().isAlive())) {
-				logger.info("Controller thread {} noticed that child controller thread {} is no longer alive but should", thread.getName(), t.getThread().getName());
-				throw new ConnectorTemporaryException("Controller thread noticed that child controller thread is no longer alive but should", null, t.getThread().getName());
-			}
-		}
-	}
-	*/
 
 }

@@ -11,6 +11,11 @@ public class TableEntry {
 		this(null, null, null);
 	}
 	
+	/**
+	 * @param tablename of the source object
+	 * @param tabletype of the source object
+	 * @param description of the source object
+	 */
 	public TableEntry(String tablename, TableType tabletype, String description) {
 		super();
 		this.tablename = tablename;

@@ -2,10 +2,12 @@ package io.rtdi.bigdata.connector.pipeline.foundation;
 
 import java.io.IOException;
 
+import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.RowType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
@@ -22,7 +24,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	private ProducerProperties properties;
 	protected Logger logger = LogManager.getLogger(this.getClass().getName());
 	private String tenantid;
-	private IPipelineBase<T> api;
+	private IPipelineBase<?, T> api;
 
 
 	/**
@@ -32,7 +34,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * @param tenantid used for this session
 	 * @param api to use
 	 */
-	public ProducerSession(ProducerProperties properties, String tenantid, IPipelineBase<T> api) {
+	public ProducerSession(ProducerProperties properties, String tenantid, IPipelineBase<?, T> api) {
 		super();
 		this.properties = properties;
 		this.tenantid = tenantid;
@@ -169,6 +171,30 @@ public abstract class ProducerSession<T extends TopicHandler> {
 		}
 		addRowImpl((T) topic, partition, handler, keyrecord, valuerecord);
 	}
+	
+
+	/**
+	 * Same as {@link #addRow(TopicHandler, Integer, SchemaHandler, GenericRecord, GenericRecord, RowType, String, String)} but creates
+	 * the keyrecord by copying the corresponding values from the valuerecord. 
+	 * 
+	 * @param topic this record should be put into
+	 * @param partition optional partition information
+	 * @param handler SchemaHandler with the latest schema IDs
+	 * @param valuerecord Avro record with the payload
+	 * @param changetype indicator how the record should be processed, e.g. inserted, deleted etc
+	 * @param sourceRowID optional information how to identify the record in the source
+	 * @param sourceSystemID optional information about the source system this record is produced from
+	 * @throws IOException in case anything goes wrong
+	 */
+	public final void addRow(TopicHandler topic, Integer partition, SchemaHandler handler, GenericRecord valuerecord,
+			RowType changetype, String sourceRowID, String sourceSystemID) throws IOException {
+		JexlRecord keyrecord = new JexlRecord(handler.getKeySchema());
+		for (Field f : keyrecord.getSchema().getFields()) {
+			keyrecord.put(f.name(), valuerecord.get(f.name()));
+		}
+		addRow(topic, partition, handler, keyrecord, valuerecord, changetype, sourceSystemID, sourceSystemID);
+	}
+
 
 	/**
 	 * The actual internal implementation of how to add the record into the queue. 
@@ -211,7 +237,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	/**
 	 * @return pipeline api as quick access
 	 */
-	public IPipelineBase<T> getPipelineAPI() {
+	public IPipelineBase<?, T> getPipelineAPI() {
 		return api;
 	}
 

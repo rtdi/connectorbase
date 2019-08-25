@@ -8,7 +8,7 @@ public class PipelineConnectionProperties extends PipelineConnectionServerProper
 
 	public PipelineConnectionProperties(String name) {
 		super(name);
-		properties.addStringProperty(TENANTID, "Tenant id", "An arbitary name for the tenant", null, null, false);
+		properties.addStringProperty(TENANTID, "Tenant id", "An arbitary name for the tenant", null, null, true);
 	}
 
 	public String getTenantid() {

@@ -11,7 +11,8 @@ import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEntity;
-import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayload;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
@@ -25,7 +26,7 @@ import io.rtdi.bigdata.connector.properties.ConnectionProperties;
  * @param <P> ProducerSession
  * @param <C> ConsumerSession
  */
-public interface IPipelineServer<S extends ConnectionProperties, T extends TopicHandler, P extends ProducerSession<T>, C extends ConsumerSession<T>> extends IPipelineBase<T> {
+public interface IPipelineServer<S extends ConnectionProperties, T extends TopicHandler, P extends ProducerSession<T>, C extends ConsumerSession<T>> extends IPipelineBase<S, T> {
 
 	public void setConnectionProperties(S properties);
 	
@@ -41,7 +42,7 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 	 * @return SchemaHandler
 	 * @throws PropertiesException if something goes wrong
 	 */
-	SchemaHandler registerSchema(SchemaName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException;
+	SchemaHandler getOrCreateSchema(SchemaName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException;
 
 	/**
 	 * Create a new topic  with the provided metadata
@@ -106,15 +107,21 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 
 	void removeConsumerMetadata(String tenantid, String consumername) throws IOException;
 
+	void removeServiceMetadata(String tenantid, String servicename) throws IOException;
+
 	ProducerMetadataEntity getProducerMetadata(String tenantid) throws IOException;
 
 	ConsumerMetadataEntity getConsumerMetadata(String tenantid) throws IOException;
+	
+	ServiceMetadataEntity getServiceMetadata(String tenantid) throws IOException;
 
 	S getAPIProperties();
 
 	void addProducerMetadata(String tenantid, ProducerEntity producer) throws IOException;
 
 	void addConsumerMetadata(String tenantid, ConsumerEntity consumer) throws IOException;
+
+	void addServiceMetadata(String tenantid, ServiceEntity service) throws IOException;
 
 	public void loadConnectionProperties(File webinfdir) throws PropertiesException;
 
@@ -124,4 +131,12 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 
 	C createNewConsumerSession(String consumername, String topicpattern, String tenantid) throws PropertiesException;
 
+	public boolean isAlive();
+
+	/**
+	 * @return null if there is no server connected to this server
+	 */
+	String getConnectionLabel();
+
+	
 }

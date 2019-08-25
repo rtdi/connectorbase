@@ -69,7 +69,50 @@ public class ProducerController extends Controller<ProducerInstanceController> {
 		return connectioncontroller.getConnectorController();
 	}
 
-	public int getProducerCount() {
+	public int getInstanceCount() {
 		return instancecount;
+	}
+
+	public long getRowsProcessedCount() {
+		long count = 0;
+		if (getInstances() != null) {
+			for (ProducerInstanceController c : getInstances().values()) {
+				count += c.getRowsProduced();
+			}
+		}
+		return count;
+	}
+
+	public Long getLastProcessed() {
+		Long last = null;
+		if (getInstances() != null) {
+			for (ProducerInstanceController c : getInstances().values()) {
+				Long l = c.getLastProcessed();
+				if (l != null) {
+					if (last == null || last < l) {
+						last = l;
+					}
+				}
+			}
+		}
+		return last;
+	}
+
+	@Override
+	protected void updateLandscape() {
+		if (getInstances() != null) {
+			for (ProducerInstanceController c : getInstances().values()) {
+				c.updateLandscape();
+			}
+		}
+	}
+
+	@Override
+	protected void updateSchemaCache() {
+		if (getInstances() != null) {
+			for (ProducerInstanceController c : getInstances().values()) {
+				c.updateSchemaCache();
+			}
+		}
 	}
 }

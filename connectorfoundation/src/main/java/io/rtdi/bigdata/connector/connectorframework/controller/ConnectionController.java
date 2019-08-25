@@ -217,4 +217,88 @@ public class ConnectionController extends Controller<Controller<?>> {
 	public BrowsingService<?> getBrowingService() throws IOException {
 		return this.getConnectorFactory().createBrowsingService(this);
 	}
+
+	public int getProducerCount() {
+		int count = 0;
+		if (producers != null) {
+			count += producers.size();
+		}
+		return count;
+	}
+
+	public int getConsumerCount() {
+		int count = 0;
+		if (consumers != null) {
+			count += consumers.size();
+		}
+		return count;
+	}
+
+	public long getRowsProcessed() {
+		long count = 0;
+		if (producers != null) {
+			for (ProducerController c : producers.values()) {
+				count += c.getRowsProcessedCount();
+			}
+		}
+		if (consumers != null) {
+			for (ConsumerController c : consumers.values()) {
+				count += c.getRowsProcessedCount();
+			}
+		}
+		return count;
+	}
+
+	public Long getLastProcessed() {
+		Long last = null;
+		if (producers != null) {
+			for (ProducerController c : producers.values()) {
+				Long l = c.getLastProcessed();
+				if (l != null) {
+					if (last == null || last < l) {
+						last = l;
+					}
+				}
+			}
+		}
+		if (consumers != null) {
+			for (ConsumerController c : consumers.values()) {
+				Long l = c.getLastProcessed();
+				if (l != null) {
+					if (last == null || last < l) {
+						last = l;
+					}
+				}
+			}
+		}
+		return last;
+	}
+
+	@Override
+	protected void updateLandscape() {
+		if (producers != null) {
+			for (ProducerController c : producers.values()) {
+				c.updateLandscape();
+			}
+		}
+		if (consumers != null) {
+			for (ConsumerController c : consumers.values()) {
+				c.updateLandscape();
+			}
+		}
+	}
+
+	@Override
+	protected void updateSchemaCache() {
+		if (producers != null) {
+			for (ProducerController c : producers.values()) {
+				c.updateSchemaCache();
+			}
+		}
+		if (consumers != null) {
+			for (ConsumerController c : consumers.values()) {
+				c.updateSchemaCache();
+			}
+		}
+	}
 }

@@ -11,8 +11,6 @@ import java.util.regex.Pattern;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlExpression;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +27,6 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 
 	private Schema outputschema;
 	private Map<String, Mapping> mapping = new HashMap<>();
-	private RecordContext context;
 	private String name;
 	private SchemaHandler outputhandler;
 
@@ -37,7 +34,6 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 	public RecordMapping(Schema outputschema) {
 		super((JexlExpression) null);
 		this.outputschema = outputschema;
-		context = new RecordContext();
 	}
 
 	public RecordMapping(File mappingfile, SchemaHandler outputhandler) throws PropertiesException {
@@ -61,7 +57,6 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 	public RecordMapping(String expression, Schema outputschema) {
 		super(expression);
 		this.outputschema = outputschema;
-		context = new RecordContext();
 	}
 	
 	public static String getTargetSchemaname(File mappingfile) {
@@ -154,11 +149,10 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 
 	@Override
 	public JexlRecord apply(JexlRecord input) {
-		context.setRecord(input);
 		JexlRecord out = new JexlRecord(outputschema);
 		for (String field : mapping.keySet()) {
 			Mapping m = mapping.get(field);
-			Object o = m.evaluate(context);
+			Object o = m.evaluate(input);
 			if ( o != null) {
 				if (m instanceof PrimitiveMapping) {
 					out.put(field, o);
@@ -174,10 +168,10 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 					}
 				} else if (m instanceof ArrayPrimitiveMapping) {
 					if (o instanceof List) {
-						out.put(field, ((ArrayPrimitiveMapping) m).apply((List<?>) o, context));
+						out.put(field, ((ArrayPrimitiveMapping) m).apply((List<?>) o, input));
 					} else if (o instanceof Number) {
 						int n = ((Number) o).intValue();
-						out.put(field, ((ArrayPrimitiveMapping) m).apply(n, context));
+						out.put(field, ((ArrayPrimitiveMapping) m).apply(n, input));
 					}
 				} else {
 					if (o instanceof List) {
@@ -190,28 +184,6 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 			}
 		}
 		return out;
-	}
-
-	public static class RecordContext implements JexlContext {
-		private GenericRecord record;
-		
-		public void setRecord(GenericRecord input) {
-			this.record = input;
-		}
-		
-		@Override
-		public Object get(String name) {
-			return record.get(name);
-		}
-
-		@Override
-		public void set(String name, Object value) {
-		}
-
-		@Override
-		public boolean has(String name) {
-			return record.getSchema().getField(name) != null;
-		}
 	}
 
 	@Override

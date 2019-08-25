@@ -28,7 +28,7 @@ public class PropertyString extends PropertyAbstract implements IPropertyValue {
 	}
 
 	@Override
-	public void parseValue(IProperty property) throws PropertiesException {
+	public void parseValue(IProperty property, boolean ignorepasswords) throws PropertiesException {
 		if (property instanceof PropertyString) {
 			this.value = ((PropertyString) property).getValue();
 		} else {
@@ -44,6 +44,11 @@ public class PropertyString extends PropertyAbstract implements IPropertyValue {
 	@Override
 	public boolean hasValue() {
 		return value != null && value.length() != 0;
+	}
+
+	@Override
+	public IProperty clone(boolean ignorepasswords) {
+		return new PropertyString(this.getName(), this.getDisplayname(), this.getDescription(), this.getIcon(), this.getValue(), this.getMandatory());
 	}
 
 }

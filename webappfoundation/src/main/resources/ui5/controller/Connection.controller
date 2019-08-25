@@ -3,14 +3,25 @@ showFooter : function() {
 },
 init : function() {
 	var oModel = new JSONModel();
+	var that = this;
+	oModel.attachRequestFailed(function(oEvent) {
+		that.displayError({
+			message: oEvent.getParameter("message"),
+			responseText:oEvent.getParameter("responseText"),
+			statusCode:oEvent.getParameter("statusCode"),
+			statusText:oEvent.getParameter("statusText")
+		});
+	});
 	var oComponentsModel = new JSONModel();
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	if (!!sConnectionname) {
 		oModel.loadData("../rest/connections/" + encodeURI(sConnectionname));
 		oStateModel.setProperty("/title", "Connection settings");
+		oStateModel.setProperty("/new", false);
 	} else {
 		oModel.loadData("../rest/connection/template");
 		oStateModel.setProperty("/title", "Create new Connection");
+		oStateModel.setProperty("/new", true);
 	}
 	this.getView().setModel(oModel);
 	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"}, {"text" : "Connections", "link" : "./Connections"} ] );
@@ -24,10 +35,9 @@ save : function(oEvent) {
 	xmlhttp.onreadystatechange = function() {
 	    if (xmlhttp.readyState == 4) {
 	    	if (xmlhttp.status == 200) {
-				var oComponents = this.byId("components");
-				oComponents.setVisible(true);
+		        sap.m.MessageToast.show("Saved");
 		    } else {
-		        alert(xmlhttp.responseText);
+		        this.displayError({ "message" : xmlhttp.responseText });
 		    }
 		}
 	}

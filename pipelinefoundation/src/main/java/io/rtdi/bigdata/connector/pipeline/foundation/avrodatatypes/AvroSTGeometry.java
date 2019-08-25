@@ -13,6 +13,15 @@ public class AvroSTGeometry extends LogicalType implements IAvroPrimitive {
 	public static final Factory factory = new Factory();
 	public static final String NAME = "ST_GEOMETRY";
 	private static AvroSTGeometry element = new AvroSTGeometry();
+	private static Schema schema;
+	
+	static {
+		schema = create().addToSchema(Schema.create(Type.STRING));
+	}
+
+	public static Schema getSchema() {
+		return schema;
+	}
 
 	private AvroSTGeometry() {
 		super(NAME);
@@ -24,14 +33,7 @@ public class AvroSTGeometry extends LogicalType implements IAvroPrimitive {
 
 	@Override
 	public Schema addToSchema(Schema schema) {
-		super.addToSchema(schema);
-		return schema;
-	}
-
-	public static Schema getSchema() {
-		Schema s = Schema.create(Type.STRING); 
-		create().addToSchema(s);
-		return s;
+		return super.addToSchema(schema);
 	}
 
 	@Override
@@ -60,7 +62,20 @@ public class AvroSTGeometry extends LogicalType implements IAvroPrimitive {
 		return NAME;
 	}
 
-	
+	@Override
+	public void toString(StringBuffer b, Object value) {
+		if (value != null) {
+			b.append('\"');
+			b.append(value.toString());
+			b.append('\"');
+		}
+	}
+
+	@Override
+	public Object convertToInternal(Object value) {
+		return value;
+	}
+
 	public static class Factory implements LogicalTypeFactory {
 		
 		public Factory() {
@@ -71,6 +86,11 @@ public class AvroSTGeometry extends LogicalType implements IAvroPrimitive {
 			return AvroSTGeometry.create();
 		}
 
+	}
+
+	@Override
+	public Type getBackingType() {
+		return Type.STRING;
 	}
 
 }

@@ -4,7 +4,7 @@ import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlExpression;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.mapping.RecordMapping.RecordContext;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 
 public abstract class Mapping {
 
@@ -18,10 +18,31 @@ public abstract class Mapping {
 	protected Mapping(String e) {
 		this(jexl.createExpression(e));
 	}
+	
+	public Mapping() {
+		super();
+	}
 
-	public Object evaluate(RecordContext context) {
+	public Object evaluate(JexlRecord context) {
 		Object o = expression.evaluate(context);
 		return o;
 	}
 
+	public void setExpression(String formula) {
+		expression = jexl.createExpression(formula);
+	}
+	
+	public String getExpression() {
+		return expression.toString();
+	}
+
+	@Override
+	public String toString() {
+		if (expression != null) {
+			return expression.toString();
+		} else {
+			return "Null-Mapping";
+		}
+	}
+	
 }

@@ -56,7 +56,14 @@ public class SchemaHandler {
 
 	@Override
 	public boolean equals(Object obj) {
-		return schemaname.equals(obj);
+		if (obj == null) {
+			return false;
+		} else if (obj instanceof SchemaHandler) {
+			SchemaHandler s = (SchemaHandler) obj;
+			return schemaname.equals(s.getSchemaName());
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -101,6 +108,22 @@ public class SchemaHandler {
 	
 	public IRecordMapping getMapping() {
 		return mapping;
+	}
+
+	public int getKeySchemaId() {
+		if (metadata != null) {
+			return metadata.getKeySchemaID();
+		} else {
+			return -1;
+		}
+	}
+
+	public int getValueSchemaId() {
+		if (metadata != null) {
+			return metadata.getValueSchemaID();
+		} else {
+			return -1;
+		}
 	}
 
 }

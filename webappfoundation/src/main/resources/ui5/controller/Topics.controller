@@ -3,6 +3,15 @@ showFooter : function() {
 },
 init : function() {
 	var oModel = new JSONModel();
+	var that = this;
+	oModel.attachRequestFailed(function(oEvent) {
+		that.displayError({
+			message: oEvent.getParameter("message"),
+			responseText:oEvent.getParameter("responseText"),
+			statusCode:oEvent.getParameter("statusCode"),
+			statusText:oEvent.getParameter("statusText")
+		});
+	});
 	oModel.loadData("../rest/topics");
 	this.getView().setModel(oModel);
 	oStateModel.setProperty("/title", "List of Topics");

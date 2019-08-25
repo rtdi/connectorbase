@@ -2,12 +2,8 @@ showFooter : function() {
 	return false;
 },
 init : function() {
-	var oModel = new JSONModel();
+	this.onPressRefresh(null);
 	var sTopicname = jQuery.sap.getUriParameters().get("name");
-	if (sTopicname != null) {
-		oModel.loadData("../rest/topics/" + sTopicname + "/datapreview");
-		this.getView().setModel(oModel);
-	}
 	oStateModel.setProperty("/title", "Recent entries in " + sTopicname);
 	oStateModel.setProperty("/breadcrumbs", [ 
 		{"text" : "Homepage", "link" : "./Home"}, 
@@ -19,6 +15,23 @@ edit : function(oEvent) {
 cancel : function(oEvent) {
 },
 save : function(oEvent) {
+},
+onPressRefresh : function(oEvent) {
+	var oModel = new JSONModel();
+	var that = this;
+	oModel.attachRequestFailed(function(oEvent) {
+		that.displayError({
+			message: oEvent.getParameter("message"),
+			responseText:oEvent.getParameter("responseText"),
+			statusCode:oEvent.getParameter("statusCode"),
+			statusText:oEvent.getParameter("statusText")
+		});
+	});
+	var sTopicname = jQuery.sap.getUriParameters().get("name");
+	if (sTopicname != null) {
+		oModel.loadData("../rest/topics/" + sTopicname + "/datapreview");
+		this.getView().setModel(oModel);
+	}
 },
 timeformatter : function(epoche) {
 	if ( ! epoche) {

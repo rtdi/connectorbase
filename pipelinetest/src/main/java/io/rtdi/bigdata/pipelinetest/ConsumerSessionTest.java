@@ -7,7 +7,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.ConsumerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineBase;
 import io.rtdi.bigdata.connector.pipeline.foundation.IProcessFetchedRow;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
-import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayload;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.OperationState;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -15,7 +15,7 @@ import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 
 public class ConsumerSessionTest extends ConsumerSession<TopicHandlerTest> {
 
-	protected ConsumerSessionTest(ConsumerProperties properties, IPipelineBase<TopicHandlerTest> api, String tenantid) throws PropertiesException {
+	protected ConsumerSessionTest(ConsumerProperties properties, IPipelineBase<?, TopicHandlerTest> api, String tenantid) throws PropertiesException {
 		super(properties, tenantid, api);
 	}
 

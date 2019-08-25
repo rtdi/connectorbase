@@ -46,7 +46,8 @@ public class IndexPage extends HttpServlet {
 				PrintWriter out = response.getWriter();
 				out.println("<!DOCTYPE html>");
 				out.println("<html><head><title>Check Connector class</head><body>");
-				out.println("No class found for the ConnectorFactory. Should not be possible in fact!</body></html>");
+				out.println("No class found for the ConnectorFactory. Should not be possible in fact! Is the ConnectorFactory mentioned "
+						+ "in the file src/main/java/META-INF/services/io.rtdi.bigdata.connector.connectorframework.IConnectorFactory</body></html>");
 			} else if (WebAppController.getConnector(getServletContext()) == null) {
 				PrintWriter out = response.getWriter();
 				out.println("<!DOCTYPE html>");

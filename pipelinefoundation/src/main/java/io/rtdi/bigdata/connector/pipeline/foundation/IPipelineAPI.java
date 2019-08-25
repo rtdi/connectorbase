@@ -11,11 +11,14 @@ import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEntity;
-import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayload;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.PipelineConnectionProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
+import io.rtdi.bigdata.connector.properties.ServiceProperties;
 
 /**
  * A Pipeline has to implement all of these methods. 
@@ -29,7 +32,7 @@ import io.rtdi.bigdata.connector.properties.ProducerProperties;
  * @param <P> ProducerSession
  * @param <C> ConsumerSession
  */
-public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends TopicHandler, P extends ProducerSession<T>, C extends ConsumerSession<T>> extends IPipelineBase<T> {
+public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends TopicHandler, P extends ProducerSession<T>, C extends ConsumerSession<T>> extends IPipelineBase<S, T> {
 
 	/**
 	 * Same as {@link #getSchema(SchemaName)} except that it accepts as input a string. Should return the same as 
@@ -47,6 +50,16 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	SchemaHandler registerSchema(SchemaName schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException;
 
 	SchemaHandler registerSchema(String schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException;
+
+	/**
+	 * Helper function to register a new schema based on the ValueSchema. The schema name and description are taken from the ValueSchema and
+	 * the key schema are all primary key columns.
+	 * 
+	 * @param valueschema all is based on
+	 * @return SchemaHandler
+	 * @throws PropertiesException in case the schema is invalid
+	 */
+	SchemaHandler registerSchema(ValueSchema valueschema) throws PropertiesException;
 
 	/**
 	 * @return A list of schema names for this tenant
@@ -182,6 +195,8 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 
 	C createNewConsumerSession(ConsumerProperties properties) throws PropertiesException;
 
+	ServiceSession createNewServiceSession(ServiceProperties<?> properties) throws PropertiesException;
+	
 	/**
 	 * This method should implement everything that is needed to open the connection to the topic server and thus enables all other api methods.<br>
 	 * The implementation should set useful information during the open sequence to enable the end user
@@ -218,6 +233,14 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	void addConsumerMetadata(ConsumerEntity consumer) throws IOException;
 
 	/**
+	 * Add the service information to the metadata directory 
+	 * 
+	 * @param service ServiceEntity to add metadata for
+	 * @throws IOException if something goes wrong
+	 */
+	void addServiceMetadata(ServiceEntity service) throws IOException;
+
+	/**
 	 * @return The information of all producers, the topics they use and the schemas of each topic
 	 * @throws IOException if something goes wrong
 	 */
@@ -228,6 +251,12 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @throws IOException if something goes wrong
 	 */
 	ConsumerMetadataEntity getConsumerMetadata() throws IOException;
+
+	/**
+	 * @return The list of all services and the topics they work on
+	 * @throws IOException if something goes wrong
+	 */
+	ServiceMetadataEntity getServiceMetadata() throws IOException;
 
 	S getAPIProperties();
 
@@ -265,4 +294,6 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 
 	void setWEBINFDir(File webinfdir);
 
+	String getBackingServerConnectionLabel() throws IOException;
+	
 }

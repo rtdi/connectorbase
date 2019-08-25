@@ -4,6 +4,14 @@ showFooter : function() {
 init : function() {
 	var that = this;
 	var oModel = new JSONModel();
+	oModel.attachRequestFailed(function(oEvent) {
+		that.displayError({
+			message: oEvent.getParameter("message"),
+			responseText:oEvent.getParameter("responseText"),
+			statusCode:oEvent.getParameter("statusCode"),
+			statusText:oEvent.getParameter("statusText")
+		});
+	});
 	oStateModel.setProperty("/title", "Landscape");
 	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"} ] );
 
@@ -20,20 +28,28 @@ init : function() {
 		var data = oModel.getData();
 		for (var i in data.nodes) {
 			var n = data.nodes[i];
-			n.shape = 'circularImage';
+			n.shape = 'icon';
+			n.icon = {face: 'SAP-icons',
+				      size: 20,
+				      color: '#000000'};
 			n.color = '#eeeeee';
 			n.scaling = {
 		    	label: false
 			};
 			if (n.type === 'PRODUCER') {
-				n.image = '../images/producer.png';			
-			} else if (n.type === 'PIPELINESERVER') {
-				n.image = '../images/pipelineserver.png';
-			} else if (n.type === 'REMOTECONNECTION') {
-				n.image = '../images/remotesystem.png';
+				n.icon.code = '\ue27e';			
 			} else if (n.type === 'CONSUMER') {
-				n.image = '../images/consumer.png';			
+				n.icon.code = '\ue168';			
+			} else if (n.type === 'SERVICE') {
+				n.icon.code = '\ue0e5';			
+			} else if (n.type === 'PIPELINESERVER') {
+				n.icon.code = '\ue143';			
+			} else if (n.type === 'REMOTECONNECTION') {
+				n.icon.code = '\ue20b';			
+			} else {
+				n.icon.code = '\ue1c4';			
 			}
+			
 		}
 		for (var i in data.edges) {
 			var e = data.edges[i];

@@ -8,12 +8,12 @@
 		{
 			"type": "PropertyString",
 			"name": "kafka.bootstrapservers",
-			"value": "ec2-35-157-112-169.eu-central-1.compute.amazonaws.com:9092"
+			"value": "kafka.rtdi.io:9092"
 		},
 		{
 			"type": "PropertyString",
 			"name": "kafka.schemaregistry.url",
-			"value": "http://ec2-35-157-112-169.eu-central-1.compute.amazonaws.com:8081"
+			"value": "http://kafka.rtdi.io:8081"
 		}
 	]
 }

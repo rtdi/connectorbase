@@ -1,9 +1,11 @@
 package io.rtdi.bigdata.pipelinehttp;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,11 +25,16 @@ import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaName;
+import io.rtdi.bigdata.connector.pipeline.foundation.ServiceSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
@@ -35,19 +42,24 @@ import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEnti
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.SchemaEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.SchemaHandlerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.SchemaListEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicHandlerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicHandlerEntity.ConfigPair;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicListEntity;
-import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayload;
-import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayloadData;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayloadBinaryData;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.TopicMetadata;
+import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
+import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.HttpUtil;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
+import io.rtdi.bigdata.connector.properties.ServiceProperties;
 
 
 public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, TopicHandlerHttp, ProducerSessionHttp, ConsumerSessionHttp> {
@@ -56,6 +68,15 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	protected URI transactionendpointsend;
 	protected URI transactionendpointfetch;
 	private File webinfdir = null;
+	
+	/* 
+	 * These caches are used for internal operations only, e.g. getLastRecords().
+	 * Regular consumers and producers want to have tighter control and cache the data themselves.
+	 */
+	private Cache<Integer, Schema> schemaidcache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(1000).build();
+	private String backingserver;
+	private boolean backingserverrequested = false;
+
 
 	public PipelineHttp(ConnectionPropertiesHttp props) throws PropertiesException {
 		super();
@@ -112,6 +133,15 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 		Response entityresponse = postRestfulService(getRestEndpoint("/schema/byname", schemaname), entityin);
 		SchemaHandlerEntity entityout = entityresponse.readEntity(SchemaHandlerEntity.class);
 		return new SchemaHandler(getTenantID(), schemaname, keyschema, valueschema, entityout.getKeySchemaId(), entityout.getValueSchemaId());
+	}
+
+	@Override
+	public SchemaHandler registerSchema(ValueSchema schema) throws PropertiesException {
+		try {
+			return registerSchema(schema.getName(), schema.getDescription(), KeySchema.create(schema.getSchema()), schema.getSchema());
+		} catch (SchemaException e) {
+			throw new PropertiesException("Cannot create the Avro schema out of the ValueSchema", e);
+		}
 	}
 
 	@Override
@@ -211,34 +241,34 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	}
 
 	@Override
-	public List<TopicPayload> getLastRecords(String topicname, int count) throws PropertiesException {
+	public List<TopicPayload> getLastRecords(String topicname, int count) throws IOException {
 		Response entityresponse = callRestfulservice(getRestEndpoint("/data/preview/count", topicname, String.valueOf(count)));
 		if (entityresponse == null) {
 			return null;
 		} else {
-			TopicPayloadData entityout = entityresponse.readEntity(TopicPayloadData.class);
-			return entityout.getRows();
+			TopicPayloadBinaryData entityout = entityresponse.readEntity(TopicPayloadBinaryData.class);
+			return entityout.asTopicPayloadList(this, schemaidcache);
 		}
 	}
 
 	@Override
-	public List<TopicPayload> getLastRecords(String topicname, long timestamp) throws PropertiesException {
+	public List<TopicPayload> getLastRecords(String topicname, long timestamp) throws IOException {
 		Response entityresponse = callRestfulservice(getRestEndpoint("/data/preview/time", topicname, String.valueOf(timestamp)));
 		if (entityresponse == null) {
 			return null;
 		} else {
-			TopicPayloadData entityout = entityresponse.readEntity(TopicPayloadData.class);
-			return entityout.getRows();
+			TopicPayloadBinaryData entityout = entityresponse.readEntity(TopicPayloadBinaryData.class);
+			return entityout.asTopicPayloadList(this, schemaidcache);
 		}
 	}
 
 	@Override
-	public List<TopicPayload> getLastRecords(TopicName topicname, int count) throws PropertiesException {
+	public List<TopicPayload> getLastRecords(TopicName topicname, int count) throws IOException {
 		return getLastRecords(topicname.getName(), count);
 	}
 
 	@Override
-	public List<TopicPayload> getLastRecords(TopicName topicname, long timestamp) throws PropertiesException {
+	public List<TopicPayload> getLastRecords(TopicName topicname, long timestamp) throws IOException {
 		return getLastRecords(topicname.getName(), timestamp);
 	}
 
@@ -315,6 +345,11 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	}
 
 	@Override
+	public void addServiceMetadata(ServiceEntity consumer) throws PropertiesException {
+		postRestfulService(getRestEndpoint("/meta/service"), consumer);
+	}
+
+	@Override
 	public ProducerMetadataEntity getProducerMetadata() throws PropertiesException {
 		Response entityresponse = callRestfulservice(getRestEndpoint("/meta/producer"));
 		if (entityresponse == null) {
@@ -337,29 +372,44 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	}
 
 	@Override
+	public ServiceMetadataEntity getServiceMetadata() throws PropertiesException {
+		Response entityresponse = callRestfulservice(getRestEndpoint("/meta/service"));
+		if (entityresponse == null) {
+			return null;
+		} else {
+			ServiceMetadataEntity entityout = entityresponse.readEntity(ServiceMetadataEntity.class);
+			return entityout;
+		}
+	}
+
+	@Override
 	public ConnectionPropertiesHttp getAPIProperties() {
 		return properties;
 	}
 
 	protected Response callRestfulservice(String path) throws PipelineRuntimeException {
-		try {
-			Response response = target
-					.path(path)
-					.request(MediaType.APPLICATION_JSON_TYPE)
-					.get();
-			if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
-				return null;
-			} else if (response.getStatus() >= 200 && response.getStatus() < 300) {
-				return response;
-			} else {
-				throw new PipelineRuntimeException("restful call did return status \"" + response.getStatus() + "\"", null, response.getEntity().toString(), path);
+		if (target != null) {
+			try {
+				Response response = target
+						.path(path)
+						.request(MediaType.APPLICATION_JSON_TYPE)
+						.get();
+				if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
+					return null;
+				} else if (response.getStatus() >= 200 && response.getStatus() < 300) {
+					return response;
+				} else {
+					throw new PipelineTemporaryException("restful call did return status \"" + response.getStatus() + "\"", null, response.getEntity().toString(), path);
+				}
+			} catch (ProcessingException e) {
+				if (e.getCause() instanceof ConnectException) {
+					throw new PipelineTemporaryException("restful call got an error", e.getCause(), null, path);
+				} else {
+					throw new PipelineRuntimeException("restful call got an error", e, null, path);
+				}
 			}
-		} catch (ProcessingException e) {
-			if (e.getCause() instanceof ConnectException) {
-				throw new PipelineTemporaryException("restful call got an error", e.getCause(), null, path);
-			} else {
-				throw new PipelineRuntimeException("restful call got an error", e, null, path);
-			}
+		} else {
+			throw new PipelineRuntimeException("Pipeline not connected with server yet");
 		}
 	}
 
@@ -372,7 +422,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 			if (response.getStatus() >= 200 && response.getStatus() < 300) {
 				return response;
 			} else {
-				throw new PipelineRuntimeException("restful call did return status \"" + response.getStatus() + "\"", null, response.getEntity().toString(), path);
+				throw new PipelineTemporaryException("restful call did return status \"" + response.getStatus() + "\"", null, response.getEntity().toString(), path);
 			}
 		} catch (ProcessingException e) {
 			if (e.getCause() instanceof ConnectException) {
@@ -392,7 +442,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 			if (response.getStatus() >= 200 && response.getStatus() < 300) {
 				return response;
 			} else {
-				throw new PipelineRuntimeException("restful call did return status \"" + response.getStatus() + "\"", null, response.getEntity().toString(), path);
+				throw new PipelineTemporaryException("restful call did return status \"" + response.getStatus() + "\"", null, response.getEntity().toString(), path);
 			}
 		} catch (ProcessingException e) {
 			if (e.getCause() instanceof ConnectException) {
@@ -453,6 +503,20 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	}
 
 	@Override
+	public String getBackingServerConnectionLabel() throws IOException {
+		if (!backingserverrequested) {
+			backingserverrequested = true;
+			Response entityresponse = callRestfulservice(getRestEndpoint("/meta", "apitarget"));
+			if (entityresponse == null) {
+				backingserver = null;
+			} else {
+				backingserver = entityresponse.readEntity(String.class);
+			}
+		}
+		return backingserver;
+	}
+
+	@Override
 	public String getHostName() {
 		return IOUtils.getHostname();
 	}
@@ -470,5 +534,10 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	@Override
 	public void setWEBINFDir(File webinfdir) {
 		this.webinfdir = webinfdir;
+	}
+
+	@Override
+	public ServiceSession createNewServiceSession(ServiceProperties<?> properties) throws PropertiesException {
+		return null;
 	}
 }

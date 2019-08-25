@@ -22,6 +22,9 @@ public class UI5Fragment extends HttpServlet {
     }
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		long expiry = System.currentTimeMillis() + UI5ServletAbstract.BROWSER_CACHING_IN_SECS*1000;
+		response.setDateHeader("Expires", expiry);
+		response.setHeader("Cache-Control", "max-age="+ UI5ServletAbstract.BROWSER_CACHING_IN_SECS);
 		byte[] buffer = new byte[4096];
 		String resource = request.getPathInfo();
 		if (resource.indexOf('/', 1) != -1) {

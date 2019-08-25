@@ -27,14 +27,26 @@ public class AvroVarchar extends LogicalTypeWithLength {
 	}
 
 	public static Schema getSchema(int length) {
-		Schema s = Schema.create(Type.STRING); 
-		create(length).addToSchema(s);
-		return s;
+		return create(length).addToSchema(Schema.create(Type.STRING));
 	}
 	
 	public static Schema getSchema(String text) {
 		int length = LogicalTypeWithLength.getLengthPortion(text);
 		return getSchema(length);
+	}
+
+	@Override
+	public void toString(StringBuffer b, Object value) {
+		if (value != null) {
+			b.append('\"');
+			b.append(value.toString());
+			b.append('\"');
+		}
+	}
+
+	@Override
+	public Object convertToInternal(Object value) {
+		return value;
 	}
 
 	public static class Factory implements LogicalTypeFactory {
@@ -47,6 +59,11 @@ public class AvroVarchar extends LogicalTypeWithLength {
 			return AvroVarchar.create(schema);
 		}
 
+	}
+
+	@Override
+	public Type getBackingType() {
+		return Type.STRING;
 	}
 
 }

@@ -26,7 +26,7 @@ import io.rtdi.bigdata.connector.properties.ConsumerProperties;
  */
 public abstract class ConsumerSession<T extends TopicHandler> implements ISchemaRegistrySource {
 	private ConsumerProperties properties;
-	private IPipelineBase<T> api = null;
+	private IPipelineBase<?, T> api = null;
 	private Map<String, T> topichandlers = new HashMap<>();
 	private Cache<Integer, Schema> schemaidcache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(1000).build();
 	private long lastmetadatachange = 0;
@@ -37,7 +37,7 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 	private IControllerState controller;
 	private String tenantid;
 
-	protected ConsumerSession(ConsumerProperties properties, String tenantid, IPipelineBase<T> api) throws PropertiesException {
+	protected ConsumerSession(ConsumerProperties properties, String tenantid, IPipelineBase<?, T> api) throws PropertiesException {
 		super();
 		if (properties == null) {
 			throw new PropertiesException("The ConsumerSession needs a valid PipelineConsumerProperties object to know the topics to listen on");
@@ -49,6 +49,11 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 	}
 
 	
+	/**
+	 * @param processor for transforming the row structure during a fetch
+	 * @return number of rows fetched within that time interval or the row count upper limit got reached
+	 * @throws IOException in case of any error
+	 */
 	public abstract int fetchBatch(IProcessFetchedRow processor) throws IOException;
 
 	/**
@@ -198,7 +203,7 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 		}
 	}
 
-	public IPipelineBase<T> getPipelineAPI() {
+	public IPipelineBase<?, T> getPipelineAPI() {
 		return api;
 	}
 

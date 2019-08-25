@@ -13,6 +13,15 @@ public class AvroShort extends LogicalType implements IAvroPrimitive {
 	public static final Factory factory = new Factory();
 	public static final String NAME = "SHORT";
 	private static AvroShort element = new AvroShort();
+	private static Schema schema;
+
+	static {
+		schema = create().addToSchema(Schema.create(Type.INT));
+	}
+
+	public static Schema getSchema() {
+		return schema;
+	}
 
 	private AvroShort() {
 		super(NAME);
@@ -24,14 +33,7 @@ public class AvroShort extends LogicalType implements IAvroPrimitive {
 
 	@Override
 	public Schema addToSchema(Schema schema) {
-		super.addToSchema(schema);
-		return schema;
-	}
-
-	public static Schema getSchema() {
-		Schema s = Schema.create(Type.INT); 
-		create().addToSchema(s);
-		return s;
+		return super.addToSchema(schema);
 	}
 
 	@Override
@@ -60,7 +62,18 @@ public class AvroShort extends LogicalType implements IAvroPrimitive {
 		return NAME;
 	}
 
-	
+	@Override
+	public void toString(StringBuffer b, Object value) {
+		if (value != null) {
+			b.append(value.toString());
+		}
+	}
+
+	@Override
+	public Object convertToInternal(Object value) {
+		return value;
+	}
+
 	public static class Factory implements LogicalTypeFactory {
 		
 		public Factory() {
@@ -71,6 +84,11 @@ public class AvroShort extends LogicalType implements IAvroPrimitive {
 			return AvroShort.create();
 		}
 
+	}
+
+	@Override
+	public Type getBackingType() {
+		return Type.STRING;
 	}
 
 }

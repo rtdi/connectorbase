@@ -1,0 +1,14 @@
+<Panel height="100%">
+	<headerToolbar>
+		<OverflowToolbar>
+			<Button icon="sap-icon://refresh" text="Reload" press="onPressRefresh" />
+		</OverflowToolbar>
+	</headerToolbar>
+	<l:HorizontalLayout
+		allowWrapping="true"
+		content="{/services}">
+		<core:Fragment fragmentName="com.rtdi.bigdata.connector.ui.fragment.xml.service" type="XML" />
+	</l:HorizontalLayout>
+	
+	<core:Fragment fragmentName="com.rtdi.bigdata.connector.ui.fragment.xml.serviceadd" type="XML" />
+</Panel>

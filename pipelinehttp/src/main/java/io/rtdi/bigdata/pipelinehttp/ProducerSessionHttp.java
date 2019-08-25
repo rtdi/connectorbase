@@ -3,7 +3,6 @@ package io.rtdi.bigdata.pipelinehttp;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 
 import javax.ws.rs.core.MediaType;
@@ -22,7 +21,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.utils.HttpUtil;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
 
 public class ProducerSessionHttp extends ProducerSession<TopicHandlerHttp> {
-	private HttpURLConnection conn = null;
 	private PipelineHttp api;
 	private OutputStream out = null;
 	private IOUtils io = new IOUtils();
@@ -37,13 +35,13 @@ public class ProducerSessionHttp extends ProducerSession<TopicHandlerHttp> {
 	@Override
 	public void beginImpl() throws PipelineRuntimeException {
 		try {
-			conn = http.getHttpConnection(url, "POST");
-			conn.setRequestProperty("Content-Type", MediaType.APPLICATION_OCTET_STREAM);
-			conn.setChunkedStreamingMode(1024*1024*2);
-			conn.setUseCaches(false);
-			conn.setRequestProperty("TENANTID", this.getTenantId());
+			http.getHttpConnection(url, "POST");
+			http.getConnection().setRequestProperty("Content-Type", MediaType.APPLICATION_OCTET_STREAM);
+			http.getConnection().setChunkedStreamingMode(1024*1024*2);
+			http.getConnection().setUseCaches(false);
+			http.getConnection().setRequestProperty("TENANTID", this.getTenantId());
 			
-			out = conn.getOutputStream();
+			out = http.getConnection().getOutputStream();
 		} catch (IOException e) {
 			throw new PipelineRuntimeException("open of the http connection to the connection server failed", e, (url != null?url.toString():null));
 		}
@@ -54,8 +52,9 @@ public class ProducerSessionHttp extends ProducerSession<TopicHandlerHttp> {
 		io.sendInt(out, 2); // send commit message
 		out.close();
 		@SuppressWarnings("unused")
-		int responsecode = conn.getResponseCode();
-		try (InputStream in = conn.getInputStream();) {
+		int responsecode = http.getConnection().getResponseCode();
+		http.updateCookies();
+		try (InputStream in = http.getConnection().getInputStream();) {
 			int len = in.read();
 			int firstbyte = len;
 			while (len != -1) {
@@ -95,6 +94,7 @@ public class ProducerSessionHttp extends ProducerSession<TopicHandlerHttp> {
 		if (out != null) {
 			try {
 				out.close();
+				http.updateCookies();
 				out = null;
 			} catch (IOException e) {
 			}

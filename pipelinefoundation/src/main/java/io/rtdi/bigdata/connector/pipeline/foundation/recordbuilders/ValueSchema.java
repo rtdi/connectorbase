@@ -1,11 +1,20 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders;
 
+import java.util.List;
+
+import org.apache.avro.Schema;
+
+import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaConstants;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlArray;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroAnyPrimitive;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroByte;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroString;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroTimestamp;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroVarchar;
+import io.rtdi.bigdata.connector.pipeline.foundation.enums.RuleResult;
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 
 /**
@@ -15,8 +24,17 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
  */
 public class ValueSchema extends SchemaBuilder {
 	
+	public static final String AUDIT_TRANSFORMRESULT_QUALITY = "__transformresult_quality";
+	public static final String AUDITTRANSFORMRESULTTEXT = "__transformresult_text";
+	public static final String AUDITTRANSFORMATIONNAME = "__transformationname";
+	public static final String AUDITDETAILS = "__details";
+	public static final String TRANSFORMRESULT = "__transformresult";
+	public static final String AUDIT = "__audit";
 	public static SchemaBuilder extension;
 	public static SchemaBuilder audit;
+	private static AvroRecordArray audit_details;
+	private static Schema auditdetails_array_schema;
+	private static Schema auditdetails_records;
 	
 	static {
 		try {
@@ -25,19 +43,81 @@ public class ValueSchema extends SchemaBuilder {
 			extension.add("__value", AvroAnyPrimitive.getSchema(), "The value of any primitive datatype of Avro", false);
 			extension.build();
 			
-			audit = new SchemaBuilder("__audit", "If data is transformed this information is recorded here");			
-			audit.add("__transformresult", AvroString.getSchema(), "Is the record PASS, FAILED or WARN?", false);
-			AvroRecordArray audit_details = audit.addColumnRecordArray("__details", "Details of all transformations", true, "__audit_details", null);
-			audit_details.add("__transformationname", AvroString.getSchema(), "A name identifiying the applied transformation", false);
-			audit_details.add("__transformresult", AvroString.getSchema(), "Is the record PASS, FAILED or WARN?", false);
-			audit_details.add("__transformresult_text", AvroString.getSchema(), "Transforms can optionally describe what they did", true);
-			audit_details.add("__transformresult_quality", AvroByte.getSchema(), "Transforms can optionally return a percent value from 0 (FAIL) to 100 (PASS)", true);
+			audit = new SchemaBuilder(AUDIT, "If data is transformed this information is recorded here");			
+			audit.add(TRANSFORMRESULT, AvroString.getSchema(), "Is the record PASS, FAILED or WARN?", false);
+			audit_details = audit.addColumnRecordArray(AUDITDETAILS, "Details of all transformations", "__audit_details", null);
+			audit_details.add(AUDITTRANSFORMATIONNAME, AvroString.getSchema(), "A name identifiying the applied transformation", false);
+			audit_details.add(TRANSFORMRESULT, AvroString.getSchema(), "Is the record PASS, FAILED or WARN?", false);
+			audit_details.add(AUDITTRANSFORMRESULTTEXT, AvroString.getSchema(), "Transforms can optionally describe what they did", true);
+			audit_details.add(AUDIT_TRANSFORMRESULT_QUALITY, AvroByte.getSchema(), "Transforms can optionally return a percent value from 0 (FAIL) to 100 (PASS)", true);
 			audit.build();
+			auditdetails_array_schema = IOUtils.getBaseSchema(audit_details.schema());
+			auditdetails_records = auditdetails_array_schema.getElementType();
 		} catch (SchemaException e) {
 			e.printStackTrace();
 		}
 	}
 	
+	public static void mergeResults(JexlRecord valuerecord, List<JexlRecord> auditdetails) throws PipelineRuntimeException {
+		try {
+			JexlRecord auditrecord = (JexlRecord) valuerecord.get(AUDIT);
+			RuleResult globalresult;
+			if (auditrecord == null) {
+				auditrecord = new JexlRecord(audit.getSchema());
+				globalresult = RuleResult.PASS;
+				valuerecord.put(AUDIT, auditrecord);
+			} else {
+				globalresult = getRuleResult(auditrecord);
+			}
+			@SuppressWarnings("unchecked")
+			JexlArray<JexlRecord> details = (JexlArray<JexlRecord>) auditrecord.get(AUDITDETAILS);
+			if (details == null) {
+				details = new JexlArray<JexlRecord>(100, auditdetails_array_schema);
+				auditrecord.put(AUDITDETAILS, details);
+			}
+			for ( JexlRecord d : auditdetails) {
+				details.add(d);
+				RuleResult ruleresult = getRuleResult(d);
+				/*
+				 * The individual rule result pulls down the global result PASS -> WARN -> FAIL
+				 * but never _corrects_ a result.
+				 * Examples:
+				 * GLOBAL + INDIVIDUAL = NEW GLOBAL
+				 * PASS + PASS = PASS
+				 * PASS + WARN = WARN
+				 * PASS + FAIL = FAIL
+				 * WARN + PASS = WARN
+				 * WARN + WARN = WARN
+				 * WARN + FAIL = FAIL
+				 * FAIL + xxxx = FAIL 
+				 */
+				if (ruleresult == RuleResult.FAIL) {
+					globalresult = RuleResult.FAIL;
+				} else if (ruleresult == RuleResult.WARN && globalresult == RuleResult.PASS) {
+					globalresult = RuleResult.WARN;
+				}
+			}
+			auditrecord.put(TRANSFORMRESULT, globalresult.name());
+		} catch (SchemaException e) {
+			throw new PipelineRuntimeException("Cannot merge audit data", e, null);
+		}
+	}
+	
+	public static JexlRecord createAuditDetails() {
+		return new JexlRecord(auditdetails_records);
+	}
+	
+	public static RuleResult getRuleResult(JexlRecord record) {
+		Object g = record.get(TRANSFORMRESULT);
+		RuleResult ruleresult;
+		if (g == null) {
+			ruleresult = RuleResult.PASS;
+		} else {
+			String s = g.toString();
+			ruleresult = RuleResult.valueOf(s);
+		}
+		return ruleresult;
+	}
 	
 	/**
 	 * In order to create a complex Avro schema for the value record from scratch, this builder is used.<br>
@@ -70,8 +150,8 @@ public class ValueSchema extends SchemaBuilder {
 				AvroVarchar.getSchema(30),
 				"Optional source system information for auditing", 
 				true).setInternal().setTechnical().setPrimaryKey();
-		addColumnArray("__extension", extension.getSchema(), "Add more columns beyond the official logical data model", true).setInternal();
-		addColumnRecord("__audit", audit, "If data is transformed this information is recorded here", true).setInternal();
+		addColumnArray("__extension", extension.getSchema(), "Add more columns beyond the official logical data model").setInternal();
+		addColumnRecord(AUDIT, audit, "If data is transformed this information is recorded here", true).setInternal();
 	}
 
 	/**
@@ -92,7 +172,7 @@ public class ValueSchema extends SchemaBuilder {
 	@Override
 	protected SchemaBuilder createNewSchema(String name, String schemadescription) throws SchemaException {
 		SchemaBuilder child = super.createNewSchema(name, schemadescription);
-		child.addColumnArray("__extension", extension.getSchema(), "Add more columns beyond the official logical data model", true);
+		child.addColumnArray("__extension", extension.getSchema(), "Add more columns beyond the official logical data model");
 		return child;
 	}
 

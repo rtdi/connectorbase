@@ -11,9 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 
 public class PropertyRoot extends PropertyGroupAbstract {
-
+	private static final String TEXT = "text";
 	private static ObjectMapper mapper;
-	private String description;
 	
 	static {
 		mapper = new ObjectMapper();
@@ -21,10 +20,12 @@ public class PropertyRoot extends PropertyGroupAbstract {
 	
 	public PropertyRoot() {
 		super();
+		this.addTextProperty(TEXT, "Free form text", "Description", null, null, false);
 	}
 	
 	public PropertyRoot(String name) {
 		super(name);
+		this.addTextProperty(TEXT, "Free form text", "Description", null, null, false);
 	}
 
 	/**
@@ -45,7 +46,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 			} else {
 				try {
 				    PropertyRoot pg = mapper.readValue(file, PropertyRoot.class);
-			        parseValue(pg);
+			        parseValue(pg, false);
 				} catch (PropertiesException e) {
 					throw e; // to avoid nesting the exception
 				} catch (IOException e) {
@@ -59,6 +60,22 @@ public class PropertyRoot extends PropertyGroupAbstract {
 		File f = new File(webinfdir.getAbsolutePath() + File.separatorChar + getName() + ".json");
 		return f.exists();
 	}
+
+	public String getName() {
+		return name;
+	}
+	
+	/**
+	 * @return text is a free form text information about this instance.
+	 */
+	public String getText() {
+		return this.getStringPropertyValue(TEXT);
+	}
+
+	public void setText(String text) throws PropertiesException {
+		this.setProperty(TEXT, text);
+	}
+
 
 	/**
 	 * Write the current properties to a file with its name derived from {@link #getName()}.
@@ -91,46 +108,19 @@ public class PropertyRoot extends PropertyGroupAbstract {
 		}
 	}
 	
-	public void parseValue(PropertyRoot value) throws PropertiesException {
-		if (value instanceof PropertyGroupAbstract) {
-			PropertyGroupAbstract pg = (PropertyGroupAbstract) value;
-			for (IProperty v : pg.getValues()) {
-				if (v.getName() == null) {
-					throw new PropertiesException("The passed property element does not have a name", "Should actually be impossible", 10006, v.toString());
-				}
-				IProperty e = nameindex.get(v.getName());
-				if (e == null) {
-					nameindex.put(v.getName(), v);
-					propertylist.add(v);
-				} else {
-					if (e instanceof PropertyGroup) {
-						((PropertyGroup) e).parseValue(v);
-					} else if (e instanceof IPropertyValue) {
-						((IPropertyValue) e).parseValue(v);						
-					}
-				}
-			}
-			for (IProperty p : nameindex.values()) {
-				if (p instanceof IPropertyValue) {
-					IPropertyValue valueproperty = (IPropertyValue) p;
-					if (valueproperty.getMandatory() && !valueproperty.hasValue()) {
-						throw new PropertiesException("A mandatory parameter in the properties is not set", "Fix the properties settings", 10007, valueproperty.getName());
-					}
-				}
-			}
-			this.valuesset = true;
+	public void parseValue(PropertyRoot value, boolean ignorepasswords) throws PropertiesException {
+		if (value instanceof PropertyRoot) {
+			super.parseValue(value, ignorepasswords);
 		} else {
 			throw new PropertiesException("PropertyGroup value not of type PropertyGroup");
 		}
 	}
-
 	
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	public static class Simplified {
 		String type;
 		String name;
 		String value;
-		String description;
 		ArrayList<Simplified> values;
 
 		public Simplified() {
@@ -151,9 +141,6 @@ public class PropertyRoot extends PropertyGroupAbstract {
 			// getSimpleName() returns e.g. PropertyString but should be propertyString according to JAXB
 			type = element.getClass().getSimpleName();
 			name = element.getName();
-			if (element instanceof PropertyRoot) {
-				description = ((PropertyRoot) element).getDescription();
-			}
 			if (element instanceof PropertyGroup) {
 				PropertyGroup pg = (PropertyGroup) element;
 				values = new ArrayList<>();
@@ -163,7 +150,13 @@ public class PropertyRoot extends PropertyGroupAbstract {
 	    		}
 			} else if (element instanceof IPropertyValue) {
 				Object obj = ((IPropertyValue) element).getValue();
-				value = obj.toString(); // needed to write the password and not to masked value in case of a PropertyPassword
+				if (obj == null) {
+					value = null;
+				} else if (obj instanceof String) {
+					value = (String) obj;
+				} else {
+					value = obj.toString();
+				}
 			}
 		}
 		
@@ -191,25 +184,12 @@ public class PropertyRoot extends PropertyGroupAbstract {
 		public void setValues(ArrayList<Simplified> values) {
 			this.values = values;
 		}
-		public String getDescription() {
-			return description;
-		}
-		public void setDescription(String description) {
-			this.description = description;
-		}
 	}
 
-
-	public String getName() {
-		return name;
-	}
-	
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
+	public PropertyRoot clone(boolean ignorepasswords) throws PropertiesException {
+		PropertyRoot c = new PropertyRoot(this.getName());
+		c.parseValue(this, ignorepasswords);
+		return c;
 	}
 
 }

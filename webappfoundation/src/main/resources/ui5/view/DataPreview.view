@@ -1,5 +1,12 @@
 <Table
 	items="{path:'/rows', templateShareable:false}">
+	<headerToolbar>
+		<Toolbar>
+			<content>
+					<Button icon="sap-icon://refresh" text="Reload" class="sapUiTinyMarginBeginEnd" press="onPressRefresh" />
+			</content>
+		</Toolbar>
+	</headerToolbar>
 	<columns>
 		<Column width="5%">
 			<Label text="Partition" />
@@ -9,6 +16,9 @@
 		</Column>
 		<Column width="10%">
 			<Label text="Timestamp" />
+		</Column>
+		<Column width="10%">
+			<Label text="Schema" />
 		</Column>
 		<Column>
 			<Label text="ValueRecord" />
@@ -20,7 +30,8 @@
 				<Text text="{partition}" />
 				<Text text="{offset}" />
 				<Text text="{path: 'timestamp', formatter: '.timeformatter'}" />
-				<Text text="{valueRecordString}" />
+				<Text text="{schemaname}" />
+				<components:JSONViewer text="{valueRecordString}" />
 			</cells>
 		</ColumnListItem>
 	</items>

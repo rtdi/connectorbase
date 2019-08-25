@@ -30,9 +30,9 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	private String name;
 	protected ErrorListEntity errors = new ErrorListEntity();
 	/**
-	 * If the controller is not enabled it should not be started. This is not an error, so parent controllers should ignore that.
+	 * By default the controller should start. DISABLED conrollers are left alone.
 	 */
-	protected ControllerRequestedState requestedstate = ControllerRequestedState.DISABLE;
+	protected ControllerRequestedState requestedstate = ControllerRequestedState.RUN;
 
 	public Controller(String name) {
 		super();
@@ -42,21 +42,29 @@ public abstract class Controller<C extends Controller<?>> implements IController
 
 	/**
 	 * Starts the controller in a new thread and all children as well.
+	 * @param force is true means even disabled children are started. Required when the user asks to start previously stopped controllers.
 	 * 
 	 * @throws IOException if the controller or one of its children cannot be started 
 	 */
-	public void startController() throws IOException {
+	public void startController(boolean force) throws IOException {
 		requestedstate = ControllerRequestedState.RUN;
 		state = ControllerState.STARTING;
 		startControllerImpl();
-		startChildController(); // in the thread-less controller the children have to be started here. ThreadBasedController has its own implementation 
+		startChildController(force); // in the thread-less controller the children have to be started here. ThreadBasedController has its own implementation 
+		state = ControllerState.STARTED;
 	}
 
-	protected void startChildController() throws IOException {
+	protected void startChildController(boolean force) throws IOException {
 		for (Controller<?> c : childcontrollers.values()) {
-			c.startController();
+			if (force || c.getRequestedState() != ControllerRequestedState.DISABLE) {
+				c.startController(force);
+			}
 		}
 	}
+	
+	protected abstract void updateLandscape();
+	
+	protected abstract void updateSchemaCache();
 
 	/**
 	 * @return name of the controller as provided in the constructor; usually the same as the properties name
@@ -203,7 +211,7 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	public boolean checkChildren() throws ConnectorRuntimeException {
 		for (String childname : childcontrollers.keySet()) {
 			Controller<?> t = childcontrollers.get(childname);
-			if (!t.isRunning()) {
+			if (!t.isRunning() && t.getRequestedState() != ControllerRequestedState.DISABLE) {
 				if (t instanceof ThreadBasedController) {
 					Exception ex = ((ThreadBasedController<?>) t).lastexception;
 					if (ex != null) {

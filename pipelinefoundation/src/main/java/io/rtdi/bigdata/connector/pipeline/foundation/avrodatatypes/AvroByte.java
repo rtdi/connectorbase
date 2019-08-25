@@ -13,6 +13,15 @@ public class AvroByte extends LogicalType implements IAvroPrimitive {
 	public static final Factory factory = new Factory();
 	public static final String NAME = "BYTE";
 	private static AvroByte element = new AvroByte();
+	private static Schema schema;
+
+	static {
+		schema = create().addToSchema(Schema.create(Type.INT));
+	}
+
+	public static Schema getSchema() {
+		return schema;
+	}
 
 	private AvroByte() {
 		super(NAME);
@@ -24,14 +33,7 @@ public class AvroByte extends LogicalType implements IAvroPrimitive {
 
 	@Override
 	public Schema addToSchema(Schema schema) {
-		super.addToSchema(schema);
-		return schema;
-	}
-
-	public static Schema getSchema() {
-		Schema s = Schema.create(Type.INT); 
-		create().addToSchema(s);
-		return s;
+		return super.addToSchema(schema);
 	}
 
 	@Override
@@ -60,7 +62,18 @@ public class AvroByte extends LogicalType implements IAvroPrimitive {
 		return NAME;
 	}
 
+	@Override
+	public void toString(StringBuffer b, Object value) {
+		if (value != null) {
+			b.append(value.toString());
+		}
+	}
 	
+	@Override
+	public Object convertToInternal(Object value) {
+		return value;
+	}
+
 	public static class Factory implements LogicalTypeFactory {
 		
 		public Factory() {
@@ -71,6 +84,11 @@ public class AvroByte extends LogicalType implements IAvroPrimitive {
 			return AvroByte.create();
 		}
 
+	}
+
+	@Override
+	public Type getBackingType() {
+		return Type.INT;
 	}
 
 }

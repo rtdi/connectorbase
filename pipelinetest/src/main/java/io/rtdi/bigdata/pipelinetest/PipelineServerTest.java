@@ -13,11 +13,13 @@ import io.rtdi.bigdata.connector.pipeline.foundation.PipelineServerAbstract;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEntity;
-import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayload;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
@@ -32,6 +34,7 @@ public class PipelineServerTest extends PipelineServerAbstract<PipelineConnectio
 	
 	private Map<String, ProducerMetadataEntity> producerdirectory = new HashMap<>();
 	private Map<String, ConsumerMetadataEntity> consumerdirectory = new HashMap<>();
+	private Map<String, ServiceMetadataEntity> servicedirectory = new HashMap<>();
 	
 	public PipelineServerTest(PipelineConnectionServerProperties connectionproperties) {
 		super(connectionproperties);
@@ -77,7 +80,7 @@ public class PipelineServerTest extends PipelineServerAbstract<PipelineConnectio
 	}
 
 	@Override
-	public SchemaHandler registerSchema(SchemaName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
+	public SchemaHandler getOrCreateSchema(SchemaName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
 		SchemaHandler current = schemahandlers.get(name);
 		if (current != null && current.getKeySchema().equals(keyschema) && current.getValueSchema().equals(valueschema)) {
 			return current;
@@ -176,6 +179,14 @@ public class PipelineServerTest extends PipelineServerAbstract<PipelineConnectio
 	}
 
 	@Override
+	public void removeServiceMetadata(String tenantid, String servicename) throws IOException {
+		ServiceMetadataEntity services = servicedirectory.get(tenantid);
+		if (services != null) {
+			services.remove(servicename);
+		}
+	}
+
+	@Override
 	public void addConsumerMetadata(String tenantid, ConsumerEntity consumer) throws IOException {
 		ConsumerMetadataEntity consumers = consumerdirectory.get(tenantid);
 		if (consumers == null) {
@@ -196,6 +207,16 @@ public class PipelineServerTest extends PipelineServerAbstract<PipelineConnectio
 	}
 
 	@Override
+	public void addServiceMetadata(String tenantid, ServiceEntity service) throws IOException {
+		ServiceMetadataEntity services = servicedirectory.get(tenantid);
+		if (services == null) {
+			services = new ServiceMetadataEntity();
+			servicedirectory.put(tenantid, services);
+		}
+		services.update(service);
+	}
+
+	@Override
 	public ProducerMetadataEntity getProducerMetadata(String tenantid) throws IOException {
 		return producerdirectory.get(tenantid);
 	}
@@ -203,6 +224,11 @@ public class PipelineServerTest extends PipelineServerAbstract<PipelineConnectio
 	@Override
 	public ConsumerMetadataEntity getConsumerMetadata(String tenantid) throws IOException {
 		return consumerdirectory.get(tenantid);
+	}
+
+	@Override
+	public ServiceMetadataEntity getServiceMetadata(String tenantid) throws IOException {
+		return servicedirectory.get(tenantid);
 	}
 
 	@Override
@@ -215,6 +241,16 @@ public class PipelineServerTest extends PipelineServerAbstract<PipelineConnectio
 		ConsumerProperties props = new ConsumerProperties(consumername);
 		props.setTopicPattern(topicpattern);
 		return new ConsumerSessionTest(props, this, tenantid);
+	}
+
+	@Override
+	public boolean isAlive() {
+		return true;
+	}
+
+	@Override
+	public String getConnectionLabel() {
+		return null;
 	}
 
 }

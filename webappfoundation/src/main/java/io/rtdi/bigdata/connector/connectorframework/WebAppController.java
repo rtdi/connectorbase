@@ -9,6 +9,8 @@ import java.util.Enumeration;
 import java.util.Properties;
 import java.util.ServiceLoader;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -116,11 +118,6 @@ public class WebAppController implements ServletContextListener {
 
 	}
 	
-
-	private static void setError(ServletContextEvent sce, Exception e) {
-		sce.getServletContext().setAttribute(ERRORMESSAGE, e);
-	}
-
 	public static void setError(ServletContext sc, Exception e) {
 		sc.setAttribute(ERRORMESSAGE, e);
 	}
@@ -141,8 +138,31 @@ public class WebAppController implements ServletContextListener {
         try {
 			IPipelineAPI<?,?,?,?> api = null;
 			String apiclassname = null;
-			String webinfdirpath = sce.getServletContext().getRealPath("WEB-INF");
-			File webinfdir = new File(webinfdirpath);
+			
+			String configdirpath = null;
+			
+			try {
+				InitialContext initialContext = new javax.naming.InitialContext();  
+				configdirpath = (String) initialContext.lookup("java:comp/env/io.rtdi.bigdata.connectors.configpath");
+				String webappname = sce.getServletContext().getServletContextName();
+				if (webappname == null && configdirpath != null) { // the latter condition is not relevant as the lookup throws an exception in case it is not found
+					logger.info("Tomcat context environment variable was found but the webapp has no name");
+					configdirpath = null;
+				} else {
+					configdirpath = configdirpath + File.separatorChar + webappname;
+				}
+			} catch (NamingException e) {
+				logger.info("Tomcat context environment variable not found", e);
+			}
+			
+			if (configdirpath == null) {
+				configdirpath = sce.getServletContext().getRealPath("WEB-INF") + File.separatorChar + "connector";
+			}
+			File configdir = new File(configdirpath);
+			if (!configdir.exists()) {
+				configdir.mkdirs();
+				logger.info("The config root directory \"" + configdir.getAbsolutePath() + "\" does not exist - created it");
+			}
 
 			// First step is the global properties file. It might contain optional information.
 			Properties globalprops = null;
@@ -152,7 +172,7 @@ public class WebAppController implements ServletContextListener {
 					globalprops.load(propertiesstream);
 					apiclassname = globalprops.getProperty("api"); // optional
 					if (apiclassname != null) {
-						logger.info("The WEB-INF/global.properties asks to use the class \"{}\"", apiclassname);
+						logger.info("The global.properties asks to use the class \"{}\"", apiclassname);
 					}
 				}
 			}
@@ -164,7 +184,7 @@ public class WebAppController implements ServletContextListener {
 			for (IPipelineAPI<?,?,?,?> serv : loader) {
 			    api = serv;
 				if (apiclassname != null && apiclassname.equals(serv.getClass().getSimpleName())) {
-					logger.info("The WEB-INF/global.properties asks to use the class \"{}\" and we found it", apiclassname);
+					logger.info("The global.properties asks to use the class \"{}\" and we found it", apiclassname);
 					count = 1;
 					break;
 				} else {
@@ -198,26 +218,25 @@ public class WebAppController implements ServletContextListener {
 
 			sce.getServletContext().setAttribute(CONNECTORFACTORY, connectorfactory);
 
-			String connectordirpath = sce.getServletContext().getRealPath("WEB-INF/connector");
-			logger.info("The root directory of all connector settings is \"{}\"", connectordirpath);
+			logger.info("The root directory of all connector settings is \"{}\"", configdirpath);
 
-			connectorcontroller = new ConnectorController(api, connectorfactory, connectordirpath, globalprops); // globalprops can be null
+			connectorcontroller = new ConnectorController(api, connectorfactory, configdirpath, globalprops); // globalprops can be null
 			sce.getServletContext().setAttribute(CONNECTOR, connectorcontroller);
 
 			// Fourth step is to read the properties of each and start the controller
-			api.setWEBINFDir(webinfdir);
-			if (!api.hasConnectionProperties(webinfdir)) {
+			api.setWEBINFDir(configdir);
+			if (!api.hasConnectionProperties(configdir)) {
 				// Use does not want to see the low level error but the fact that the properties are not set yet. 
 				throw new PropertiesException("No Connection Properties defined yet", "Use the home page to get to the UI for setting them", null, null);
 			}
-			api.loadConnectionProperties(webinfdir);
+			api.loadConnectionProperties(configdir);
 			connectorcontroller.readConfigs();
-			connectorcontroller.startController();
+			connectorcontroller.startController(false);
 			
 		} catch (Exception e) {
 			// An error is fine, it allows to start the web application still
 			logger.error(e);
-			setError(sce, e);
+			setError(sce.getServletContext(), e);
 		}
 	}
 

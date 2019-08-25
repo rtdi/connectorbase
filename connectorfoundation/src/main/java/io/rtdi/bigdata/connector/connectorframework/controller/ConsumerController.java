@@ -58,5 +58,52 @@ public class ConsumerController extends Controller<ConsumerInstanceController> {
 	public HashMap<String, ConsumerInstanceController> getInstances() {
 		return getChildControllers();
 	}
+
+	public long getRowsProcessedCount() {
+		long count = 0;
+		if (getInstances() != null) {
+			for (ConsumerInstanceController c : getInstances().values()) {
+				count += c.getRowsFetched();
+			}
+		}
+		return count;
+	}
+
+	public int getInstanceCount() {
+		return consumerprops.getInstanceCount();
+	}
+
+	public Long getLastProcessed() {
+		Long last = null;
+		if (getInstances() != null) {
+			for (ConsumerInstanceController c : getInstances().values()) {
+				Long l = c.getLastProcessed();
+				if (l != null) {
+					if (last == null || last < l) {
+						last = l;
+					}
+				}
+			}
+		}
+		return last;
+	}
+
+	@Override
+	protected void updateLandscape() {
+		if (getInstances() != null) {
+			for (ConsumerInstanceController c : getInstances().values()) {
+				c.updateLandscape();
+			}
+		}
+	}
+
+	@Override
+	protected void updateSchemaCache() {
+		if (getInstances() != null) {
+			for (ConsumerInstanceController c : getInstances().values()) {
+				c.updateSchemaCache();
+			}
+		}
+	}
 	
 }

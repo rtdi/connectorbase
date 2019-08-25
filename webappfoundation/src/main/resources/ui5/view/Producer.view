@@ -3,9 +3,8 @@
 	items="{/values}">
 	<headerToolbar>
 		<OverflowToolbar>
-            <Title id="title" text="{/name}" visible="{path: '/name', formatter: '.enableControl'}" />
-            <Label text="New:" visible="{path: '/name', formatter: '.disableControl'}" />
-            <Input type="Text" width="50%" value="{/name}" visible="{path: '/name', formatter: '.disableControl'}" />
+            <Label text="Producer name" />
+            <Input value="{/name}" width="30%" enabled="{path: 'state>/new', formatter: '.enableControl'}" />
             <ToolbarSpacer/>
             <Button text="Collapse all" press="onCollapseAll"/>
             <Button text="Expand first level" press="onExpandFirstLevel"/>
@@ -31,7 +30,7 @@
                     	<core:Icon src="{icon}"/>
             		</items>
                 </FlexBox>
-                <Input type="{path:'type', formatter:'.InputFormatter'}" value="{value}" enabled="{path: 'state>/edit', formatter: '.enableControl'}" />
+                <Input type="{path:'type', formatter:'.InputFormatter'}" value="{value}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
                 <Text text="{description}"/>
 			</cells>
 		</ColumnListItem>

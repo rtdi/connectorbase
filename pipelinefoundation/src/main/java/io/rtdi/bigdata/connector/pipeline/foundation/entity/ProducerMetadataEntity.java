@@ -1,13 +1,17 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.entity;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class ProducerMetadataEntity {
 	private List<ProducerEntity> producerlist;
 
 	public ProducerMetadataEntity() {
+	}
+
+	public ProducerMetadataEntity(List<ProducerEntity> producerlist) {
+		this();
+		setProducerList(producerlist);
 	}
 
 	public List<ProducerEntity> getProducerList() {
@@ -18,11 +22,6 @@ public class ProducerMetadataEntity {
 		this.producerlist = producerlist;
 	}
 	
-	public void addAll(Collection<ProducerEntity> values) {
-		producerlist = new ArrayList<>();
-		producerlist.addAll(values);
-	}
-
 	public void remove(String producername) {
 		if (producerlist != null) {
 			for (int i = 0; i<producerlist.size(); i++) {

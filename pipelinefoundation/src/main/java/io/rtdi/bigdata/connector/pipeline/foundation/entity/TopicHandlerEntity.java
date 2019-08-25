@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.TopicMetadata;
 import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.TopicMetadataPartition;
 
 public class TopicHandlerEntity {
@@ -33,7 +34,20 @@ public class TopicHandlerEntity {
 	}
 	
 	public TopicHandlerEntity(TopicHandler h) {
-		this(h.getTopicName().getName(), h.getTopicMetadata().getPartitionCount(), h.getTopicMetadata().getReplicationFactor(), h.getTopicMetadata().getConfigs());
+		this.topicname = h.getTopicName().getName();
+		TopicMetadata m = h.getTopicMetadata();
+		if (m != null) {
+			this.partitioncount = m.getPartitionCount();
+			this.replicationfactor = m.getReplicationFactor();
+			Map<String, String> configs = m.getConfigs();
+			if (configs != null) {
+				configlist = new ArrayList<>();
+				for (String key : configs.keySet()) {
+					String value = configs.get(key);
+					configlist.add(new ConfigPair(key, value));
+				}
+			}
+		}
 	}
 
 	public String getTopicname() {

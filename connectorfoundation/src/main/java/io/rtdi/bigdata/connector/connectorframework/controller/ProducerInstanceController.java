@@ -9,12 +9,12 @@ import java.util.Set;
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
 import io.rtdi.bigdata.connector.connectorframework.Producer;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
-import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerState;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.OperationState;
@@ -31,8 +31,6 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	private long rowsprocessed = 0;
 	private int pollcalls = 0;
 	private Long lastdatatimestamp = null;
-	private long nextmetadatachangecheck = 0;
-	private int metadatacheckcount = 0;
 	
 	/**
 	 * A nested structure containing the impact/lineage information of topics and their schemas being created by this ProducerSession.
@@ -49,6 +47,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	
 	private boolean ismetadatachanged = false;
 	private int instancenumber;
+	private boolean updateschemacaches;
 
 	public ProducerInstanceController(String name, ProducerController producercontroller, int instancenumber) {
 		super(name);
@@ -90,22 +89,35 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 				operationstate = OperationState.REQUESTDATA;
 				rowproducer.startProducerCapture();
 				
+				boolean aftersleep = true;
+				
 				while (isRunning() && checkChildren()) {
 					operationstate = OperationState.REQUESTDATA;
-					int rows = rowproducer.poll();
+					int rows = rowproducer.poll(aftersleep);
 					rowsprocessed += rows;
 					if (rows != 0) {
 						lastdatatimestamp = System.currentTimeMillis();
 					}
 					pollcalls++;
-					polliteration();
+					if (updateschemacaches) {
+						updateSchemaWithLatest();
+					}
+					if (ismetadatachanged) {
+						updateLandscape();
+					}
 					operationstate = OperationState.DONEREQUESTDATA;
 					// Sleep when no rows have been found, else continue reading the next batch
 					if (rows == 0 && (state == ControllerState.STARTED  || state == ControllerState.STARTING)) {
 						try {
 							Thread.sleep(rowproducer.getPollingInterval());
+							aftersleep = true;
 						} catch (InterruptedException e) {
+							lastexception = e;
+							interruptedflag = true;
+							return;
 						}
+					} else {
+						aftersleep = false;
 					}
 				}
 			} catch (ConnectorTemporaryException e) { 
@@ -119,6 +131,9 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 				try {
 					Thread.sleep(60000);
 				} catch (InterruptedException e) {
+					lastexception = e;
+					interruptedflag = true;
+					return;
 				}
 			}
 		} while (isRunning());
@@ -136,35 +151,9 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 			}
 			schemas.addAll(newschemas); // overwrite the current schemahandlers with the new ones
 		}
+		updateschemacaches = false;
 	}
 
-	/**
-	 * This method is called periodically and updates metadata changes.<br>
-	 * It updates the metadata information in the server whenever there was a change or at least every 12 hours.<br>
-	 * The latter is needed as outdated metadata will be removed.<br>
-	 * 
-	 * @throws IOException if error
-	 */
-	public void polliteration() throws IOException {
-		if (nextmetadatachangecheck < System.currentTimeMillis()) {
-			metadatacheckcount ++;
-			if (ismetadatachanged || metadatacheckcount % 60*12 == 0) {
-				logger.info("updating metadata");
-				getPipelineAPI().addProducerMetadata(
-						new ProducerEntity(
-								producercontroller.getName(),
-								producercontroller.getConnectionProperties().getName(),
-								getPipelineAPI(),
-								usedtopics));
-				ismetadatachanged = false;
-			}
-			if (metadatacheckcount % 60*48 == 0) {
-				updateSchemaWithLatest();
-			}
-			nextmetadatachangecheck = System.currentTimeMillis() + IOUtils.METADATAREFERSH_CHANGE_CHECK_FREQUENCY;
-		}
-	}
-	
 	/**
 	 * This producer is generating data for the topic. 
 	 * 
@@ -288,10 +277,6 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 		return rowsprocessed;
 	}
 	
-	public Long getLastDataTimestamp() {
-		return lastdatatimestamp;
-	}
-	
 	public int getPollCalls() {
 		return pollcalls;
 	}
@@ -316,5 +301,43 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 			joinChildControllers(ControllerExitType.ABORT);
 			childcontrollers.clear();
 		}
+	}
+
+	public Long getLastProcessed() {
+		return lastdatatimestamp;
+	}
+
+	@Override
+	protected void updateLandscape() {
+		try {
+			logger.info("updating producer metadata");
+			getPipelineAPI().addProducerMetadata(
+					new ProducerEntity(
+							producercontroller.getName(),
+							producercontroller.getConnectionProperties().getName(),
+							getPipelineAPI(),
+							usedtopics));
+			String bs = getPipelineAPI().getBackingServerConnectionLabel();
+			if (bs != null) {
+				getPipelineAPI().addServiceMetadata(
+						new ServiceEntity(
+								bs,
+								bs,
+								getPipelineAPI().getConnectionLabel(),
+								null,
+								null));
+			}
+			ismetadatachanged = false;
+		} catch (IOException e) {
+			logger.error("updating producer metadata failed", e);
+		}
+	}
+
+	@Override
+	protected void updateSchemaCache() {
+		/*
+		 * This just triggers the main loop to execute this action in order to avoid multi-threading side effects
+		 */
+		this.updateschemacaches = true;
 	}
 }

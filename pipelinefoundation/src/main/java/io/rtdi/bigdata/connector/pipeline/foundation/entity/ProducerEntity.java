@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
@@ -21,7 +22,7 @@ public class ProducerEntity {
 	
 	public ProducerEntity(String name, String remoteconnection, IPipelineAPI<?,?,?,?> api, Map<TopicHandler, Set<SchemaHandler>> producermetadata) {
 		this.producername = name;
-		this.hostname = api.getHostName();
+		this.hostname = IOUtils.getHostname();
 		this.apiconnection = api.getConnectionLabel();
 		this.remoteconnection = remoteconnection;
 		if (producermetadata != null) {

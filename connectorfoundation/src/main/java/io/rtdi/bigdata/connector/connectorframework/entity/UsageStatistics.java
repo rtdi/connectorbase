@@ -37,7 +37,7 @@ public class UsageStatistics {
 		connectorjar = file.getName();
 		file = new File(connector.getPipelineAPI().getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
 		apijar = file.getName();
-		HashMap<String, ConnectionController> connections = connector.getConnections();
+		Map<String, ConnectionController> connections = connector.getConnections();
 		if (connections != null) {
 			this.connections = new ArrayList<>();
 			this.connectionindex = new HashMap<>();
@@ -171,7 +171,7 @@ public class UsageStatistics {
 		}
 
 		private Producer getProducerByName(String name) {
-			if (producers != null) {
+			if (producers != null && producerindex != null) {
 				int index = producerindex.get(name);
 				return producers.get(index);
 			} else {
@@ -188,8 +188,12 @@ public class UsageStatistics {
 		}
 		
 		private Consumer getConsumerByName(String name) {
-			int index = consumerindex.get(name);
-			return consumers.get(index);
+			if (consumerindex != null && consumerindex != null) {
+				int index = consumerindex.get(name);
+				return consumers.get(index);
+			} else {
+				return null;
+			}
 		}
 		
 		private Consumer getConsumerByNameFrom(String name, Connection prev) {
@@ -292,7 +296,7 @@ public class UsageStatistics {
 		}
 
 		public ProducerInstance(ProducerInstanceController instance, ProducerInstance prev) {
-			this.lastdatatimestamp = instance.getLastDataTimestamp();
+			this.lastdatatimestamp = instance.getLastProcessed();
 			this.state = instance.getState().name();
 			errors = instance.getErrorList();
 			if (prev == null) {
@@ -403,11 +407,7 @@ public class UsageStatistics {
 		}
 
 		public ConsumerInstance(ConsumerInstanceController instance, ConsumerInstance prev) {
-			instance.getLastDataFetched();
-			instance.getFetchCalls();
-			instance.getState();
-			instance.getRowsFetched();
-			this.lastdatatimestamp = instance.getLastDataFetched();
+			this.lastdatatimestamp = instance.getLastProcessed();
 			this.state = instance.getState().name();
 			errors = instance.getErrorList();
 			if (prev == null) {

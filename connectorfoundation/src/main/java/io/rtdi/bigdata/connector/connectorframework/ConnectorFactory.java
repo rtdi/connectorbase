@@ -11,7 +11,25 @@ import io.rtdi.bigdata.connector.properties.ConnectionProperties;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
 
-public abstract class ConnectorFactory <U extends ConnectionProperties, V extends ProducerProperties, W extends ConsumerProperties> implements IConnectorFactory<U, V, W> {
+/**
+ * The implementer of a factory needs a constructor without a property, e.g.
+ * 
+ * <pre>
+ * public MyConnectorFactory() {
+ *   super("MyConnector");
+ * }
+ * </pre>
+ * 
+ * and this class has to be added as a Java service loader, meaning in the file <br>
+ * src/main/java/META-INF/services/io.rtdi.bigdata.connector.connectorframework.IConnectorFactory <br>
+ * should be an single line with the class name, e.g. io.rtdi.bigdata.democonnector.MyConnectorFactory
+ * 
+ *
+ * @param <S> ConnectionProperties
+ * @param <P> ProducerProperties
+ * @param <C> ConsumerProperties
+ */
+public abstract class ConnectorFactory <S extends ConnectionProperties, P extends ProducerProperties, C extends ConsumerProperties> implements IConnectorFactory<S, P, C> {
 	private String connectorname;
 
 	public ConnectorFactory(String connectorname) {
@@ -31,31 +49,31 @@ public abstract class ConnectorFactory <U extends ConnectionProperties, V extend
 	 * @see io.rtdi.bigdata.connector.connectorframework.IConnectorFactory#createConsumer(io.rtdi.bigdata.connector.connectorframework.controller.ConsumerInstanceController)
 	 */
 	@Override
-	public abstract Consumer<U,W> createConsumer(ConsumerInstanceController instance) throws IOException;
+	public abstract Consumer<S,C> createConsumer(ConsumerInstanceController instance) throws IOException;
 
 	/* (non-Javadoc)
 	 * @see io.rtdi.bigdata.connector.connectorframework.IConnectorFactory#createProducer(io.rtdi.bigdata.connector.connectorframework.controller.ProducerInstanceController)
 	 */
 	@Override
-	public abstract Producer<U,V> createProducer(ProducerInstanceController instance) throws IOException;
+	public abstract Producer<S,P> createProducer(ProducerInstanceController instance) throws IOException;
 
 	/* (non-Javadoc)
 	 * @see io.rtdi.bigdata.connector.connectorframework.IConnectorFactory#createRemoteSourceProperties(java.lang.String)
 	 */
 	@Override
-	public abstract U createConnectionProperties(String name) throws PropertiesException;
+	public abstract S createConnectionProperties(String name) throws PropertiesException;
 
 	/* (non-Javadoc)
 	 * @see io.rtdi.bigdata.connector.connectorframework.IConnectorFactory#createConsumerProperties(java.lang.String)
 	 */
 	@Override
-	public abstract W createConsumerProperties(String name) throws PropertiesException;
+	public abstract C createConsumerProperties(String name) throws PropertiesException;
 	
 	/* (non-Javadoc)
 	 * @see io.rtdi.bigdata.connector.connectorframework.IConnectorFactory#createProducerProperties(java.lang.String)
 	 */
 	@Override
-	public abstract V createProducerProperties(String name) throws PropertiesException;
+	public abstract P createProducerProperties(String name) throws PropertiesException;
 
 	@Override
 	public String toString() {
@@ -66,6 +84,6 @@ public abstract class ConnectorFactory <U extends ConnectionProperties, V extend
 	 * @see io.rtdi.bigdata.connector.connectorframework.IConnectorFactory#createBrowsingService(io.rtdi.bigdata.connector.properties.ConnectionProperties)
 	 */
 	@Override
-	public abstract BrowsingService<U> createBrowsingService(ConnectionController controller) throws IOException;
-
+	public abstract BrowsingService<S> createBrowsingService(ConnectionController controller) throws IOException;	
+	
 }

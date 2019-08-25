@@ -86,7 +86,7 @@
 		        <t:Column>
 		            <Label text="Expression"/>
 		            <t:template>
-		                <Input value="{target>expression}" enabled="{path: 'state>/edit', formatter: '.enableControl'}" />
+		                <Input value="{target>expression}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
 		            </t:template>
 		        </t:Column>
 		    </t:columns>

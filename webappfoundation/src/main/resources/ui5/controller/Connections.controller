@@ -2,9 +2,7 @@ showFooter : function() {
 	return false;
 },
 init : function() {
-	var oModel = new JSONModel();
-	oModel.loadData("../rest/connections");
-	this.getView().setModel(oModel);
+	this.onPressRefresh(null);
 	oStateModel.setProperty("/title", "Connections");
 	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"} ] );
 },
@@ -14,6 +12,23 @@ cancel : function(oEvent) {
 },
 onTileAdd : function(oEvent) {
 	window.location.href = './Connection?name=';
+},
+onPressRefresh : function(oEvent) {
+	var oModel = this.getView().getModel();
+	if (!!!oModel) {
+		var oModel = new JSONModel();
+		var that = this;
+		oModel.attachRequestFailed(function(oEvent) {
+			that.displayError({
+				message: oEvent.getParameter("message"),
+				responseText:oEvent.getParameter("responseText"),
+				statusCode:oEvent.getParameter("statusCode"),
+				statusText:oEvent.getParameter("statusText")
+			});
+		});
+	}
+	oModel.loadData("../rest/connections");
+	this.getView().setModel(oModel);
 },
 onPressConnection : function(oEvent) {
 	var path = oEvent.getSource().getBindingContext().getPath();
@@ -38,4 +53,44 @@ onPressBrowse : function(oEvent) {
 	var oModel = this.getView().getModel();
 	var obj = oModel.getProperty(path);
 	window.location.href = './Browse?connectionname=' + encodeURI(obj.name);
+},
+onPressStop : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	if (!!obj.name) {
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("GET", "../rest/connections/" + encodeURI(obj.name) + "/stop");
+		xmlhttp.setRequestHeader("Content-Type", "application/json");
+		xmlhttp.onreadystatechange = function() {
+		    if (xmlhttp.readyState == 4) {
+		    	if (xmlhttp.status == 200) {
+			        sap.m.MessageToast.show("Stopped");
+			    } else {
+			        this.displayError({ "message" : xmlhttp.responseText });
+			    }
+			}
+		}
+		xmlhttp.send(null);
+	}
+},
+onPressStart : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	if (!!obj.name) {
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("GET", "../rest/connections/" + encodeURI(obj.name) + "/start");
+		xmlhttp.setRequestHeader("Content-Type", "application/json");
+		xmlhttp.onreadystatechange = function() {
+		    if (xmlhttp.readyState == 4) {
+		    	if (xmlhttp.status == 200) {
+			        sap.m.MessageToast.show("Started");
+			    } else {
+			        this.displayError({ "message" : xmlhttp.responseText });
+			    }
+			}
+		}
+		xmlhttp.send(null);
+	}
 }

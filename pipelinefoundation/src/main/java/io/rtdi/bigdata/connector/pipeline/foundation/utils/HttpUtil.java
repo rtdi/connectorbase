@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -17,10 +19,13 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesExcept
 
 public class HttpUtil {
 
+	public static final String COOKIES_HEADER = "Set-Cookie";
+
 	public static SSLContext sslcontext;
 	public static HostnameVerifier verifier;
 	private String encoded;
-	private String sessioncookie = null;
+	private HttpURLConnection conn = null;
+	private String cookieheader = null;
 	
 	static {
 		try {
@@ -40,8 +45,8 @@ public class HttpUtil {
 		encoded = Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
 	}
 
-	public HttpURLConnection getHttpConnection(URL url, String requestmethod) throws IOException {
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+	public void getHttpConnection(URL url, String requestmethod) throws IOException {
+		conn  = (HttpURLConnection) url.openConnection();
 		if (conn instanceof HttpsURLConnection) {
 			((HttpsURLConnection) conn).setSSLSocketFactory(sslcontext.getSocketFactory());
 			((HttpsURLConnection) conn).setHostnameVerifier(verifier);
@@ -50,26 +55,37 @@ public class HttpUtil {
 		conn.setDoOutput(true);
 		conn.setDoInput(true);
 		conn.setReadTimeout(60000);
-		if (sessioncookie != null) {
-			conn.setRequestProperty("Cookie", sessioncookie);
-		}
 		conn.setRequestProperty("Authorization", "Basic " + encoded);
+		if (cookieheader != null) {
+		    conn.setRequestProperty("Cookie", cookieheader);    
+		}
+	}
+	
+	public HttpURLConnection getConnection() {
 		return conn;
 	}
 	
-	public void updateSessionCookie(HttpURLConnection conn) {
-		if (conn == null) {
-			this.sessioncookie = null;
-		} else {
-			this.sessioncookie = conn.getHeaderField("Set-Cookie");
-		}
-	}
-
 	public SSLContext getSSLContext() {
 		return sslcontext;
 	}
 	
 	public HostnameVerifier getHostnameVerifier() {
 		return verifier;
+	}
+	
+	public void updateCookies() {
+		Map<String, List<String>> headerFields = conn.getHeaderFields();
+		List<String> cookiesHeader = headerFields.get(COOKIES_HEADER);
+
+		if (cookiesHeader != null) {
+			StringBuffer b = new StringBuffer();
+		    for (String cookie : cookiesHeader) {
+		    	if (b.length() != 0) {
+		    		b.append(',');
+		    	}
+		    	b.append(cookie);
+		    }               
+		    cookieheader = b.toString();
+		}
 	}
 }

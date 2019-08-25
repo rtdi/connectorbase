@@ -2,8 +2,16 @@ package io.rtdi.bigdata.connector.pipeline.foundation.avro;
 
 import java.util.Collection;
 
+import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
+import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData;
+import org.apache.commons.jexl3.JexlContext;
+
+import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
+import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroRecord;
+import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroType;
 
 public class JexlGenericData extends GenericData {
 	private static JexlGenericData INSTANCE = new JexlGenericData();
@@ -18,7 +26,7 @@ public class JexlGenericData extends GenericData {
 	
 	public static GenericData get() { return INSTANCE; }
 
-	public static class JexlRecord extends Record implements IAvroNested {
+	public static class JexlRecord extends Record implements IAvroNested, JexlContext {
 		private IAvroNested parent = null;
 
 		public JexlRecord(Record other, boolean deepCopy) {
@@ -39,23 +47,85 @@ public class JexlGenericData extends GenericData {
 		
 	    @Override
 	    public void put(String key, Object value) {
-	    	super.put(key, value);
+	        Field field = getSchema().getField(key);
+	        if (field == null) {
+	            throw new AvroRuntimeException("Not a valid schema field: " + key);
+	        }
 	    	if (value instanceof JexlRecord) {
 	    		((JexlRecord) value).setParent(this);
 	    	} else if (value instanceof JexlArray) {
 	    		((JexlArray<?>) value).setParent(this);
+	    	} else {
+	    		value = AvroType.getAvroDataType(field.schema()).convertToInternal(value);
 	    	}
+	    	super.put(field.pos(), value);
 	    }
 
 	    @Override
 	    public void put(int i, Object v) {
-	    	super.put(i, v);
 	    	if (v instanceof JexlRecord) {
 	    		((JexlRecord) v).setParent(this);
 	    	} else if (v instanceof JexlArray) {
 	    		((JexlArray<?>) v).setParent(this);
+	    	} else {
+		        Field field = getSchema().getFields().get(i);
+	    		v = AvroType.getAvroDataType(field.schema()).convertToInternal(v);
 	    	}
+	    	super.put(i, v);
 	    }
+	    	    
+	    public JexlRecord addChild(String key) {
+	    	Object f = super.get(key);
+	    	if (f == null) {
+	    		Field field = this.getSchema().getField(key);
+	    		if (field != null) {
+	    			Schema s = IOUtils.getBaseSchema(field.schema());
+	    			if (s.getType() == Type.ARRAY) {
+	    				JexlArray<JexlRecord> a = new JexlArray<>(50, s);
+	    				put(key, a);
+	    				JexlRecord r = new JexlRecord(s.getElementType());
+	    				a.add(r);
+	    				return r;
+	    			} else if (s.getType() == Type.RECORD) {
+	    				JexlRecord r = new JexlRecord(s);
+	    				put(key, r);
+	    				return r;
+	    			} else {
+	    				throw new AvroRuntimeException("Column \"" + key + "\" is not a sub record or array of records");
+	    			}
+	    		} else {
+    				throw new AvroRuntimeException("Field \"" + key + "\" does not exist in schema");
+    			}
+	    	} else if (f instanceof JexlArray) {
+	    		@SuppressWarnings("unchecked")
+				JexlArray<JexlRecord> a = (JexlArray<JexlRecord>) f;
+				JexlRecord r = new JexlRecord(a.getSchema().getElementType());
+				a.add(r);
+				return r;
+	    	} else if (f instanceof JexlRecord) {
+				throw new AvroRuntimeException("Field \"" + key + "\" is a record and was added already");
+	    	} else {
+				throw new AvroRuntimeException("Field \"" + key + "\" is not a sub record or array of records");
+			}
+	    	
+	    }
+
+		@Override
+		public String toString() {
+			StringBuffer b = new StringBuffer();
+			AvroRecord.create().toString(b, this);
+			return b.toString();
+		}
+
+		@Override
+		public void set(String name, Object value) {
+			this.put(name, value);
+		}
+
+		@Override
+		public boolean has(String name) {
+			return getSchema().getField(name) != null;
+		}
 
 	}
 

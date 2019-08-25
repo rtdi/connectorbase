@@ -19,10 +19,10 @@ public class JerseyApplication extends ResourceConfig {
 		super();
 		String[] p = getPackages();
 		if (p == null) {
-			packages("io.rtdi.bigdata.connector.connectorframework.rest.service");
+			packages("io.rtdi.bigdata.connector.connectorframework.rest");
 		} else {
 			p = Arrays.copyOf(p, p.length+1);
-			p[p.length-1] = "io.rtdi.bigdata.connector.connectorframework.rest.service";
+			p[p.length-1] = "io.rtdi.bigdata.connector.connectorframework.rest";
 			packages(p);
 		}
 		register(JacksonFeature.class);

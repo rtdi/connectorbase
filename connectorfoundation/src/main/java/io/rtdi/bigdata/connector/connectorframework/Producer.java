@@ -142,10 +142,11 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	 * One thread does produce data constantly and is blocked when adding records to the queue. The poll method reads
 	 * the queue for up to one second or when enough records have been received. {@link #startLongRunningProducer(Controller)}
 	 * 
+	 * @param aftersleep indicates if the previous poll call returned zero records and hence the sleep for poll interval did happen 
 	 * @return Number of records produced in this cycle
 	 * @throws IOException if error
 	 */
-	public int poll() throws IOException {
+	public int poll(boolean aftersleep) throws IOException {
 		int rows = 0;
 		Data data;
 		try {
@@ -237,11 +238,11 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	public void startLongRunningProducer(Controller<?> task) throws IOException {
 		instance.addChild(task.getName(), task);
 		this.executor = task;
-		task.startController();
+		task.startController(false);
 	}
 
 	/**
-	 * The {@link #poll()} calls are either blocking, meaning they themselves wait for data or return asap.
+	 * The {@link #poll(boolean)} calls are either blocking, meaning they themselves wait for data or return asap.
 	 * The time the process waits between two poll calls is returned by this method here.
 	 * 
 	 * @return number of ms to wait between polls from the source system
@@ -339,7 +340,7 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 			return mapping.getOutputSchemaHandler();
 		} else {
 			// There is no mapping, use the schema directly
-			SchemaHandler schemahandler = getPipelineAPI().getSchema(sourceschemaname);
+			SchemaHandler schemahandler = null; // getPipelineAPI().getSchema(sourceschemaname);
 			if (schemahandler == null) {
 				Schema valueschema = null;
 				try {

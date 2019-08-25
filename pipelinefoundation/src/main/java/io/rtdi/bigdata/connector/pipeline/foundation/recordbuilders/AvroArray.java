@@ -11,13 +11,13 @@ public class AvroArray extends AvroField {
 
 	private Schema schema;
 
-	public AvroArray(String name, Schema schema, String doc, boolean nullable, Object defaultValue, Order order) throws SchemaException {
-		super(name, Schema.createArray(schema), doc, defaultValue, nullable, order);
+	public AvroArray(String name, Schema schema, String doc, Object defaultValue, Order order) throws SchemaException {
+		super(name, Schema.createArray(schema), doc, defaultValue, true, order);
 		this.schema = schema;
 	}
 
-	public AvroArray(String name, Schema schema, String doc, boolean nullable, Object defaultValue) throws SchemaException {
-		super(name, Schema.createArray(schema), doc, nullable, defaultValue);
+	public AvroArray(String name, Schema schema, String doc, Object defaultValue) throws SchemaException {
+		super(name, Schema.createArray(schema), doc, true, defaultValue);
 		this.schema = schema;
 	}
 

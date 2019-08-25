@@ -6,7 +6,7 @@ public interface IPropertyValue extends IProperty, INamed {
 
 	Object getValue();
 
-	void parseValue(IProperty value) throws PropertiesException;
+	void parseValue(IProperty value, boolean ignorepasswords) throws PropertiesException;
 
 	boolean hasValue();
 

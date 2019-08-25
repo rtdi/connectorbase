@@ -33,10 +33,10 @@ public class ConsumerProperties {
 			throw new PropertiesException("TopicListener has no name set");
 		} */
 		properties = new PropertyRoot(name);
-		properties.addStringProperty(TOPICLISTENER_TOPICLIST, "Topicnames to read", "A regexp matching all topics to read", null, ".*", false);
-		properties.addIntegerProperty(TOPICLISTENER_INSTANCES, TOPICLISTENER_INSTANCES, null, null, 1, false);
-		properties.addLongProperty(TOPICLISTENER_FLUSHMS, TOPICLISTENER_FLUSHMS, null, null, 60000L, false);
-		properties.addIntegerProperty(TOPICLISTENER_MAX_RECORDS, TOPICLISTENER_MAX_RECORDS, null, null, 1000, false);
+		properties.addStringProperty(TOPICLISTENER_TOPICLIST, "Topicnames to read", "A regexp matching all topics to read", null, ".*", true);
+		properties.addIntegerProperty(TOPICLISTENER_INSTANCES, TOPICLISTENER_INSTANCES, null, null, 1, true);
+		properties.addLongProperty(TOPICLISTENER_FLUSHMS, TOPICLISTENER_FLUSHMS, null, null, 10000L, true);
+		properties.addIntegerProperty(TOPICLISTENER_MAX_RECORDS, TOPICLISTENER_MAX_RECORDS, null, null, 1000, true);
 	}
 	
 	public ConsumerProperties(String name, TopicName topic) throws PropertiesException {
@@ -82,10 +82,10 @@ public class ConsumerProperties {
 	 * @param pg PropertyRoot to take the values from
 	 * @throws PropertiesException if there is a mismatch in the data type
 	 * 
-	 * @see PropertyRoot#parseValue(PropertyRoot)
+	 * @see PropertyRoot#parseValue(PropertyRoot, boolean)
 	 */
 	public void setValue(PropertyRoot pg) throws PropertiesException {
-		properties.parseValue(pg);
+		properties.parseValue(pg, false);
 	}
 
 	/**
@@ -93,6 +93,12 @@ public class ConsumerProperties {
 	 */
 	public PropertyRoot getPropertyGroup() {
 		return properties;
+	}
+
+	public PropertyRoot getPropertyGroupNoPasswords() throws PropertiesException {
+		PropertyRoot clone = new PropertyRoot(properties.getName());
+		clone.parseValue(properties, true);
+		return clone;
 	}
 
 	/**

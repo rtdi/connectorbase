@@ -6,6 +6,15 @@ init : function() {
 },
 edit : function(oEvent) {
     var oModel = this.getView().getModel();
+	var that = this;
+	oModel.attachRequestFailed(function(oEvent) {
+		that.displayError({
+			message: oEvent.getParameter("message"),
+			responseText:oEvent.getParameter("responseText"),
+			statusCode:oEvent.getParameter("statusCode"),
+			statusText:oEvent.getParameter("statusText")
+		});
+	});
 	var aConnections = oModel.getProperty("/connections");
 	if (!!aConnections) {
 		for (var i in aConnections) {
@@ -115,9 +124,9 @@ onPressDeleteConnection : function(oEvent) {
 		xmlhttp.onreadystatechange = function() {
 		    if (xmlhttp.readyState == 4) {
 		    	if (xmlhttp.status == 200) {
-			        alert(xmlhttp.responseText);
+			        sap.m.MessageToast.show("Saved");
 			    } else {
-			    	alert(xmlhttp.responseText);
+			        this.displayError({ "message" : xmlhttp.responseText });
 			    }
 			}
 		}
@@ -135,9 +144,9 @@ onPressStopConnection : function(oEvent) {
 		xmlhttp.onreadystatechange = function() {
 		    if (xmlhttp.readyState == 4) {
 		    	if (xmlhttp.status == 200) {
-			        alert(xmlhttp.responseText);
+			        sap.m.MessageToast.show("Saved");
 			    } else {
-			    	alert(xmlhttp.responseText);
+			        this.displayError({ "message" : xmlhttp.responseText });
 			    }
 			}
 		}
@@ -155,9 +164,9 @@ onPressStartConnection : function(oEvent) {
 		xmlhttp.onreadystatechange = function() {
 		    if (xmlhttp.readyState == 4) {
 		    	if (xmlhttp.status == 200) {
-			        alert(xmlhttp.responseText);
+			        sap.m.MessageToast.show("Saved");
 			    } else {
-			    	alert(xmlhttp.responseText);
+			        this.displayError({ "message" : xmlhttp.responseText });
 			    }
 			}
 		}
@@ -184,9 +193,9 @@ onPressStopProducer : function(oEvent) {
 		xmlhttp.onreadystatechange = function() {
 		    if (xmlhttp.readyState == 4) {
 		    	if (xmlhttp.status == 200) {
-			        alert(xmlhttp.responseText);
+			        sap.m.MessageToast.show("Saved");
 			    } else {
-			    	alert(xmlhttp.responseText);
+			        this.displayError({ "message" : xmlhttp.responseText });
 			    }
 			}
 		}
@@ -206,9 +215,9 @@ onPressStartProducer : function(oEvent) {
 		xmlhttp.onreadystatechange = function() {
 		    if (xmlhttp.readyState == 4) {
 		    	if (xmlhttp.status == 200) {
-			        alert(xmlhttp.responseText);
+			        sap.m.MessageToast.show("Saved");
 			    } else {
-			    	alert(xmlhttp.responseText);
+			        this.displayError({ "message" : xmlhttp.responseText });
 			    }
 			}
 		}
