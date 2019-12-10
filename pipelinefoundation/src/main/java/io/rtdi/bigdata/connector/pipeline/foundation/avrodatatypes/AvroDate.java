@@ -78,13 +78,13 @@ public class AvroDate extends LogicalType implements IAvroPrimitive {
 			return (int) ((LocalDateTime) value).getLong(ChronoField.EPOCH_DAY);
 		} else if (value instanceof Date) {
 			Date d = (Date) value;
-			return LocalDateTime.ofEpochSecond(d.getTime()/1000, 0, ZoneOffset.UTC).getLong(ChronoField.EPOCH_DAY);
+			return (int) LocalDateTime.ofEpochSecond(d.getTime()/1000, 0, ZoneOffset.UTC).getLong(ChronoField.EPOCH_DAY);
 		} else if (value instanceof ZonedDateTime) {
 			ZonedDateTime d = (ZonedDateTime) value;
 			return (int) d.getLong(ChronoField.EPOCH_DAY);
 		} else if (value instanceof Instant) {
 			Instant d = (Instant) value;
-			return LocalDateTime.ofEpochSecond(d.getEpochSecond(), 0, ZoneOffset.UTC).getLong(ChronoField.EPOCH_DAY);
+			return (int) LocalDateTime.ofEpochSecond(d.getEpochSecond(), 0, ZoneOffset.UTC).getLong(ChronoField.EPOCH_DAY);
 		} else {
 			return value;
 		}

@@ -9,21 +9,16 @@ import org.apache.avro.Schema;
  * Wrapper around the Avro Type.ENUM data type
  *
  */
-public class AvroFixed extends LogicalType implements IAvroPrimitive {
+public class AvroFixed extends LogicalTypeWithLength implements IAvroPrimitive {
 	public static final Factory factory = new Factory();
 	public static final String NAME = "FIXED";
-	private static AvroFixed element = new AvroFixed();
 
-	public static Schema getSchema(Schema schema) {
-		return create().addToSchema(schema);
+	public AvroFixed(int length) {
+		super(NAME, length);
 	}
 
-	public AvroFixed() {
-		super(NAME);
-	}
-
-	public static AvroFixed create() {
-		return element;
+	public static AvroFixed create(int length) {
+		return new AvroFixed(length);
 	}
 
 	@Override
@@ -69,7 +64,7 @@ public class AvroFixed extends LogicalType implements IAvroPrimitive {
 
 		@Override
 		public LogicalType fromSchema(Schema schema) {
-			return AvroFixed.create();
+			return AvroFixed.create(schema.getFixedSize());
 		}
 
 	}

@@ -17,22 +17,35 @@ init : function() {
 		oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas");
 		this.getView().setModel(oModel);
 	}	
-	oStateModel.setProperty("/title", "Source system schemas");
+	oStateModel.setProperty("/title", "Definied Schemas");
 	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"}, {"text" : "Connections", "link" : "./Connections"} ] );
 },
 cancel : function(oEvent) {
 },
 save : function(oEvent) {
 },
-schemaformatter : function(name) {
+/* schemaformatter : function(name) {
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	return "RemoteSchemaDefinition?connectionname=" + encodeURI(sConnectionname) + "&name=" + encodeURI(name);
 },
 mappingformatter : function(name) {
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	return "SchemaMapping?connectionname=" + encodeURI(sConnectionname) + "&name=" + encodeURI(name);
-},
-onPressAddRemote : function(oEvent) {
+}, */
+onPressSchemaEdit : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
-	window.location.href = './EditSchema?connectionname=' + encodeURI(sConnectionname);
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	window.location.href = './EditSchema?connectionname=' + encodeURI(sConnectionname) + "&name=" + encodeURI(obj.tablename);
+},
+onPressCreateSchema : function(oEvent) {
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	window.location.href = 'EditSchema?connectionname=' + encodeURI(sConnectionname);
+},
+onPressMapping : function(oEvent) {
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	window.location.href = 'SchemaMapping?connectionname=' + encodeURI(sConnectionname) + "&name=" + encodeURI(obj.tablename);
 }

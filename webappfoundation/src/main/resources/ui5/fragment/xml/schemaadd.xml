@@ -1,0 +1,19 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    >
+	<VBox justifyContent="SpaceBetween" width="200px" backgroundDesign="Solid" class="sapUiSmallMargin" >
+		<VBox class="sapUiSmallMargin">
+			<HBox justifyContent="SpaceBetween">
+				<core:Icon src="sap-icon://database" size="2.625rem" color="Default" class="sapUiTinyMarginBottom"/>
+				<ObjectStatus />
+			</HBox>
+			<Title text="Add New" wrapping="true"/>
+		</VBox>
+		<OverflowToolbar design="Transparent">
+			<ToolbarSpacer/>
+			<Button icon="sap-icon://add" type="Transparent" press="onPressCreateSchema" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
+		</OverflowToolbar>
+	</VBox>
+
+</core:FragmentDefinition>

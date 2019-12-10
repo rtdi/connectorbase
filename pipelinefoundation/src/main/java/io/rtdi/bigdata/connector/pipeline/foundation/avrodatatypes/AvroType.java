@@ -195,7 +195,7 @@ public enum AvroType {
 		case BYTES: return AvroBytes.create();
 		case DOUBLE: return AvroDouble.create();
 		case ENUM: return AvroEnum.create();
-		case FIXED: return AvroFixed.create();
+		case FIXED: return AvroFixed.create(baseschema.getFixedSize());
 		case FLOAT: return AvroFloat.create();
 		case INT: return AvroInt.create();
 		case LONG: return AvroLong.create();

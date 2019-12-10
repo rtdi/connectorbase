@@ -33,7 +33,7 @@ public class GetRecordsIT {
 	@Test
 	public void testGetLastRecords() {
 		try {
-			List<TopicPayload> data = api.getLastRecords("SALES", 10);
+			List<TopicPayload> data = api.getLastRecords("S4CHANGES", 10);
 			System.out.println("Got " + data.size() + " records");
 			assertTrue(data.size() <= 10);
 		} catch (Exception e) {

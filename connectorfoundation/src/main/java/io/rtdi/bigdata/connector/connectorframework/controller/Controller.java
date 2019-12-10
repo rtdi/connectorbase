@@ -172,7 +172,7 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	 */
 	public void addChild(String name, C controller) throws ConnectorRuntimeException {
 		if (childcontrollers.containsKey(name)) {
-			throw new ConnectorRuntimeException("Trying to add the same child controller again");
+			throw new ConnectorRuntimeException("Trying to add the same child controller again", null, "This is an internal error, please create an issue", name);
 		} else {
 			childcontrollers.put(name, controller);
 		}

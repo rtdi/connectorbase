@@ -50,7 +50,7 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 				throw new ConnectorRuntimeException("Reading the mapping file failed", e, null, mappingfile.getName());
 			}			
 		} else {
-			throw new ConnectorRuntimeException("Mapping file cannot be null");
+			throw new ConnectorRuntimeException("Mapping file cannot be null", null, "mappingfile parameter provided is null, internal error", outputhandler.getSchemaName().getName());
 		}
 	}
 

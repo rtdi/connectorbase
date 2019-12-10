@@ -164,7 +164,7 @@ public class ProducerControllerTests {
 			super(instance);
 		}
 		
-		public int poll() throws IOException {
+		public int poll(boolean after) throws IOException {
 			int mod = messagecount % 10;
 			if (mod == 9) {
 				// in the pause interval set various errors
@@ -177,13 +177,13 @@ public class ProducerControllerTests {
 				return 0; // for the poll to wait the polling interval once a while
 			case 10:
 				System.out.println("Throw a ConnectorTemporaryException");
-				throw new ConnectorTemporaryException("Temp Connector error");
+				throw new ConnectorTemporaryException("Temp Connector error", null, null, null);
 			case 11:
 				System.out.println("Throw a PipelineTemporaryException");
-				throw new PipelineTemporaryException("Temp Pipeline error");
+				throw new PipelineTemporaryException("Temp Pipeline error", null, null, null);
 			case 12:
 				System.out.println("Throw a ConnectorRuntimeException");
-				throw new ConnectorRuntimeException("Permanent Connector error");
+				throw new ConnectorRuntimeException("Permanent Connector error", null, null, null);
 			case 13:
 				System.out.println("Throw a PipelineRuntimeException");
 				throw new PipelineRuntimeException("Permanent Pipeline error");
@@ -255,7 +255,7 @@ public class ProducerControllerTests {
 			keybuilder.build();
 			return keybuilder.getSchema();
 		} catch (SchemaException e) {
-			throw new ConnectorRuntimeException(e);
+			throw new ConnectorRuntimeException("SchemaException thrown", e, null, null);
 		}
 	}
 
@@ -267,7 +267,7 @@ public class ProducerControllerTests {
 			valuebuilder.build();
 			return valuebuilder.getSchema();
 		} catch (SchemaException e) {
-			throw new ConnectorRuntimeException(e);
+			throw new ConnectorRuntimeException("SchemaException thrown", e, null, null);
 		}
 	}
 

@@ -105,7 +105,8 @@ public class AvroDecimal extends LogicalType implements IAvroPrimitive {
 			} else {
 				return value;
 			}
-			return DECIMAL_CONVERTER.toBytes(v, null, decimal);
+			ByteBuffer buffer = DECIMAL_CONVERTER.toBytes(v, null, decimal);
+			return buffer;
 		}
 	}
 
@@ -125,8 +126,13 @@ public class AvroDecimal extends LogicalType implements IAvroPrimitive {
 	public void toString(StringBuffer b, Object value) {
 		if (value != null) {
 			if (value instanceof ByteBuffer) {
-				BigDecimal n = DECIMAL_CONVERTER.fromBytes((ByteBuffer) value, null, decimal);
-				b.append(n.toString());
+				ByteBuffer v = (ByteBuffer) value;
+				if (v.capacity() != 0) {
+					v.position(0);
+					BigDecimal n = DECIMAL_CONVERTER.fromBytes(v, null, decimal);
+					v.position(0);
+					b.append(n.toString());
+				}
 			}
 		}
 	}

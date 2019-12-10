@@ -42,10 +42,9 @@ public class BrowseService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ConnectionController conn = connector.getConnectionOrFail(connectionname);
-			try (BrowsingService<?> sourceservice = connector.getConnectorFactory().createBrowsingService(conn);) {
-				List<TableEntry> schemas = sourceservice.getRemoteSchemaNames();
-				return Response.ok(new SchemaMetadataList(schemas)).build();
-			}
+			BrowsingService<?> sourceservice = conn.getBrowser();
+			List<TableEntry> schemas = sourceservice.getRemoteSchemaNames();
+			return Response.ok(new SchemaMetadataList(schemas)).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -59,10 +58,9 @@ public class BrowseService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ConnectionController conn = connector.getConnectionOrFail(connectionname);
-			try (BrowsingService<?> sourceservice = connector.getConnectorFactory().createBrowsingService(conn);) {
-				Schema s = sourceservice.getRemoteSchemaOrFail(remotename);
-				return Response.ok(new SchemaTableData(remotename, s)).build();
-			}
+			BrowsingService<?> sourceservice = conn.getBrowser();
+			Schema s = sourceservice.getRemoteSchemaOrFail(remotename);
+			return Response.ok(new SchemaTableData(remotename, s)).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}

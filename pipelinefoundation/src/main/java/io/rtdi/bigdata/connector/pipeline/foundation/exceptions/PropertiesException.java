@@ -91,4 +91,13 @@ public class PropertiesException extends IOException {
 		}
 		return link;
 	}
+
+	@Override
+	public String toString() {
+		String ret = super.toString();
+		if (causingobject != null) {
+			ret += "\r\nCausing Object: " + causingobject;
+		}
+		return ret;
+	}
 }

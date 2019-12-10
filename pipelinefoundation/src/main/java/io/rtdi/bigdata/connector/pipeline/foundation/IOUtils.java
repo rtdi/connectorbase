@@ -10,6 +10,8 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
@@ -19,7 +21,9 @@ import org.apache.avro.Schema.Type;
  *
  */
 public class IOUtils {
-	
+	static Pattern encoderpattern = Pattern.compile("[\\<\\>\\:\\\\/\\|\\?\\*]");
+	static Pattern decoderpattern = Pattern.compile("_x[0-9a-f][0-9a-f][0-9a-f][0-9a-f]");
+
 	public static final int UNDEFINED_INT = -1;
 	
 
@@ -307,6 +311,56 @@ public class IOUtils {
 			return schema;
 		}
 
+	}
+
+	/**
+	 * Encode a string into a-z chars, escaping all other chars.
+	 * @param s input string
+	 * @return encoded string with escape chars
+	 */
+	public static String encodeFileName(String s) {
+		/*
+	 	< (less than)
+		> (greater than)
+		: (colon)
+		" (double quote)
+		/ (forward slash)
+		\ (backslash)
+		| (vertical bar or pipe)
+		? (question mark)
+		* (asterisk)
+		Integer value zero, sometimes referred to as the ASCII NUL character.
+		
+		Characters whose integer representations are in the range from 1 through 31
+	     */
+		s = s.replace("_x", "_x005f_x0078");
+		Matcher m = encoderpattern.matcher(s);
+		StringBuffer buf = new StringBuffer(s.length());
+		while (m.find()) {
+			String ch = m.group();
+			m.appendReplacement(buf, "_x");
+			buf.append(String.format("%1$04x",ch.codePointAt(0)));
+		}
+		m.appendTail(buf);
+		return buf.toString();		
+	}
+
+	/** Inverse operation to {@link #encodeFileName(String)}
+	 * 
+	 * @param name encoded name
+	 * @return decoded name
+	 */
+	public static String decodeFileName(String name) {
+		Matcher m = decoderpattern.matcher(name);
+		StringBuffer buf = new StringBuffer(name.length());
+		while (m.find()) {
+			m.appendReplacement(buf, "");
+			String ch = m.group().substring(2); // _x0065 is to be replaced
+			int utf16char = Integer.parseInt(ch, 16);
+			buf.append(Character.toChars(utf16char));
+		}
+		m.appendTail(buf);
+		return buf.toString();		
 	}
 
 }

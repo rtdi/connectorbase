@@ -30,6 +30,10 @@ init : function() {
 			{"text" : "Connections", "link" : "./Connections"},
 			{"text" : "Producers", "link" : "./Producers?connectionname=" + encodeURI(sConnectionname) }
 		] );
+		
+		var oModelSchemas = new JSONModel();
+		oModelSchemas.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas");
+		this.getView().setModel(oModelSchemas, "schemas");
 	}	
 },
 save : function(oEvent) {

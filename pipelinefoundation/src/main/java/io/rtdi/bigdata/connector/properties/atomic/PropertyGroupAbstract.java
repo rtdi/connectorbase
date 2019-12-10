@@ -66,7 +66,7 @@ public abstract class PropertyGroupAbstract {
 		}
 	}
 
-	public void setProperty(String name, ArrayList<PropertyString> value) throws PropertiesException {
+	public void setProperty(String name, List<String> value) throws PropertiesException {
 		IProperty element = getElement(name);
 		if (element instanceof PropertyArrayList) {
 			((PropertyArrayList)element).setValue(value);
@@ -133,10 +133,20 @@ public abstract class PropertyGroupAbstract {
 		}
 	}
 	
-	public ArrayList<PropertyString> getArrayListPropertyValue(String name) {
+	public List<String> getArrayListPropertyValue(String name) {
 		IProperty e = getElement(name);
 		if (e instanceof PropertyArrayList) {
 			return ((PropertyArrayList) e).getValue();
+		} else {
+			// throw new PropertiesException("A property of the name \"" + name + "\" exists but is not of an Array type");
+			return null;
+		}
+	}
+
+	public List<String> getSchemaSelectorValue(String name) {
+		IProperty e = getElement(name);
+		if (e instanceof PropertySchemaSelector) {
+			return ((PropertySchemaSelector) e).getValue();
 		} else {
 			// throw new PropertiesException("A property of the name \"" + name + "\" exists but is not of an Array type");
 			return null;
@@ -199,7 +209,11 @@ public abstract class PropertyGroupAbstract {
 	}
 
 	public void addArrayListProperty(String name, String displayname, String description, String icon, boolean mandatory) {
-		addProperty(new PropertyArrayList(name, displayname, description, icon, null, null, mandatory));
+		addProperty(new PropertyArrayList(name, displayname, description, icon, mandatory));
+	}
+	
+	public void addSchemaSelectorProperty(String name, String displayname, String description, String icon, boolean mandatory) {
+		addProperty(new PropertySchemaSelector(name, displayname, description, icon, mandatory));
 	}
 
 	public PropertyGroup addPropertyGroupProperty(String name, String displayname, String description, String icon, boolean mandatory) {
@@ -244,7 +258,8 @@ public abstract class PropertyGroupAbstract {
 			if (p instanceof IPropertyValue) {
 				IPropertyValue valueproperty = (IPropertyValue) p;
 				if (valueproperty.getMandatory() != null && valueproperty.getMandatory().booleanValue() && !valueproperty.hasValue()) {
-					throw new PropertiesException("A mandatory parameter in the properties is not set", "Fix the properties settings", 10007, valueproperty.getName());
+					// Cannot throw exception here, what if nothing has been set yet?
+					// throw new PropertiesException("A mandatory parameter in the properties is not set", "Fix the properties settings", 10007, valueproperty.getName());
 				}
 			}
 		}

@@ -1,5 +1,6 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 import org.apache.avro.LogicalType;

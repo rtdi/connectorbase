@@ -109,11 +109,10 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 					// Sleep when no rows have been found, else continue reading the next batch
 					if (rows == 0 && (state == ControllerState.STARTED  || state == ControllerState.STARTING)) {
 						try {
-							Thread.sleep(rowproducer.getPollingInterval());
+							Thread.sleep(rowproducer.getPollingInterval()*1000L);
 							aftersleep = true;
 						} catch (InterruptedException e) {
-							lastexception = e;
-							interruptedflag = true;
+							setLastException(e);
 							return;
 						}
 					} else {

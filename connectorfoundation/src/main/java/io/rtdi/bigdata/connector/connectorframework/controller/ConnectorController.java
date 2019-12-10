@@ -155,6 +155,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 			try {
 				usagesender.join(1000);
 			} catch (InterruptedException e) {
+				setLastException(e);
 				logger.info("UsageSender Thread did not shutdown within one second when interrupted");
 			}
 		}
@@ -172,8 +173,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 					try {
 						Thread.sleep(60000);
 					} catch (InterruptedException e) {
-						lastexception = e;
-						interruptedflag = true;
+						setLastException(e);
 						return;
 					}
 				}
@@ -225,7 +225,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	public ConnectionController getConnectionOrFail(String connectionname) throws ConnectorCallerException {
 		ConnectionController c = connections.get(connectionname);
 		if (c == null) {
-			throw new ConnectorCallerException("Connection with that name not found", null, connectionname);
+			throw new ConnectorCallerException("Connection with that name not found", null, "getConnection() was called for a non-existing name", connectionname);
 		} else {
 			return c;
 		}
@@ -238,7 +238,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	public ServiceController getServiceOrFail(String servicename) throws ConnectorCallerException {
 		ServiceController c = services.get(servicename);
 		if (c == null) {
-			throw new ConnectorCallerException("Service with that name not found", null, servicename);
+			throw new ConnectorCallerException("Service with that name not found", null, "getService() was called for a non-existing name", servicename);
 		} else {
 			return c;
 		}

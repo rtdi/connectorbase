@@ -663,6 +663,7 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 			consumerprops.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 			consumerprops.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, count);
 			consumerprops.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
+			consumerprops.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 	
 			consumerprops.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 			consumerprops.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
@@ -675,14 +676,16 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 				}
 				consumer.assign(partitions);
 				Map<TopicPartition, Long> offsetmap = consumer.endOffsets(partitions);
+				Map<TopicPartition, Long> offsetmap_beginning = consumer.beginningOffsets(partitions);
 				HashMap<Integer, Long> offsetstoreachtable = new HashMap<Integer, Long>();
 				for (TopicPartition p : offsetmap.keySet()) {
 					long offset = offsetmap.get(p);
 					if (offset > 0) { // if the offset == 0 then there is no data. Skip reading that partition then
 						offsetstoreachtable.put(p.partition(), offset-1); // The end offset is the offset of the next one to be produced, hence offset-1
 						long from_offset = offset-(count/partitions.size());
-						if (from_offset < 0) {
-							from_offset = 0;
+						long beginningoffset = offsetmap_beginning.get(p);
+						if (from_offset < beginningoffset) {
+							from_offset = beginningoffset;
 						}
 						consumer.seek(p, from_offset);
 					}

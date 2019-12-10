@@ -9,20 +9,20 @@
     <parent>
         <groupId>io.rtdi.bigdata.connector</groupId>
         <artifactId>connectorbase</artifactId>
-        <version>0.8.2</version>
+        <version>0.8.3</version>
     </parent>
 
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.13-beta-3</version>
+			<version>4.13-rc-2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.rtdi.bigdata.connector</groupId>
 			<artifactId>pipelinefoundation</artifactId>
-			<version>0.8.2</version>
+			<version>0.8.3</version>
 		</dependency>
 	</dependencies>
 </project>

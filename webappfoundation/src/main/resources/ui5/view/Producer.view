@@ -1,5 +1,5 @@
 <Table
-	id="ConnectionInfo"
+	id="ProducerInfo"
 	items="{/values}">
 	<headerToolbar>
 		<OverflowToolbar>
@@ -14,7 +14,7 @@
 		<Column width="20%">
             <Label text="Property"/>
 		</Column>
-		<Column width="20%">
+		<Column width="40%">
             <Label text="Value"/>
 		</Column>
 		<Column>
@@ -30,7 +30,23 @@
                     	<core:Icon src="{icon}"/>
             		</items>
                 </FlexBox>
-                <Input type="{path:'type', formatter:'.InputFormatter'}" value="{value}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
+                <FlexBox width="100%" justifyContent="SpaceBetween" alignItems="Center" >
+                	<Input  type="{path:'type', formatter:'.InputFormatter'}" 
+                			visible="{= ${type} !== 'PropertySchemaSelector' }" 
+                			value="{value}" 
+                			enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
+					<MultiComboBox
+						width="100%"
+						visible="{= ${type} === 'PropertySchemaSelector' }"
+						selectedKeys="{valuearray}"
+						items="{
+							path: 'schemas>/tablenames',
+							sorter: { path: 'tablename',
+							templateShareable:false }
+						}">
+						<core:Item key="{schemas>tablename}" text="{schemas>tablename}"/>
+					</MultiComboBox>
+                </FlexBox>
                 <Text text="{description}"/>
 			</cells>
 		</ColumnListItem>

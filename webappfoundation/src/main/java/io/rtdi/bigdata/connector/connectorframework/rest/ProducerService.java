@@ -109,7 +109,7 @@ public class ProducerService {
 			ConnectionController conn = connector.getConnectionOrFail(connectionname);
 			ProducerController producer = conn.getProducerOrFail(producername);
 			if (!conn.isRunning()) {
-				throw new ConnectorTemporaryException("Cannot start a producer when its connection is not running");
+				throw new ConnectorTemporaryException("Cannot start a producer when its connection is not running", null, "First start the connection", connectionname);
 			}
 			producer.startController(true);
 			//TODO: Return if the producer was started correctly.

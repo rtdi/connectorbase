@@ -1,29 +1,14 @@
-<Table
-	items="{path:'/tablenames', templateShareable:false}">
-	<columns>
-		<Column>
-			<Label text="Remote Name" />
-		</Column>
-		<Column>
-			<Label text="Type" />
-		</Column>
-		<Column>
-			<Label text="Description" />
-		</Column>
-		<Column>
-			<Label text="Mapping" />
-		</Column>
-	</columns>
-	<items>
-		<ColumnListItem vAlign="Middle">
-			<cells>
-				<HBox alignItems="Center">
-					<Link text="{tablename}" href="{path : 'tablename', formatter: '.schemaformatter'}" />
-				</HBox>				
-				<Text text="{tabletype}" />
-				<Text text="{description}" />
-				<Link text="mapping" href="{path : 'tablename', formatter: '.mappingformatter'}" />
-			</cells>
-		</ColumnListItem>
-	</items>
-</Table>
+<Panel height="100%">
+	<headerToolbar>
+		<OverflowToolbar>
+			<Button icon="sap-icon://refresh" text="Reload" press="onPressRefresh" />
+		</OverflowToolbar>
+	</headerToolbar>
+	<l:HorizontalLayout
+		allowWrapping="true"
+		content="{/tablenames}">
+		<core:Fragment fragmentName="com.rtdi.bigdata.connector.ui.fragment.xml.schema" type="XML" />
+	</l:HorizontalLayout>
+	
+	<core:Fragment fragmentName="com.rtdi.bigdata.connector.ui.fragment.xml.schemaadd" type="XML" />
+</Panel>

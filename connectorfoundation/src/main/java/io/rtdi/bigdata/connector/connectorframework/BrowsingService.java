@@ -55,7 +55,7 @@ public abstract class BrowsingService<S extends ConnectionProperties> implements
 	 *   
 	 * @throws IOException if network errors
 	 */
-	protected abstract void open() throws IOException;
+	public abstract void open() throws IOException;
 	
 	@Override
 	public abstract void close();

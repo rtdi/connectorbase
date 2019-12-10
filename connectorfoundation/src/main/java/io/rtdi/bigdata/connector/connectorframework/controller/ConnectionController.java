@@ -24,13 +24,14 @@ public class ConnectionController extends Controller<Controller<?>> {
 	private ConnectorController connectorcontroller;
 	private HashMap<String, ProducerController> producers = new HashMap<>();
 	private HashMap<String, ConsumerController> consumers = new HashMap<>();
+	private BrowsingService<?> browser = null;
 
 	public ConnectionController(File connectiondir, ConnectorController connectorcontroller) {
 		super(connectiondir.getName());
 		this.connectiondir = connectiondir;
 		this.connectorcontroller = connectorcontroller;
 	}
-
+	
 	/**
 	 * Read the connection settings and its children from the specified directory.
 	 * The directory tree is:
@@ -145,6 +146,10 @@ public class ConnectionController extends Controller<Controller<?>> {
 
 	@Override
 	protected void stopControllerImpl(ControllerExitType exittype) {
+		if (browser != null) {
+			browser.close();
+			browser = null;
+		}
 	}
 
 	@Override
@@ -179,7 +184,7 @@ public class ConnectionController extends Controller<Controller<?>> {
 	public ConsumerController getConsumerOrFail(String consumername) throws ConnectorCallerException {
 		ConsumerController c = consumers.get(consumername);
 		if (c == null) {
-			throw new ConnectorCallerException("Connector has no consumer of that name", null, consumername);
+			throw new ConnectorCallerException("Connector has no consumer of that name", null, "getConsumer() was called for a non-existing name", consumername);
 		} else {
 			return c;
 		}
@@ -188,7 +193,7 @@ public class ConnectionController extends Controller<Controller<?>> {
 	public ProducerController getProducerOrFail(String producername) throws ConnectorCallerException {
 		ProducerController c = producers.get(producername);
 		if (c == null) {
-			throw new ConnectorCallerException("Connector has no producer of that name", null, producername);
+			throw new ConnectorCallerException("Connector has no producer of that name", null, "getProducer() was called for a non-existing name", producername);
 		} else {
 			return c;
 		}
@@ -214,10 +219,6 @@ public class ConnectionController extends Controller<Controller<?>> {
 		return connectorcontroller;
 	}
 	
-	public BrowsingService<?> getBrowingService() throws IOException {
-		return this.getConnectorFactory().createBrowsingService(this);
-	}
-
 	public int getProducerCount() {
 		int count = 0;
 		if (producers != null) {
@@ -300,5 +301,12 @@ public class ConnectionController extends Controller<Controller<?>> {
 				c.updateSchemaCache();
 			}
 		}
+	}
+	
+	public BrowsingService<?> getBrowser() throws IOException {
+		if (browser == null) {
+			browser = connectorcontroller.getConnectorFactory().createBrowsingService(this);
+		}
+		return browser;
 	}
 }

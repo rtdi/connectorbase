@@ -86,8 +86,7 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 					break;
 				}
 			} catch (InterruptedException e) {
-				lastexception = e;
-				interruptedflag = true;
+				setLastException(e);
 			}
 			return !thread.isAlive();
 		} else {
@@ -152,8 +151,7 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					lastexception = e;
-					interruptedflag = true;
+					setLastException(e);
 					return;
 				}
 			}
@@ -167,6 +165,13 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 	 * @param executioncounter providing the number of executions since start (within the runUntilError() method)
 	 */
 	protected void periodictask(long executioncounter) {
+	}
+
+	public void setLastException(Exception e) {
+		this.lastexception = e;
+		if (e instanceof InterruptedException) {
+			interruptedflag = true;
+		}
 	}
 
 }

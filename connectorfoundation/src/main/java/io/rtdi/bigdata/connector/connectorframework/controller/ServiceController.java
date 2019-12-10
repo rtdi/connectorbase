@@ -122,7 +122,7 @@ public class ServiceController extends Controller<Controller<?>> {
 				}
 			}
 		}
-		throw new ConnectorCallerException("No Microservice with this name configured", null, microservicename);
+		throw new ConnectorCallerException("No Microservice with this name configured", null, "getMicroservice() was called for a non-existing name", microservicename);
 	}
 
 	@Override

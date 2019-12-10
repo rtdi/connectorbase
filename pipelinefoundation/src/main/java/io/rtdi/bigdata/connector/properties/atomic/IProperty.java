@@ -14,6 +14,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesExcept
 	@Type(value = PropertyString.class, name = "PropertyString"), 
 	@Type(value = PropertyText.class, name = "PropertyText"), 
 	@Type(value = PropertyArrayList.class, name = "PropertyArrayList"),
+	@Type(value = PropertySchemaSelector.class, name = "PropertySchemaSelector"),
 	@Type(value = PropertyInt.class, name = "PropertyInt"),
 	@Type(value = PropertyLong.class, name = "PropertyLong"), 
 	@Type(value = PropertyGroup.class, name = "PropertyGroup"), 
