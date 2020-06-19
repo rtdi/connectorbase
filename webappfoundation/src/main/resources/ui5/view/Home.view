@@ -1,4 +1,4 @@
-<f:Card visible="{path: '/supportconnections', formatter: '.enableControl'}"
+<f:Card visible="{= ${/supportconnections} &amp;&amp; ${/pipelineAPIConfigured} }"
 	class="sapUiMediumMargin"
 	width="200px">
 	<f:header>
@@ -10,7 +10,7 @@
 	</f:header>
 </f:Card>
 
-<f:Card visible="{path: '/supportservices', formatter: '.enableControl'}"
+<f:Card visible="{= ${/supportservices} &amp;&amp; ${/pipelineAPIConfigured} }"
 	class="sapUiMediumMargin"
 	width="200px">
 	<f:header>
@@ -22,31 +22,31 @@
 	</f:header>
 </f:Card>
 
-<f:Card
+<f:Card visible="{path: '/pipelineAPIConfigured', formatter: '.enableControl'}"
 	class="sapUiMediumMargin"
 	width="200px">
 	<f:header>
 		<card:Header
-			title="Topics"
+			title="Server Topics"
 			subtitle="{/topiccount}"
 			iconSrc="sap-icon://batch-payments"
 			press="pressTopics" />
 	</f:header>
 </f:Card>
 
-<f:Card
+<f:Card visible="{path: '/pipelineAPIConfigured', formatter: '.enableControl'}"
 	class="sapUiMediumMargin"
 	width="200px">
 	<f:header>
 		<card:Header
-			title="Schemas"
+			title="Server Schemas"
 			subtitle="{/schemacount}"
 			iconSrc="sap-icon://database"
 			press="pressSchemas" />
 	</f:header>
 </f:Card>
 
-<f:Card
+<f:Card visible="{path: '/pipelineAPIConfigured', formatter: '.enableControl'}"
 	class="sapUiMediumMargin"
 	width="200px">
 	<f:header>
@@ -57,7 +57,7 @@
 	</f:header>
 </f:Card>
 
-<f:Card
+<f:Card visible="{path: '/pipelineAPIConfigured', formatter: '.enableControl'}"
 	class="sapUiMediumMargin"
 	width="200px">
 	<f:header>
@@ -73,13 +73,14 @@
 	width="200px">
 	<f:header>
 		<card:Header
-			title="Pipeline"
+			title="Used Pipeline"
+			subtitle="{=${/pipelineAPIConfigured}?${/pipelineAPIName}:'Not configured'}"
 			iconSrc="sap-icon://pipeline-analysis"
 			press="pressPipeline" />
 	</f:header>
 </f:Card>
 
-<f:Card
+<f:Card visible="{path: '/pipelineAPIConfigured', formatter: '.enableControl'}"
 	class="sapUiMediumMargin"
 	width="200px">
 	<f:header>

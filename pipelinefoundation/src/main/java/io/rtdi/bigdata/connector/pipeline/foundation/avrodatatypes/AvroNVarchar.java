@@ -13,9 +13,11 @@ import org.apache.avro.Schema.Type;
 public class AvroNVarchar extends LogicalTypeWithLength {
 	public static final String NAME = "NVARCHAR";
 	public static final Factory factory = new Factory();
+	private Schema schema;
 
 	private AvroNVarchar(int length) {
 		super(NAME, length);
+		this.schema = addToSchema(Schema.create(Type.STRING));
 	}
 	
 	public static AvroNVarchar create(int length) {
@@ -27,10 +29,14 @@ public class AvroNVarchar extends LogicalTypeWithLength {
 		return getSchema(length);
 	}
 
-	private static AvroNVarchar create(Schema schema) {
+	public static AvroNVarchar create(Schema schema) {
 		return new AvroNVarchar(getLengthProperty(schema));
 	}
-	
+
+	public static AvroNVarchar create(String text) {
+		return new AvroNVarchar(getLengthPortion(text));
+	}
+
 	public static Schema getSchema(int length) {
 		return create(length).addToSchema(Schema.create(Type.STRING));
 	}
@@ -64,6 +70,16 @@ public class AvroNVarchar extends LogicalTypeWithLength {
 	@Override
 	public Type getBackingType() {
 		return Type.STRING;
+	}
+
+	@Override
+	public Schema getDatatypeSchema() {
+		return schema;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVRONVARCHAR;
 	}
 
 }

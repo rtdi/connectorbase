@@ -9,9 +9,9 @@ import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData;
 import org.apache.commons.jexl3.JexlContext;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroType;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 public class JexlGenericData extends GenericData {
 	private static JexlGenericData INSTANCE = new JexlGenericData();

@@ -86,8 +86,8 @@ public class ConnectionService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ConnectionController conn = connector.getConnectionOrFail(connectionname);
-			conn.stopController(ControllerExitType.DISABLE);
-			boolean stopped = conn.joinAll(ControllerExitType.DISABLE);
+			conn.controllerDisable();
+			boolean stopped = conn.joinAll(ControllerExitType.ABORT);
 			return Response.ok(stopped).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
@@ -102,7 +102,7 @@ public class ConnectionService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ConnectionController conn = connector.getConnectionOrFail(connectionname);
-			conn.startController(true);
+			conn.startController();
 			//TODO: Return if the connection was started correctly
 			return Response.ok().build();
 		} catch (Exception e) {

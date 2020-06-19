@@ -12,7 +12,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.IControllerState;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ErrorEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ErrorListEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
-import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerRequestedState;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerState;
 
 
@@ -29,11 +28,8 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	protected HashMap<String, C> childcontrollers = new HashMap<>();
 	private String name;
 	protected ErrorListEntity errors = new ErrorListEntity();
-	/**
-	 * By default the controller should start. DISABLED conrollers are left alone.
-	 */
-	protected ControllerRequestedState requestedstate = ControllerRequestedState.RUN;
-
+	protected boolean controllerdisabled = false;
+	
 	public Controller(String name) {
 		super();
 		this.name = name;
@@ -41,27 +37,42 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	}
 
 	/**
-	 * Starts the controller in a new thread and all children as well.
-	 * @param force is true means even disabled children are started. Required when the user asks to start previously stopped controllers.
+	 * Initializes and starts the controller.
+	 * Also removes the disabled flag.
 	 * 
 	 * @throws IOException if the controller or one of its children cannot be started 
 	 */
-	public void startController(boolean force) throws IOException {
-		requestedstate = ControllerRequestedState.RUN;
+	public void startController() throws IOException {
+		controllerdisabled = false;
+		errors = new ErrorListEntity();
 		state = ControllerState.STARTING;
 		startControllerImpl();
-		startChildController(force); // in the thread-less controller the children have to be started here. ThreadBasedController has its own implementation 
 		state = ControllerState.STARTED;
 	}
 
-	protected void startChildController(boolean force) throws IOException {
+	protected void startChildController() throws IOException {
 		for (Controller<?> c : childcontrollers.values()) {
-			if (force || c.getRequestedState() != ControllerRequestedState.DISABLE) {
-				c.startController(force);
+			if (!c.isControllerDisabled()) {
+				c.startController();
 			}
 		}
 	}
 	
+	/**
+	 * @return true in case this controller is temporarily disabled
+	 */
+	public boolean isControllerDisabled() {
+		return controllerdisabled;
+	}
+	
+	/**
+	 * Called to temporarily stop the Controller and prevent it from being recovered.
+	 */
+	public void controllerDisable() {
+		this.controllerdisabled = true;
+		this.stopController(ControllerExitType.ENDBATCH);
+	}
+
 	protected abstract void updateLandscape();
 	
 	protected abstract void updateSchemaCache();
@@ -71,13 +82,6 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	 */
 	public String getName() {
 		return name;
-	}
-	
-	/**
-	 * @return the requested state which is either STARTED or DISABLED
-	 */
-	public ControllerRequestedState getRequestedState() {
-		return requestedstate;
 	}
 	
 	/**
@@ -91,14 +95,10 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	 * @param exittype ControllerExitType to tell how forceful the exit should happen
 	 */
 	public void stopController(ControllerExitType exittype) {
-		if (exittype == ControllerExitType.DISABLE) {
-			requestedstate = ControllerRequestedState.DISABLE;
-		} else if (requestedstate != ControllerRequestedState.DISABLE) {
-			requestedstate = ControllerRequestedState.STOP;
-		}
 		state = ControllerState.STOPPING;
 		stopControllerImpl(exittype);
-		stopChildControllers(exittype);
+		// stopChildControllers(exittype); // REmoved from here and moved into the individual implementations, as the thread based controller does that somewhere else
+		state = ControllerState.STOPPED;
 	}
 
 	/**
@@ -185,45 +185,29 @@ public abstract class Controller<C extends Controller<?>> implements IController
 		return errors.getErrors();
 	}
 	
-	/**
-	 * Most Controllers retry temporary connector exceptions only, hence the default implementation returns false always. 
-	 * Override and return true else.
-	 * 
-	 * @return true if a pipeline temporary exception should be retried
-	 */
-	protected boolean retryPipelineTemporaryExceptions() {
-		return false;
-	}
-
 	/* (non-Javadoc)
 	 * @see io.rtdi.bigdata.connector.pipeline.foundation.IControllerState#isRunning()
 	 */
 	@Override
 	public boolean isRunning() {
-		return (requestedstate == ControllerRequestedState.RUN);
+		return (state != ControllerState.STOPPED);
 	}
 
 	/**
-	 * @return true if all children are running, direct and indirect children
-	 * 
-	 * @throws ConnectorRuntimeException if one of the children ran into an error
+	 * Checks if all children are running and starts them in case
+	 * @throws IOException 
 	 */
-	public boolean checkChildren() throws ConnectorRuntimeException {
+	public void checkChildren() throws IOException {
 		for (String childname : childcontrollers.keySet()) {
 			Controller<?> t = childcontrollers.get(childname);
-			if (!t.isRunning() && t.getRequestedState() != ControllerRequestedState.DISABLE) {
-				if (t instanceof ThreadBasedController) {
-					Exception ex = ((ThreadBasedController<?>) t).lastexception;
-					if (ex != null) {
-						throw new ConnectorRuntimeException("A child controller got an exception", null, null, this.getName());
-					}
+			if (!t.isControllerDisabled()) {
+				if (!t.isRunning()) {
+					t.startController();
+				} else {
+					t.checkChildren();
 				}
-				return false;
-			} else if (!(t instanceof ThreadBasedController) && !t.checkChildren()) {
-				return false;
 			}
 		}
-		return true;
 	}
 
 	/* (non-Javadoc)

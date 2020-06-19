@@ -7,7 +7,6 @@ import java.util.HashMap;
 import io.rtdi.bigdata.connector.connectorframework.BrowsingService;
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorCallerException;
-import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -146,6 +145,7 @@ public class ConnectionController extends Controller<Controller<?>> {
 
 	@Override
 	protected void stopControllerImpl(ControllerExitType exittype) {
+		stopChildControllers(exittype);
 		if (browser != null) {
 			browser.close();
 			browser = null;
@@ -153,7 +153,8 @@ public class ConnectionController extends Controller<Controller<?>> {
 	}
 
 	@Override
-	protected void startControllerImpl() throws ConnectorRuntimeException {
+	protected void startControllerImpl() throws IOException {
+		startChildController();
 	}
 
 	@Override

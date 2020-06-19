@@ -15,6 +15,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRe
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericDatumReader;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.LogicalDataTypesRegistry;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 /**
  * This is class does deserialize Avro records. It uses the same format as Kafka itself, hence

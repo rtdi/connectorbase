@@ -72,4 +72,14 @@ public class AvroAnyPrimitive implements IAvroPrimitive {
 		return Type.UNION;
 	}
 
+	@Override
+	public Schema getDatatypeSchema() {
+		return schema;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVROANYPRIMITIVE;
+	}
+
 }

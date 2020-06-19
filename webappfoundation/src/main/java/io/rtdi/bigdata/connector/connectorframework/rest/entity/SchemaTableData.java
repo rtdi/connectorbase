@@ -14,13 +14,13 @@ import org.apache.avro.Schema.Type;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroAnyPrimitive;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.AvroArray;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 public class SchemaTableData {
 	private SchemaElement data;

@@ -65,39 +65,31 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 
 	@Override
 	public void addRowBinary(TopicHandler topic, Integer partition, byte[] keyrecord, byte[] valuerecord) throws IOException {
-		try {
-			if (topic == null) {
-				throw new PipelineRuntimeException("Sending rows requires a topic but it is null");
-			} else if (keyrecord == null || valuerecord == null) {
-				throw new PipelineRuntimeException("Sending rows requires a key and value record");
-			}
-			ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getTopicFQN(), partition, keyrecord, valuerecord);
-			messagestatus.add(api.getProducer().send(record));
-	
-			throttleReceiver(messagestatus);
-		} catch (IOException e) {
-			throw new PipelineRuntimeException("Serialization failed");
+		if (topic == null) {
+			throw new PipelineRuntimeException("Sending rows requires a topic but it is null");
+		} else if (keyrecord == null || valuerecord == null) {
+			throw new PipelineRuntimeException("Sending rows requires a key and value record");
 		}
+		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getTopicFQN(), partition, keyrecord, valuerecord);
+		messagestatus.add(api.getProducer().send(record));
+
+		throttleReceiver(messagestatus);
 	}
 
 	@Override
-	protected void addRowImpl(TopicHandler topic, Integer partition, SchemaHandler handler, GenericRecord keyrecord, GenericRecord valuerecord) throws PipelineRuntimeException {
-		try {
-			if (topic == null) {
-				throw new PipelineRuntimeException("Sending rows requires a topic but it is null");
-			} else if (keyrecord == null || valuerecord == null) {
-				throw new PipelineRuntimeException("Sending rows requires a key and value record");
-			}
-			byte[] key = AvroSerializer.serialize(handler.getDetails().getKeySchemaID(), keyrecord);
-			
-			byte[] value = AvroSerializer.serialize(handler.getDetails().getValueSchemaID(), valuerecord);
-			ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getTopicFQN(), partition, key, value);
-			messagestatus.add(api.getProducer().send(record));
-	
-			throttleReceiver(messagestatus);
-		} catch (IOException e) {
-			throw new PipelineRuntimeException("Serialization failed");
+	protected void addRowImpl(TopicHandler topic, Integer partition, SchemaHandler handler, GenericRecord keyrecord, GenericRecord valuerecord) throws IOException {
+		if (topic == null) {
+			throw new PipelineRuntimeException("Sending rows requires a topic but it is null");
+		} else if (keyrecord == null || valuerecord == null) {
+			throw new PipelineRuntimeException("Sending rows requires a key and value record");
 		}
+		byte[] key = AvroSerializer.serialize(handler.getDetails().getKeySchemaID(), keyrecord);
+		
+		byte[] value = AvroSerializer.serialize(handler.getDetails().getValueSchemaID(), valuerecord);
+		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getTopicFQN(), partition, key, value);
+		messagestatus.add(api.getProducer().send(record));
+
+		throttleReceiver(messagestatus);
 	}
 
 	

@@ -61,7 +61,7 @@ public abstract class PropertyAbstract implements INamed {
 	@Override
 	public String getDescription() {
 		if (description == null) {
-			return name;
+			return getDisplayname();
 		} else {
 			return description;
 		}

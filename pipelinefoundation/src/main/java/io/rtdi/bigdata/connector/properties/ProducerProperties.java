@@ -24,7 +24,7 @@ public class ProducerProperties {
 			throw new PropertiesException("Producer properties must have a name");
 		} */
 		properties = new PropertyRoot(name);
-		properties.addIntegerProperty(PRODUCER_COUNT, PRODUCER_COUNT, null, null, 1, true);
+		properties.addIntegerProperty(PRODUCER_COUNT, "Producer Instances", "Number of producer instances to use", null, 1, true);
 	}
 	
 	public ProducerProperties(File dir, String name) throws PropertiesException {

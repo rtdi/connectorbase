@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.apache.avro.Schema;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaConstants;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlArray;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
@@ -16,6 +15,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroVarchar;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.RuleResult;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 /**
  * A class that helps creating an AvroSchema by code for the value record.

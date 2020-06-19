@@ -91,8 +91,8 @@ public class ProducerService {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ConnectionController conn = connector.getConnectionOrFail(connectionname);
 			ProducerController producer = conn.getProducerOrFail(producername);
-			producer.stopController(ControllerExitType.DISABLE);
-			boolean stopped = producer.joinAll(ControllerExitType.DISABLE);
+			producer.controllerDisable();
+			boolean stopped = producer.joinAll(ControllerExitType.ABORT);
 			return Response.ok(stopped).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
@@ -111,7 +111,7 @@ public class ProducerService {
 			if (!conn.isRunning()) {
 				throw new ConnectorTemporaryException("Cannot start a producer when its connection is not running", null, "First start the connection", connectionname);
 			}
-			producer.startController(true);
+			producer.startController();
 			//TODO: Return if the producer was started correctly.
 			return Response.ok().build();
 		} catch (Exception e) {

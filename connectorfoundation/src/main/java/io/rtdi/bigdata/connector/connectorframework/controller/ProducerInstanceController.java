@@ -8,7 +8,6 @@ import java.util.Set;
 
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
 import io.rtdi.bigdata.connector.connectorframework.Producer;
-import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
@@ -16,7 +15,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
-import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerState;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.OperationState;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -61,6 +59,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 
 	@Override
 	protected void stopThreadControllerImpl(ControllerExitType exittype) {
+		this.stopChildControllers(exittype);
 	}
 	
 	public OperationState getOperation() {
@@ -73,69 +72,47 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 
 	@Override
 	public void runUntilError() throws IOException {
-		do {
-			try (Producer<?,?> rowproducer = getConnectorFactory().createProducer(this)) {
-				rowproducer.createTopiclist();
-				rowproducer.startProducerChangeLogging();
-				
-				lastsourcetransactionid = rowproducer.getLastSuccessfulSourceTransaction();
-
-				if (lastsourcetransactionid == null || lastsourcetransactionid.length() == 0) {
-					rowproducer.initialLoad();
-				} else {
-					rowproducer.restartWith(lastsourcetransactionid);
-				}
-
-				operationstate = OperationState.REQUESTDATA;
-				rowproducer.startProducerCapture();
-				
-				boolean aftersleep = true;
-				
-				while (isRunning() && checkChildren()) {
-					operationstate = OperationState.REQUESTDATA;
-					int rows = rowproducer.poll(aftersleep);
-					rowsprocessed += rows;
-					if (rows != 0) {
-						lastdatatimestamp = System.currentTimeMillis();
-					}
-					pollcalls++;
-					if (updateschemacaches) {
-						updateSchemaWithLatest();
-					}
-					if (ismetadatachanged) {
-						updateLandscape();
-					}
-					operationstate = OperationState.DONEREQUESTDATA;
-					// Sleep when no rows have been found, else continue reading the next batch
-					if (rows == 0 && (state == ControllerState.STARTED  || state == ControllerState.STARTING)) {
-						try {
-							Thread.sleep(rowproducer.getPollingInterval()*1000L);
-							aftersleep = true;
-						} catch (InterruptedException e) {
-							setLastException(e);
-							return;
-						}
-					} else {
-						aftersleep = false;
-					}
-				}
-			} catch (ConnectorTemporaryException e) { 
-				errors.addError(e, "Producer got error, retrying in 60s", null);
-				logger.error("Producer got error, retrying in 60s", e);
-			}
+		try (Producer<?,?> rowproducer = getConnectorFactory().createProducer(this)) {
+			rowproducer.createTopiclist();
+			rowproducer.startProducerChangeLogging();
 			
-			// Only reached in case there is an error - then we retry after a minute - or the thread is to be stopped
-			if (state == ControllerState.STARTED) {
-				operationstate = OperationState.ERRORWAITFORRETRY;
-				try {
-					Thread.sleep(60000);
-				} catch (InterruptedException e) {
-					lastexception = e;
-					interruptedflag = true;
-					return;
+			lastsourcetransactionid = rowproducer.getLastSuccessfulSourceTransaction();
+
+			if (lastsourcetransactionid == null || lastsourcetransactionid.length() == 0) {
+				rowproducer.initialLoad();
+			} else {
+				rowproducer.restartWith(lastsourcetransactionid);
+			}
+
+			operationstate = OperationState.REQUESTDATA;
+			rowproducer.startProducerCapture();
+			
+			boolean aftersleep = true;
+			
+			while (isRunning()) {
+				operationstate = OperationState.REQUESTDATA;
+				int rows = rowproducer.poll(aftersleep);
+				rowsprocessed += rows;
+				if (rows != 0) {
+					lastdatatimestamp = System.currentTimeMillis();
+				}
+				pollcalls++;
+				if (updateschemacaches) {
+					updateSchemaWithLatest();
+				}
+				if (ismetadatachanged) {
+					updateLandscape();
+				}
+				operationstate = OperationState.DONEREQUESTDATA;
+				// Sleep when no rows have been found, else continue reading the next batch
+				if (rows == 0 && isRunning()) {
+					sleep(rowproducer.getPollingInterval()*1000L);
+					aftersleep = true;
+				} else {
+					aftersleep = false;
 				}
 			}
-		} while (isRunning());
+		}
 	}
 	
 	/**

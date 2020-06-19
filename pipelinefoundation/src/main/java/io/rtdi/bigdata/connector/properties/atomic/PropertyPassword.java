@@ -1,5 +1,7 @@
 package io.rtdi.bigdata.connector.properties.atomic;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 
 public class PropertyPassword extends PropertyAbstract implements IPropertyValue {
@@ -27,6 +29,7 @@ public class PropertyPassword extends PropertyAbstract implements IPropertyValue
 		return value;
 	}
 
+	@JsonIgnore
 	public String getPassword() {
 		return value;
 	}

@@ -5,7 +5,7 @@ import org.apache.avro.LogicalTypes.Decimal;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 /**
  * ENUM to handle data type setting properly
@@ -15,120 +15,128 @@ public enum AvroType {
 	/**
 	 * A 8bit signed integer
 	 */
-	AVROBYTE,
+	AVROBYTE(0, AvroDatatypeClass.NUMBER),
 	/**
 	 * ASCII text of large size, comparison and sorting is binary
 	 */
-	AVROCLOB,
+	AVROCLOB(2, AvroDatatypeClass.TEXTASCII),
 	/**
 	 * Unicode text of large size, comparison and sorting is binary
 	 */
-	AVRONCLOB,
+	AVRONCLOB(4, AvroDatatypeClass.TEXTUNICODE),
 	/**
 	 * Unicode text up t n chars long, comparison and sorting is binary
 	 */
-	AVRONVARCHAR,
+	AVRONVARCHAR(3, AvroDatatypeClass.TEXTUNICODE),
 	/**
 	 * A 16bit signed integer
 	 */
-	AVROSHORT,
+	AVROSHORT(1, AvroDatatypeClass.NUMBER),
 	/**
 	 * A Spatial data type in WKT representation 
 	 */
-	AVROSTGEOMETRY,
+	AVROSTGEOMETRY(0, AvroDatatypeClass.TEXTASCII),
 	/**
 	 * A Spatial data type in WKT representation 
 	 */
-	AVROSTPOINT,
+	AVROSTPOINT(0, AvroDatatypeClass.TEXTASCII),
 	/**
 	 * A string as URI
 	 */
-	AVROURI,
+	AVROURI(0, AvroDatatypeClass.TEXTASCII),
 	/**
 	 * An ASCII string of n chars length, comparison and sorting is binary
 	 */
-	AVROVARCHAR,
+	AVROVARCHAR(1, AvroDatatypeClass.TEXTASCII),
 	/**
 	 * A date without time information 
 	 */
-	AVRODATE,
+	AVRODATE(0, AvroDatatypeClass.DATETIME),
 	/**
 	 * A numeric value with precision and scale
 	 */
-	AVRODECIMAL,
+	AVRODECIMAL(6, AvroDatatypeClass.NUMBER),
 	/**
 	 * A time information down to milliseconds
 	 */
-	AVROTIMEMILLIS,
+	AVROTIMEMILLIS(0, AvroDatatypeClass.DATETIME),
 	/**
 	 * A time information down to microseconds
 	 */
-	AVROTIMEMICROS,
+	AVROTIMEMICROS(1, AvroDatatypeClass.DATETIME),
 	/**
 	 * A timestamp down to milliseconds
 	 */
-	AVROTIMESTAMPMILLIS,
+	AVROTIMESTAMPMILLIS(2, AvroDatatypeClass.DATETIME),
 	/**
 	 * A timestamp down to microseconds
 	 */
-	AVROTIMESTAMPMICROS,
+	AVROTIMESTAMPMICROS(3, AvroDatatypeClass.DATETIME),
 	/**
 	 * Boolean
 	 */
-	AVROBOOLEAN,
+	AVROBOOLEAN(0, AvroDatatypeClass.BOOLEAN),
 	/**
 	 * A 32bit signed integer value
 	 */
-	AVROINT,
+	AVROINT(2, AvroDatatypeClass.NUMBER),
 	/**
 	 * A 64bit signed integer value
 	 */
-	AVROLONG,
+	AVROLONG(3, AvroDatatypeClass.NUMBER),
 	/**
 	 * A 32bit floating point number
 	 */
-	AVROFLOAT,
+	AVROFLOAT(4, AvroDatatypeClass.NUMBER),
 	/**
 	 * A 64bit floating point number
 	 */
-	AVRODOUBLE,
+	AVRODOUBLE(5, AvroDatatypeClass.NUMBER),
 	/**
 	 * Binary data of any length
 	 */
-	AVROBYTES,
+	AVROBYTES(1, AvroDatatypeClass.BINARY),
 	/**
 	 * A unbounded unicode text - prefer using nvarchar or nclob instead to indicate its normal length, comparison and sorting is binary
 	 */
-	AVROSTRING,
+	AVROSTRING(5, AvroDatatypeClass.TEXTUNICODE),
 	/**
 	 * A binary object with an upper size limit
 	 */
-	AVROFIXED,
+	AVROFIXED(0, AvroDatatypeClass.BINARY),
 	/**
 	 * A unicode string with a list of allowed values - one of enum(), comparison and sorting is binary
 	 */
-	AVROENUM,
+	AVROENUM(0, AvroDatatypeClass.TEXTUNICODE),
 	/**
 	 * A unicode string array with a list of allowed values - many of map(), comparison and sorting is binary
 	 */
-	AVROMAP,
+	AVROMAP(0, AvroDatatypeClass.COMPLEX),
 	/**
 	 * An ASCII string formatted as UUID, comparison and sorting is binary
 	 */
-	AVROUUID,
+	AVROUUID(0, AvroDatatypeClass.TEXTASCII),
 	/**
 	 * An array of elements
 	 */
-	AVROARRAY,
+	AVROARRAY(1, AvroDatatypeClass.COMPLEX),
 	/**
 	 * A Record of its own
 	 */
-	AVRORECORD,
+	AVRORECORD(0, AvroDatatypeClass.COMPLEX),
 	/**
 	 * An union of multiple primitive datatypes, e.g. used for extensions
 	 */
-	AVROANYPRIMITIVE;
+	AVROANYPRIMITIVE(99, AvroDatatypeClass.TEXTUNICODE);
 	
+	private int level;
+	private AvroDatatypeClass group;
+
+	AvroType(int level, AvroDatatypeClass group) {
+		this.level = level;
+		this.group = group;
+	}
+
 	public static AvroType getType(Schema schema) {
 		LogicalType l = schema.getLogicalType();
 		if (l != null) {
@@ -233,17 +241,17 @@ public enum AvroType {
 	
 	public static Schema getSchemaFromDataTypeRepresentation(String text) {
 		switch (text) {
-		case "boolean": return AvroBoolean.getSchema();
-		case "bytes": return AvroBytes.getSchema();
-		case "double": return AvroDouble.getSchema();
-		case "float": return AvroFloat.getSchema();
-		case "int": return AvroInt.getSchema();
-		case "long": return AvroLong.getSchema();
-		case "string": return AvroString.getSchema();
-		case "date": return AvroDate.getSchema();
-		case "time-millis": return AvroTime.getSchema();
-		case "timestamp-millis": return AvroTimestamp.getSchema();
-		case "uuid": return AvroUUID.getSchema();
+		case AvroBoolean.NAME: return AvroBoolean.getSchema();
+		case AvroBytes.NAME: return AvroBytes.getSchema();
+		case AvroDouble.NAME: return AvroDouble.getSchema();
+		case AvroFloat.NAME: return AvroFloat.getSchema();
+		case AvroInt.NAME: return AvroInt.getSchema();
+		case AvroLong.NAME: return AvroLong.getSchema();
+		case AvroString.NAME: return AvroString.getSchema();
+		case AvroDate.NAME: return AvroDate.getSchema();
+		case AvroTime.NAME: return AvroTime.getSchema();
+		case AvroTimestamp.NAME: return AvroTimestamp.getSchema();
+		case AvroUUID.NAME: return AvroUUID.getSchema();
 		case AvroAnyPrimitive.NAME: return AvroAnyPrimitive.getSchema();
 		case AvroByte.NAME:
 			return AvroByte.getSchema();
@@ -260,7 +268,7 @@ public enum AvroType {
 		case AvroUri.NAME:
 			return AvroUri.getSchema();
 		}
-		if (text.startsWith("decimal")) {
+		if (text.startsWith(AvroDecimal.NAME)) {
 			return AvroDecimal.getSchema(text);
 		} else if (text.startsWith(AvroNVarchar.NAME)) {
 			return AvroNVarchar.getSchema(text);
@@ -270,4 +278,147 @@ public enum AvroType {
 			return null;
 		}
 	}
+
+	public static IAvroDatatype getDataTypeFromString(String text) {
+		switch (text) {
+		case AvroBoolean.NAME: return AvroBoolean.create();
+		case AvroBytes.NAME: return AvroBytes.create();
+		case AvroDouble.NAME: return AvroDouble.create();
+		case AvroFloat.NAME: return AvroFloat.create();
+		case AvroInt.NAME: return AvroInt.create();
+		case AvroLong.NAME: return AvroLong.create();
+		case AvroString.NAME: return AvroString.create();
+		case AvroDate.NAME: return AvroDate.create();
+		case AvroTime.NAME: return AvroTime.create();
+		case AvroTimestamp.NAME: return AvroTimestamp.create();
+		case AvroUUID.NAME: return AvroUUID.create();
+		case AvroAnyPrimitive.NAME: return AvroAnyPrimitive.create();
+		case AvroByte.NAME:
+			return AvroByte.create();
+		case AvroCLOB.NAME:
+			return AvroCLOB.create();
+		case AvroNCLOB.NAME:
+			return AvroNCLOB.create();
+		case AvroShort.NAME:
+			return AvroShort.create();
+		case AvroSTGeometry.NAME:
+			return AvroSTGeometry.create();
+		case AvroSTPoint.NAME:
+			return AvroSTPoint.create();
+		case AvroUri.NAME:
+			return AvroUri.create();
+		}
+		if (text.startsWith(AvroDecimal.NAME)) {
+			return AvroDecimal.create(text);
+		} else if (text.startsWith(AvroNVarchar.NAME)) {
+			return AvroNVarchar.create(text);
+		} else if (text.startsWith(AvroVarchar.NAME)) {
+			return AvroVarchar.create(text);
+		} else {
+			return null;
+		}
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public AvroDatatypeClass getGroup() {
+		return group;
+	}
+	
+	public AvroType aggregate(AvroType t) {
+		if (this == t) {
+			return this;
+		} else if (this.getGroup() == t.getGroup()) {
+			// e.g. VARCHAR --> CLOB
+			if (level < t.level) {
+				return t;
+			} else {
+				return this;
+			}
+		} else {
+			// e.g. CLOB --> NVARCHAR
+			if (this.getGroup() == AvroDatatypeClass.TEXTASCII && t.getGroup() == AvroDatatypeClass.TEXTUNICODE) {
+				if (this == AVROCLOB) {
+					return AVRONCLOB;
+				} else {
+					return t;
+				}
+			} else {
+				// e.g. DATE --> STRING
+				return AVRONVARCHAR;
+			}
+		}
+	}
+	
+	public static IAvroDatatype getDataType(AvroType type, int length, int scale) {
+		if (type == null) {
+			return AvroNVarchar.create(100);
+		} else {
+			switch (type) {
+			case AVROANYPRIMITIVE:
+				return AvroAnyPrimitive.create();
+			case AVROARRAY:
+				return AvroArray.create();
+			case AVROBOOLEAN:
+				return AvroBoolean.create();
+			case AVROBYTE:
+				return AvroByte.create();
+			case AVROBYTES:
+				return AvroBytes.create();
+			case AVROCLOB:
+				return AvroCLOB.create();
+			case AVRODATE:
+				return AvroDate.create();
+			case AVRODECIMAL:
+				return AvroDecimal.create(length, scale);
+			case AVRODOUBLE:
+				return AvroDouble.create();
+			case AVROENUM:
+				return AvroEnum.create();
+			case AVROFIXED:
+				return AvroFixed.create(length);
+			case AVROFLOAT:
+				return AvroFloat.create();
+			case AVROINT:
+				return AvroInt.create();
+			case AVROLONG:
+				return AvroLong.create();
+			case AVROMAP:
+				return AvroMap.create();
+			case AVRONCLOB:
+				return AvroCLOB.create();
+			case AVRONVARCHAR:
+				return AvroNVarchar.create(length);
+			case AVRORECORD:
+				return AvroRecord.create();
+			case AVROSHORT:
+				return AvroShort.create();
+			case AVROSTGEOMETRY:
+				return AvroSTGeometry.create();
+			case AVROSTPOINT:
+				return AvroSTPoint.create();
+			case AVROSTRING:
+				return AvroString.create();
+			case AVROTIMEMICROS:
+				return AvroTimeMicros.create();
+			case AVROTIMEMILLIS:
+				return AvroTime.create();
+			case AVROTIMESTAMPMICROS:
+				return AvroTimestampMicros.create();
+			case AVROTIMESTAMPMILLIS:
+				return AvroTimestamp.create();
+			case AVROURI:
+				return AvroUri.create();
+			case AVROUUID:
+				return AvroUUID.create();
+			case AVROVARCHAR:
+				return AvroVarchar.create(length);
+			default:
+				return AvroNVarchar.create(length);
+			}
+		}
+	}
+
 }

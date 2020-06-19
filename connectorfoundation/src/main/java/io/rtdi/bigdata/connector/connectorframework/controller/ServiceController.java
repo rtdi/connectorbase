@@ -10,7 +10,6 @@ import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorCallerEx
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.MicroServiceTransformation;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
-import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerRequestedState;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ServiceProperties;
 
@@ -48,7 +47,7 @@ public class ServiceController extends Controller<Controller<?>> {
 			updateLandscape();
 		} else {
 			logger.info("Service not started as the properties are incomplete");
-			this.requestedstate = ControllerRequestedState.DISABLE;
+			this.controllerDisable();
 			throw new PropertiesException("Service is not configured completely");
 		}
 	}

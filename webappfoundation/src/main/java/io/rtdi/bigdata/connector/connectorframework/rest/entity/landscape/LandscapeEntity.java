@@ -22,8 +22,8 @@ public class LandscapeEntity extends NetworkEntity {
 		addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
 		addNode(producerid, NetworkNodeType.PRODUCER, producername, "Running at: " + host);
 		addNode(remoteconnectionid, NetworkNodeType.REMOTECONNECTION, remoteconnection, "Remote system: " + remoteconnection);
-		addEdge(producerid, apiconnectionid);
-		addEdge(remoteconnectionid, producerid);
+		// addEdge(producerid, apiconnectionid);
+		// addEdge(remoteconnectionid, producerid);
 	}
 
 	public void addConsumerNode(ConsumerEntity consumer) throws PropertiesRuntimeException {
@@ -37,8 +37,8 @@ public class LandscapeEntity extends NetworkEntity {
 		addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
 		addNode(consumerid, NetworkNodeType.PRODUCER, consumername, "Running at: " + host);
 		addNode(remoteconnectionid, NetworkNodeType.REMOTECONNECTION, remoteconnection, "Remote system: " + remoteconnection);
-		addEdge(apiconnectionid, consumerid);
-		addEdge(consumerid, remoteconnectionid);
+		// addEdge(apiconnectionid, consumerid);
+		// addEdge(consumerid, remoteconnectionid);
 	}
 
 	public void addServiceNode(ServiceEntity service) throws PropertiesRuntimeException {
@@ -50,15 +50,15 @@ public class LandscapeEntity extends NetworkEntity {
 			String backingserverid = "A:" + backingserver;
 			addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
 			addNode(backingserverid, NetworkNodeType.PIPELINESERVER, backingserver, backingserver);
-			addEdge(apiconnectionid, backingserverid);
-			addEdge(backingserverid, apiconnectionid);		
+			// addEdge(apiconnectionid, backingserverid);
+			// addEdge(backingserverid, apiconnectionid);		
 		} else {
 			String id = "S:" + name;
 			String host = service.getHostname();
 			addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
 			addNode(id, NetworkNodeType.SERVICE, name, "Running at: " + host);
-			addEdge(apiconnectionid, id);
-			addEdge(id, apiconnectionid);
+			// addEdge(apiconnectionid, id);
+			// addEdge(id, apiconnectionid);
 		}
 	}
 
@@ -78,7 +78,7 @@ public class LandscapeEntity extends NetworkEntity {
 			String backingserverconnectionid = "A:" + backingserverconnection; 
 			addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
 			addNode(backingserverconnectionid, NetworkNodeType.PIPELINESERVER, backingserverconnection, backingserverconnection);
-			addEdge(apiconnectionid, backingserverconnectionid);
+			// addEdge(apiconnectionid, backingserverconnectionid);
 		}
 	}
 

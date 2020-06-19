@@ -20,6 +20,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesExcept
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.PipelineConnectionProperties;
 import io.rtdi.bigdata.connector.properties.PipelineConnectionServerProperties;
@@ -41,7 +42,7 @@ public abstract class PipelineAbstract<
 				C extends ConsumerSession<T>> implements Closeable, IPipelineAPI<S, T, P, C> {
 
 	PipelineServerAbstract<? extends PipelineConnectionServerProperties,T,P,C> server;
-	private File webinfdir;
+	protected File webinfdir;
 
 	public PipelineAbstract() {
 		super();
@@ -137,7 +138,7 @@ public abstract class PipelineAbstract<
 	 * @see io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI#topicCreate(io.rtdi.bigdata.connector.pipeline.foundation.TopicName, int, int, java.util.Map)
 	 */
 	@Override
-	public T topicCreate(TopicName topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException {
+	public T topicCreate(TopicName topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
 		if (topic.getTenant().equals(getTenantID())) {
 			return server.createTopic(topic, partitioncount, replicationfactor, configs);
 		} else {
@@ -149,7 +150,7 @@ public abstract class PipelineAbstract<
 	 * @see io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI#topicCreate(io.rtdi.bigdata.connector.pipeline.foundation.TopicName, int, int)
 	 */
 	@Override
-	public T topicCreate(TopicName topic, int partitioncount, int replicationfactor) throws PropertiesException {
+	public T topicCreate(TopicName topic, int partitioncount, short replicationfactor) throws PropertiesException {
 		if (topic.getTenant().equals(getTenantID())) {
 			return server.topicCreate(topic, partitioncount, replicationfactor);
 		} else {
@@ -159,13 +160,13 @@ public abstract class PipelineAbstract<
 	
 
 	@Override
-	public T topicCreate(String topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException {
+	public T topicCreate(String topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
 		return topicCreate(new TopicName(getTenantID(), topic), partitioncount, replicationfactor, configs);
 	}
 
 
 	@Override
-	public T topicCreate(String topic, int partitioncount, int replicationfactor) throws PropertiesException {
+	public T topicCreate(String topic, int partitioncount, short replicationfactor) throws PropertiesException {
 		return topicCreate(topic, partitioncount, replicationfactor, null);
 	}
 
@@ -173,7 +174,7 @@ public abstract class PipelineAbstract<
 	 * @see io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI#getTopicOrCreate(java.lang.String, int, int, java.util.Map)
 	 */
 	@Override
-	public synchronized T getTopicOrCreate(String name, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException {
+	public synchronized T getTopicOrCreate(String name, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
 		T t = getTopic(name);
 		if (t == null) {
 			t = server.createTopic(new TopicName(getTenantID(), name), replicationfactor, replicationfactor, configs);
@@ -185,7 +186,7 @@ public abstract class PipelineAbstract<
 	 * @see io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI#getTopicOrCreate(java.lang.String, int, int)
 	 */
 	@Override
-	public final T getTopicOrCreate(String topicname, int partitioncount, int replicationfactor) throws PropertiesException {
+	public final T getTopicOrCreate(String topicname, int partitioncount, short replicationfactor) throws PropertiesException {
 		return getTopicOrCreate(topicname, partitioncount, replicationfactor, null);
 	}
 
@@ -387,8 +388,7 @@ public abstract class PipelineAbstract<
 	}
 
 	@Override
-	public void loadConnectionProperties(File webinfdir) throws PropertiesException {
-		this.webinfdir = webinfdir;
+	public void loadConnectionProperties() throws PropertiesException {
 		server.loadConnectionProperties(webinfdir);
 	}
 

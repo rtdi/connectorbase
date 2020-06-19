@@ -83,7 +83,7 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 	 * A ConsumerSession can maintain the list of topics it reads from either once, in this method, or dynamically.
 	 * This information is used for metadata.
 	 *  
-	 * Use {@link #addTopic(TopicHandler)} to actually add the individual topics.
+	 * Use addTopic(TopicHandler) to actually add the individual topics.
 	 * 
 	 * @throws PropertiesException in case the topics cannot be set
 	 */

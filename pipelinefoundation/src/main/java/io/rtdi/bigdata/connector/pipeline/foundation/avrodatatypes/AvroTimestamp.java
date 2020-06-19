@@ -102,4 +102,14 @@ public class AvroTimestamp extends LogicalType implements IAvroPrimitive {
 		return Type.LONG;
 	}
 
+	@Override
+	public Schema getDatatypeSchema() {
+		return schema;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVROTIMESTAMPMILLIS;
+	}
+
 }

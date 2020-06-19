@@ -52,7 +52,8 @@ public class ProducerControllerTests {
 		api = new PipelineTest();
 		api.open();
 		IConnectorFactory<?, ?, ?> factory = new FailingConnectorFactory();
-		connector = new ConnectorController(api , factory, "src/test/resource", null);
+		connector = new ConnectorController(factory, "src/test/resource", null);
+		connector.setAPI(api);
 		ConnectionController connection = connector.addConnection(factory.createConnectionProperties(null));
 		connection.addProducer(factory.createProducerProperties(null));
 		
@@ -66,7 +67,7 @@ public class ProducerControllerTests {
 	@Test
 	public void test() {
 		try {
-			connector.startController(false);
+			connector.startController();
 			Thread.sleep(360000);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -210,7 +211,7 @@ public class ProducerControllerTests {
 
 		@Override
 		public void createTopiclist() throws IOException {
-			topichandler = getPipelineAPI().getTopicOrCreate("FAIL", 1, 1);
+			topichandler = getPipelineAPI().getTopicOrCreate("FAIL", 1, (short) 1);
 			schemahandler = getPipelineAPI().getSchema("FAIL");
 			if (schemahandler == null) {
 				schemahandler = getPipelineAPI().registerSchema("FAIL", null, getKeySchema(), getValueSchema());

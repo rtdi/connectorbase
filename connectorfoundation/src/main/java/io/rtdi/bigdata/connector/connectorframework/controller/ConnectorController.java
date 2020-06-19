@@ -3,12 +3,16 @@ package io.rtdi.bigdata.connector.connectorframework.controller;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ServiceLoader;
 
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
+import io.rtdi.bigdata.connector.connectorframework.entity.PipelineName;
 import io.rtdi.bigdata.connector.connectorframework.entity.UsageStatistics;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorCallerException;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeException;
@@ -65,19 +69,54 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	private GlobalSettings globalsettings;
 	
 	/**
-	 * @param api with the PipelineAPI instance
 	 * @param factory for the connector to create all concrete classes
 	 * @param props global.properties data
 	 * @param connectordirpath pointing to the root directory of the connection properties
 	 */
-	public ConnectorController(IPipelineAPI<?,?,?,?> api, IConnectorFactory<?, ?, ?> factory, String connectordirpath, Properties props) {
+	public ConnectorController(IConnectorFactory<?, ?, ?> factory, String connectordirpath, Properties props) {
 		super(factory.getConnectorName());
 		this.connectorfactory = factory;
-		this.api = api;
 		this.configdir = new File(connectordirpath);
-		this.connectiondir = new File(configdir.getAbsolutePath() + File.separatorChar + "connections");
-		this.servicedir = new File(configdir.getAbsolutePath() + File.separatorChar + "services");
+		this.connectiondir = new File(configdir.getAbsolutePath(), "connections");
+		this.servicedir = new File(configdir.getAbsolutePath(), "services");
 		globalsettings = new GlobalSettings(props);
+	}
+	
+	public void setAPI(IPipelineAPI<?,?,?,?> api) {
+		this.api = api;
+	}
+	
+	public void setAPI() throws PropertiesException {
+		String apiclassname = globalsettings.getPipelineAPI();
+		if (apiclassname == null) {
+			apiclassname = "io.rtdi.bigdata.connectors.pipeline.kafkadirect.KafkaAPIdirect";
+			logger.info("The global.properties does not exist or has no settings for the PipelineAPI, using the default \"{}\"", apiclassname);
+		} else {
+			logger.info("The global.properties asks to use the class \"{}\"", apiclassname);
+		}
+		@SuppressWarnings("rawtypes")
+		ServiceLoader<IPipelineAPI> loader = ServiceLoader.load(IPipelineAPI.class);
+		int count = 0;
+		for (IPipelineAPI<?,?,?,?> serv : loader) {
+		    api = serv;
+			if (apiclassname != null && apiclassname.equals(serv.getClass().getSimpleName())) {
+				logger.info("The global.properties asks to use the class \"{}\" and we found it", apiclassname);
+				break;
+			} else {
+				logger.info("Found the pipeline class \"{}\"", api.getClass().getSimpleName());
+			}
+		    count++;
+		}
+		
+		if (count == 0) {
+			throw new PropertiesException("No class for a pipeline was found. Seems a jar file is missing in the web application?", 10001);
+		}
+		api.setWEBINFDir(configdir);
+		if (!api.hasConnectionProperties()) {
+			// User does not want to see the low level error but the fact that the properties are not set yet. 
+			throw new PropertiesException("No Connection Properties defined yet", "Use the home page to get to the UI for setting them", null, null);
+		}
+		api.loadConnectionProperties();
 	}
 	
 	/**
@@ -114,7 +153,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	public void writeConfigs() throws PropertiesException {
 		if (connectiondir.isDirectory()) {
 			for (ConnectionController conn : connections.values()) {
-				File conndir = new File(connectiondir.getAbsolutePath() + File.separatorChar + conn.getName());
+				File conndir = new File(connectiondir.getAbsolutePath(), conn.getName());
 				conndir.mkdir();
 				conn.writeConfigs();
 			}
@@ -135,13 +174,12 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	 */
 	@Override
 	protected void startThreadControllerImpl() throws IOException {
+		if (api == null) {
+			setAPI();
+		}
 		api.open();
 	}
 	
-	protected boolean retryPipelineTemporaryExceptions() {
-		return true;
-	}
-
 	/**
 	 * When the controller stops it does close the PipelineAPI and interrupts the usagestatistic sender in case it is active right this moment
 	 * 
@@ -155,35 +193,30 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 			try {
 				usagesender.join(1000);
 			} catch (InterruptedException e) {
-				setLastException(e);
 				logger.info("UsageSender Thread did not shutdown within one second when interrupted");
 			}
 		}
 	}
 	
-	@Override
-	public void run() {
-		/*
-		 * The connector itself is responsible to open/close the pipeline, see super.run();
-		 */
-		try {
-			while (isRunning()) {
-				super.run();
-				if (isRunning()) {
-					try {
-						Thread.sleep(60000);
-					} catch (InterruptedException e) {
-						setLastException(e);
-						return;
-					}
-				}
+	protected void runUntilError() throws Exception {
+		long executioncounter = 0;
+		while (isRunning()) {
+			if (executioncounter % 60 == 0) {
+				// Every minute check if all children are active and restart them in case
+				checkChildren();
 			}
-		} finally {
-			logger.info("Connector Controller stopped, should only happen at application shutdown");
+			periodictask(executioncounter);
+			executioncounter++;
+			sleep(1000);
 		}
 	}
 
-	@Override
+	/**
+	 * This method is called about every 1 second and allows to add custom periodic code
+	 * while the controller is running.
+	 * 
+	 * @param executioncounter providing the number of executions since start (within the runUntilError() method)
+	 */
 	protected void periodictask(long executioncounter) {
 		if (executioncounter % 7200 == 60) { // every two hours, starting one minute after start
 			updateLandscape();
@@ -209,6 +242,16 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 		return api;
 	}
 
+	public List<PipelineName> getPipelineAPIsAvailable() {
+		List<PipelineName> ret = new ArrayList<>();
+		@SuppressWarnings("rawtypes")
+		ServiceLoader<IPipelineAPI> loader = ServiceLoader.load(IPipelineAPI.class);
+		for (IPipelineAPI<?,?,?,?> serv : loader) {
+			ret.add(new PipelineName(serv.getClass().getSimpleName(), serv.getClass().getName()));
+		}
+		return ret;
+	}
+	
 	@Override
 	protected String getControllerType() {
 		return "ConnectorController";
@@ -302,6 +345,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	public class GlobalSettings {
 		private String ui5url = "https://openui5.hana.ondemand.com/resources/sap-ui-core.js";
 		private String companyname = null;
+		private String pipelineapi;
 		
 		public GlobalSettings() {
 		}
@@ -312,6 +356,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 					ui5url = props.getProperty("ui5url");
 				}
 				companyname = props.getProperty("companyname");
+				pipelineapi = props.getProperty("api");
 			}
 		}
 
@@ -329,6 +374,14 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 
 		public void setCompanyName(String companyname) {
 			this.companyname = companyname;
+		}
+
+		public String getPipelineAPI() {
+			return pipelineapi;
+		}
+
+		public void setPipelineAPI(String classname) {
+			this.pipelineapi = classname;
 		}
 
 	}

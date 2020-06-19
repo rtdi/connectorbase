@@ -93,4 +93,14 @@ public class AvroBytes extends LogicalType implements IAvroPrimitive {
 		return Type.BYTES;
 	}
 
+	@Override
+	public Schema getDatatypeSchema() {
+		return schema;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVROBYTES;
+	}
+
 }

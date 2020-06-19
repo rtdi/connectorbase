@@ -1,4 +1,4 @@
-package io.rtdi.bigdata.connector.pipeline.foundation;
+package io.rtdi.bigdata.connector.pipeline.foundation.utils;
 
 import java.io.IOException;
 import java.io.InputStream;

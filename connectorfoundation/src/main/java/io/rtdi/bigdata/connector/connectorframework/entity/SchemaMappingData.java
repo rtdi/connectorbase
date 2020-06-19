@@ -26,12 +26,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectionController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeException;
-import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroAnyPrimitive;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroType;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.AvroArray;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.AvroField;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 /**
  * This class serves two purposes, to render the UI properly and to save the content to a file.

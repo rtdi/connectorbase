@@ -4,8 +4,8 @@ import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.NameEncoder;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ContentSensitivity;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.NameEncoder;
 
 public class AvroField extends Field {
 

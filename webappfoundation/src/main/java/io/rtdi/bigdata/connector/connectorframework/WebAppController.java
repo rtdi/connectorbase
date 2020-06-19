@@ -20,7 +20,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
-import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesRuntimeException;
@@ -37,7 +36,6 @@ public class WebAppController implements ServletContextListener {
 
 	private static final String CONNECTOR = "CONNECTORCONTROLLER";
 	private static final String CONNECTORFACTORY = "CONNECTORFACTORY";
-	private static final String API = "API";
 	private static final String ERRORMESSAGE = "ERRORMESSAGE";
 	private ConnectorController connectorcontroller = null;
 	protected final Logger logger = LogManager.getLogger(this.getClass().getName());
@@ -49,14 +47,6 @@ public class WebAppController implements ServletContextListener {
 	 */
 	public static ConnectorController getConnector(ServletContext servletContext) {
 		return (ConnectorController) servletContext.getAttribute(CONNECTOR);
-	}
-
-	/**
-	 * @param servletContext ServletContext
-	 * @return The PipelineAPI to interact with the pipeline server
-	 */
-	public static IPipelineAPI<?,?,?,?> getPipelineAPI(ServletContext servletContext) {
-		return (IPipelineAPI<?,?,?,?>) servletContext.getAttribute(API);
 	}
 
 	/**
@@ -136,9 +126,6 @@ public class WebAppController implements ServletContextListener {
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
         try {
-			IPipelineAPI<?,?,?,?> api = null;
-			String apiclassname = null;
-			
 			String configdirpath = null;
 			
 			try {
@@ -170,42 +157,14 @@ public class WebAppController implements ServletContextListener {
 				if (propertiesstream != null) {
 					globalprops = new Properties();
 					globalprops.load(propertiesstream);
-					apiclassname = globalprops.getProperty("api"); // optional
-					if (apiclassname != null) {
-						logger.info("The global.properties asks to use the class \"{}\"", apiclassname);
-					}
 				}
 			}
-			
-			// Second load the PipelineAPI
-			@SuppressWarnings("rawtypes")
-			ServiceLoader<IPipelineAPI> loader = ServiceLoader.load(IPipelineAPI.class);
-			int count = 0;
-			for (IPipelineAPI<?,?,?,?> serv : loader) {
-			    api = serv;
-				if (apiclassname != null && apiclassname.equals(serv.getClass().getSimpleName())) {
-					logger.info("The global.properties asks to use the class \"{}\" and we found it", apiclassname);
-					count = 1;
-					break;
-				} else {
-					logger.info("Found the pipeline class \"{}\"", api.getClass().getSimpleName());
-				}
-			    count++;
-			}
-			
-			if (count == 0) {
-				throw new PropertiesException("No class for a pipeline was found. Seems a jar file is missing in the web application?", 10001);
-			} else if (count != 1) {
-				throw new PropertiesException("More than one IPipelineAPI class was found, hence do not know which one to use", 10002);
-			}
-			sce.getServletContext().setAttribute(API, api);
-
 			
 			// Third load the connector
 			IConnectorFactory<?, ?, ?> connectorfactory = null;
 			@SuppressWarnings("rawtypes")
 			ServiceLoader<IConnectorFactory> connectorloader = ServiceLoader.load(IConnectorFactory.class);
-			count = 0;
+			int count = 0;
 			for (IConnectorFactory<?,?,?> serv : connectorloader) {
 				connectorfactory = serv;
 			    count++;
@@ -220,18 +179,12 @@ public class WebAppController implements ServletContextListener {
 
 			logger.info("The root directory of all connector settings is \"{}\"", configdirpath);
 
-			connectorcontroller = new ConnectorController(api, connectorfactory, configdirpath, globalprops); // globalprops can be null
+			connectorcontroller = new ConnectorController(connectorfactory, configdirpath, globalprops); // globalprops can be null
 			sce.getServletContext().setAttribute(CONNECTOR, connectorcontroller);
 
-			// Fourth step is to read the properties of each and start the controller
-			api.setWEBINFDir(configdir);
-			if (!api.hasConnectionProperties(configdir)) {
-				// Use does not want to see the low level error but the fact that the properties are not set yet. 
-				throw new PropertiesException("No Connection Properties defined yet", "Use the home page to get to the UI for setting them", null, null);
-			}
-			api.loadConnectionProperties(configdir);
+			// Third step is to start the controller
 			connectorcontroller.readConfigs();
-			connectorcontroller.startController(false);
+			connectorcontroller.startController();
 			
 		} catch (Exception e) {
 			// An error is fine, it allows to start the web application still

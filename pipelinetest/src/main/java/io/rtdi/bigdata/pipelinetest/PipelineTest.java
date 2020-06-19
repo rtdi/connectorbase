@@ -40,7 +40,7 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 	}
 
 	@Override
-	public boolean hasConnectionProperties(File webinfdir) {
+	public boolean hasConnectionProperties() {
 		return true;
 	}
 

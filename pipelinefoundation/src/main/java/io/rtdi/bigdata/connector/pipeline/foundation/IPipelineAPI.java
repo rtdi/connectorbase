@@ -68,6 +68,8 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	List<String> getSchemas() throws PropertiesException;
 
 	/**
+	 * Creates a new topic and fails if it exists already. see {@link #getTopicOrCreate(String, int, short)}
+	 * 
 	 * @param topic TopicName
 	 * @param partitioncount for the topic
 	 * @param replicationfactor for the topic
@@ -75,18 +77,22 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @return TopicHandler
 	 * @throws PropertiesException if something goes wrong
 	 */
-	T topicCreate(TopicName topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException;
+	T topicCreate(TopicName topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException;
 
 	/**
+	 * Creates a new topic and fails if it exists already. see {@link #getTopicOrCreate(String, int, short)}
+	 * 
 	 * @param topic TopicName
 	 * @param partitioncount for the topic
 	 * @param replicationfactor for the topic
 	 * @return TopicHandler
 	 * @throws PropertiesException if something goes wrong
 	 */
-	T topicCreate(TopicName topic, int partitioncount, int replicationfactor) throws PropertiesException;
+	T topicCreate(TopicName topic, int partitioncount, short replicationfactor) throws PropertiesException;
 
 	/**
+	 * Creates a new topic and fails if it exists already. see {@link #getTopicOrCreate(String, int, short)}
+	 * 
 	 * @param topic name of the topic within the tenant
 	 * @param partitioncount for the topic
 	 * @param replicationfactor for the topic
@@ -94,19 +100,21 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @return TopicHandler
 	 * @throws PropertiesException if something goes wrong
 	 */
-	T topicCreate(String topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException;
+	T topicCreate(String topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException;
 
 	/**
+	 * Creates a new topic and fails if it exists already. see {@link #getTopicOrCreate(String, int, short)}
+	 * 
 	 * @param topic name of the topic within the tenant
 	 * @param partitioncount for the topic
 	 * @param replicationfactor for the topic
 	 * @return TopicHandler
 	 * @throws PropertiesException if something goes wrong
 	 */
-	T topicCreate(String topic, int partitioncount, int replicationfactor) throws PropertiesException;
+	T topicCreate(String topic, int partitioncount, short replicationfactor) throws PropertiesException;
 
 	/**
-	 * A synchronized version of the {@link #getTopic(String)} and {@link #topicCreate(TopicName, int, int, Map)} to deal with the case where 
+	 * A synchronized version of the {@link #getTopic(String)} and {@link #topicCreate(TopicName, int, short, Map)} to deal with the case where 
 	 * two threads want to create the same topic at the same time.
 	 * 
 	 * @param name name of the topic within the tenant
@@ -116,10 +124,10 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @return TopicHandler
 	 * @throws PropertiesException if something goes wrong
 	 */
-	T getTopicOrCreate(String name, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException;
+	T getTopicOrCreate(String name, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException;
 
 	/**
-	 * Simplified version of {@link #getTopicOrCreate(String, int, int, Map)} for convenience.
+	 * Simplified version of {@link #getTopicOrCreate(String, int, short, Map)} for convenience.
 	 * 
 	 * @param topicname name of the topic within the tenant
 	 * @param partitioncount for the topic
@@ -128,7 +136,7 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @throws PropertiesException if something goes wrong
 	 * 
 	 */
-	T getTopicOrCreate(String topicname, int partitioncount, int replicationfactor) throws PropertiesException;
+	T getTopicOrCreate(String topicname, int partitioncount, short replicationfactor) throws PropertiesException;
 
 	/**
 	 * Get the TopicHandler of an already existing topic.
@@ -263,17 +271,16 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	/**
 	 * Find the properties file in the provided directory structure and load the contents so the {@link #open()} has all information it needs.
 	 * 
-	 * @param webinfdir root directory of the settings directory tree
 	 * @throws PropertiesException in case properties are wrong
 	 */
-	public void loadConnectionProperties(File webinfdir) throws PropertiesException;
+	public void loadConnectionProperties() throws PropertiesException;
 
 	public void reloadConnectionProperties() throws PropertiesException;
 
 	/**
 	 * Write the current connection properties into a file within the currently active root directory tree. <br>
 	 * <br>
-	 * Note: The root directory needs to be set at the point. Usually because the {@link #loadConnectionProperties(File)} was called and it remembers that directory.
+	 * Note: The root directory needs to be set at the point. Usually because the {@link #loadConnectionProperties()} was called and it remembers that directory.
 	 * 
 	 * @throws PropertiesException in case the properties cannot be written
 	 * 
@@ -290,7 +297,7 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 */
 	public String getHostName();
 
-	boolean hasConnectionProperties(File webinfdir);
+	boolean hasConnectionProperties();
 
 	void setWEBINFDir(File webinfdir);
 

@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -52,12 +53,15 @@ import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
+import org.apache.kafka.common.config.SaslConfigs;
+import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -65,7 +69,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.AvroDeserialize;
 import io.rtdi.bigdata.connector.pipeline.foundation.AvroSerializer;
-import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.PipelineServerAbstract;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaName;
@@ -85,6 +88,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporar
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.TopicMetadata;
 import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.TopicMetadataPartition;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
 import io.rtdi.bigdata.connectors.pipeline.kafkadirect.schemaentity.Converter;
@@ -113,7 +117,6 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 	public static final String AVRO_FIELD_PRODUCINGTOPICNAME = "ProducingTopicName";
 	private static final long METADATAAGE = 6*3600*1000;
 		
-	protected String bootstrapserver;
 	private KafkaProducer<byte[], byte[]> producer;
 	private AdminClient admin;
 	private WebTarget target;
@@ -199,6 +202,7 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 	
 	private TopicPartition schemaregistrypartition = new TopicPartition(SCHEMA_TOPIC_NAME, 0);
 	private Collection<TopicPartition> schemaregistrypartitions = Collections.singletonList(schemaregistrypartition);
+	private KafkaConnectionProperties connectionprops;
 
 	public KafkaServer(File rootdir) throws PropertiesException {
 		this();
@@ -224,16 +228,35 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
     @Override
 	public void setConnectionProperties(KafkaConnectionProperties kafkaconnectionproperties) {
 		super.setConnectionProperties(kafkaconnectionproperties);
-    	bootstrapserver = kafkaconnectionproperties.getKafkaBootstrapServers();
-		consumerprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapserver);
+		this.connectionprops = kafkaconnectionproperties;
+		consumerprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaconnectionproperties.getKafkaBootstrapServers());
+		addSecurityProperties(consumerprops);
 	}
-
+    
+    private void addSecurityProperties(Map<String, Object> propmap) {
+		if (connectionprops.getKafkaAPIKey() != null && connectionprops.getKafkaAPIKey().length() > 0) {
+			/*
+			 * 	security.protocol=SASL_SSL
+			 *	sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule   required username="{{ CLUSTER_API_KEY }}"   password="{{ CLUSTER_API_SECRET }}";
+			 *	ssl.endpoint.identification.algorithm=https
+			 *	sasl.mechanism=PLAIN
+			 */
+			propmap.put("security.protocol", "SASL_SSL");
+			propmap.put(SaslConfigs.SASL_JAAS_CONFIG, 
+					"org.apache.kafka.common.security.plain.PlainLoginModule   required username=\"" +
+							connectionprops.getKafkaAPIKey() + "\"   password=\"" + 
+							connectionprops.getKafkaAPISecret() + "\";");
+			propmap.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, SslConfigs.DEFAULT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM);
+			propmap.put(SaslConfigs.SASL_MECHANISM, "PLAIN");
+		}    	
+    }
+    
 	@Override
     public void open() throws PropertiesException {
     	if (producer == null) {
     		try {
 		        Map<String, Object> producerprops = new HashMap<>();
-				producerprops.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapserver);
+				producerprops.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, connectionprops.getKafkaBootstrapServers());
 				producerprops.put(ProducerConfig.ACKS_CONFIG, "all");
 				producerprops.put(ProducerConfig.RETRIES_CONFIG, 0);
 				producerprops.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
@@ -241,9 +264,11 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 				producerprops.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
 				producerprops.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
 				producerprops.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
-				
+				addSecurityProperties(producerprops);
+
 				Map<String, Object> adminprops = new HashMap<>();
-				adminprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapserver);
+				adminprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, connectionprops.getKafkaBootstrapServers());
+				addSecurityProperties(adminprops);
 		
 				producer = new KafkaProducer<byte[], byte[]>(producerprops);
 				admin = AdminClient.create(adminprops);
@@ -260,6 +285,12 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 					configuration.property(ClientProperties.CONNECT_TIMEOUT, 10000);
 					configuration.property(ClientProperties.READ_TIMEOUT, 10000);
 					Client client = ClientBuilder.newClient(configuration).register(JacksonFeature.class);
+					if (getAPIProperties().getKafkaSchemaRegistryKey() != null && getAPIProperties().getKafkaSchemaRegistryKey().length() > 0) {
+						HttpAuthenticationFeature auth = HttpAuthenticationFeature.basic(
+								getAPIProperties().getKafkaSchemaRegistryKey(), 
+								getAPIProperties().getKafkaSchemaRegistrySecret());
+						client.register(auth);
+					}
 	
 					target = client.target(uri);
 				} else {
@@ -360,7 +391,7 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 		if (topichandler == null) {
 			HashMap<String, String> props = new HashMap<String, String>();
 			props.put(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT);
-			return createTopic(topicname, 1, 1, props);
+			return createTopic(topicname, 1, (short) 1, props);
 		} else {
 			return topichandler;
 		}
@@ -544,9 +575,15 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
    }
 		
     @Override
-	public TopicHandler createTopic(TopicName topic, int partitioncount, int replicationfactor, Map<String, String> props) throws PropertiesException {
+	public TopicHandler createTopic(TopicName topic, int partitioncount, short replicationfactor, Map<String, String> props) throws PropertiesException {
 		try {
-			NewTopic t = new NewTopic(topic.toString(), partitioncount, (short) replicationfactor);
+			Optional<Short> repfactor;
+			if (replicationfactor <= 1) {
+				repfactor = Optional.empty();
+			} else {
+				repfactor = Optional.of(replicationfactor);
+			}
+			NewTopic t = new NewTopic(topic.toString(), Optional.of(partitioncount), repfactor);
 			if (props != null) {
 				t.configs(props);
 			}
@@ -659,11 +696,12 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 				count = 10;
 			}
 			Map<String, Object> consumerprops = new HashMap<>();
-			consumerprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapserver);
+			consumerprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, connectionprops.getKafkaBootstrapServers());
 			consumerprops.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 			consumerprops.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, count);
 			consumerprops.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
 			consumerprops.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+			addSecurityProperties(consumerprops);
 	
 			consumerprops.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 			consumerprops.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);

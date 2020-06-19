@@ -34,9 +34,14 @@ init : function() {
 		var oModelSchemas = new JSONModel();
 		oModelSchemas.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas");
 		this.getView().setModel(oModelSchemas, "schemas");
+
+		var oModelTopics = new JSONModel();
+		oModelTopics.loadData("../rest/topics");
+		this.getView().setModel(oModelTopics, "topics");
 	}	
 },
 save : function(oEvent) {
+	var that = this;
 	var oModel = this.getView().getModel();
 	var data = JSON.stringify(oModel.getJSON());
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
@@ -49,7 +54,7 @@ save : function(oEvent) {
 	    	if (xmlhttp.status == 200) {
 		        sap.m.MessageToast.show("Saved");
 		    } else {
-		        this.displayError({ "message" : xmlhttp.responseText });
+		        that.displayError({ "message" : xmlhttp.responseText });
 		    }
 		}
 	}

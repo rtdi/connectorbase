@@ -88,4 +88,14 @@ public class AvroMap extends LogicalType implements IAvroPrimitive {
 		return Type.MAP;
 	}
 
+	@Override
+	public Schema getDatatypeSchema() {
+		return null;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVROMAP;
+	}
+
 }

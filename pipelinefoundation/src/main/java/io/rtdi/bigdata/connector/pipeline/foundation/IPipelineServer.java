@@ -54,12 +54,12 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 	 * @return TopicHandler representing the topic with all its metadata
 	 * @throws PropertiesException if something goes wrong
 	 */
-	T createTopic(TopicName topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException;
+	T createTopic(TopicName topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException;
 
-	T topicCreate(TopicName topic, int partitioncount, int replicationfactor) throws PropertiesException;
+	T topicCreate(TopicName topic, int partitioncount, short replicationfactor) throws PropertiesException;
 
 	/**
-	 * A synchronized version of the {@link #getTopic(TopicName)} and {@link #createTopic(TopicName, int, int, Map)} to deal with the case where 
+	 * A synchronized version of the {@link #getTopic(TopicName)} and {@link #createTopic(TopicName, int, short, Map)} to deal with the case where 
 	 * two threads want to create the same topic at the same time.
 	 * 
 	 * @param topic TopicName
@@ -69,10 +69,10 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 	 * @return TopicHandler
 	 * @throws PropertiesException if something goes wrong
 	 */
-	T getTopicOrCreate(TopicName topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException;
+	T getTopicOrCreate(TopicName topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException;
 
 	/**
-	 * A synchronized version of the {@link #getTopic(TopicName)} and {@link #createTopic(TopicName, int, int, Map)} to deal with the case where 
+	 * A synchronized version of the {@link #getTopic(TopicName)} and {@link #createTopic(TopicName, int, short, Map)} to deal with the case where 
 	 * two threads want to create the same topic at the same time.
 	 * 
 	 * @param topic TopicName
@@ -81,7 +81,7 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 	 * @return TopicHandler
 	 * @throws PropertiesException if something goes wrong
 	 */
-	T getTopicOrCreate(TopicName topic, int partitioncount, int replicationfactor) throws PropertiesException;
+	T getTopicOrCreate(TopicName topic, int partitioncount, short replicationfactor) throws PropertiesException;
 
 	List<String> getTopics(String tenantid) throws IOException;
 

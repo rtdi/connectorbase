@@ -106,4 +106,14 @@ public class AvroArray extends LogicalType implements IAvroPrimitive {
 		return Type.ARRAY;
 	}
 
+	@Override
+	public Schema getDatatypeSchema() {
+		return null;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVROARRAY;
+	}
+
 }

@@ -88,8 +88,8 @@ public class ServiceService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getServiceOrFail(servicename);
-			service.stopController(ControllerExitType.DISABLE);
-			boolean stopped = service.joinAll(ControllerExitType.DISABLE);
+			service.controllerDisable();
+			boolean stopped = service.joinAll(ControllerExitType.ABORT);
 			return Response.ok(stopped).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
@@ -104,7 +104,7 @@ public class ServiceService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getServiceOrFail(servicename);
-			service.startController(true);
+			service.startController();
 			//TODO: Return if the service was started correctly
 			return Response.ok().build();
 		} catch (Exception e) {

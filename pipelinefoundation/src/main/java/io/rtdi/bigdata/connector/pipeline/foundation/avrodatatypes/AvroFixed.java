@@ -12,9 +12,11 @@ import org.apache.avro.Schema;
 public class AvroFixed extends LogicalTypeWithLength implements IAvroPrimitive {
 	public static final Factory factory = new Factory();
 	public static final String NAME = "FIXED";
+	private Schema schema;
 
 	public AvroFixed(int length) {
 		super(NAME, length);
+		this.schema = addToSchema(Schema.create(Type.FIXED));
 	}
 
 	public static AvroFixed create(int length) {
@@ -81,6 +83,16 @@ public class AvroFixed extends LogicalTypeWithLength implements IAvroPrimitive {
 	@Override
 	public Type getBackingType() {
 		return Type.FIXED;
+	}
+
+	@Override
+	public Schema getDatatypeSchema() {
+		return schema;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVROFIXED;
 	}
 
 }

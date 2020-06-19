@@ -20,9 +20,5 @@ public enum ControllerExitType {
 	/**
 	 * Stop immediately at all costs, use thread.interrupt().
 	 */
-	ABORT,
-	/**
-	 * The user asked to disable the controller, meaning it exists but should not be started
-	 */
-	DISABLE
+	ABORT
 }

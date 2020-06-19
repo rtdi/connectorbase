@@ -17,6 +17,11 @@ import io.rtdi.bigdata.connector.properties.PipelineConnectionProperties;
 public class KafkaConnectionProperties extends PipelineConnectionProperties {
 	private static final String KAFKABOOTSTRAPSERVERS = "kafka.bootstrapservers";
 	private static final String KAFKASCHEMAREGISTRYURL = "kafka.schemaregistry.url";
+	// private static final String SECURITYPROTOCOL = "kafka.security.protocol";
+	private static final String APIKEY = "kafka.api.key";
+	private static final String APISECRET = "kafka.api.secret";
+	private static final String KAFKASCHEMAREGISTRYKEY = "kafka.schemaregistry.security.key";
+	private static final String KAFKASCHEMAREGISTRYSECRET = "kafka.schemaregistry.security.secret";
 	
 	
 	/**
@@ -25,7 +30,11 @@ public class KafkaConnectionProperties extends PipelineConnectionProperties {
 	public KafkaConnectionProperties() {
 		super("Kafka");
 		properties.addStringProperty(KAFKABOOTSTRAPSERVERS, "Bootstrap Server list", "A comma separated list of kafka servers", null, null, false);
+		properties.addStringProperty(APIKEY, "Optional cluster key", "The SASL security key", null, null, true);
+		properties.addPasswordProperty(APISECRET, "Optional cluster secret string", "The SASL secret matching the key", null, null, true);
 		properties.addStringProperty(KAFKASCHEMAREGISTRYURL, "Optional schema registry url", "The url to the Kafka schema registry service or null", null, null, true);
+		properties.addStringProperty(KAFKASCHEMAREGISTRYKEY, "Optional schema registry key", "The key to login to the schema registry", null, null, true);
+		properties.addPasswordProperty(KAFKASCHEMAREGISTRYSECRET, "Optional schema registry secret string", "The matching secret to login to the schema registry", null, null, true);
 	}
 
 	public KafkaConnectionProperties(File connectordir) throws PropertiesException {
@@ -46,6 +55,16 @@ public class KafkaConnectionProperties extends PipelineConnectionProperties {
 		properties.setProperty(KAFKASCHEMAREGISTRYURL, schemaregistry);
 	}
 
+	public void setKafkaSecurity(String key, String secret) throws PropertiesException {
+		properties.setProperty(APIKEY, key);
+		properties.setProperty(APISECRET, secret);
+	}
+
+	public void setSchemaRegistrySecurity(String key, String secret) throws PropertiesException {
+		properties.setProperty(KAFKASCHEMAREGISTRYKEY, key);
+		properties.setProperty(KAFKASCHEMAREGISTRYSECRET, secret);
+	}
+
 	/**
 	 * @return The Kafka Bootstrap Server list
 	 */
@@ -56,5 +75,18 @@ public class KafkaConnectionProperties extends PipelineConnectionProperties {
 	public String getKafkaSchemaRegistry() {
 		return properties.getStringPropertyValue(KAFKASCHEMAREGISTRYURL);
 	}
-	
+
+	public String getKafkaAPIKey() {
+		return properties.getStringPropertyValue(APIKEY);
+	}
+	public String getKafkaAPISecret() {
+		return properties.getPasswordPropertyValue(APISECRET);
+	}
+	public String getKafkaSchemaRegistryKey() {
+		return properties.getStringPropertyValue(KAFKASCHEMAREGISTRYKEY);
+	}
+	public String getKafkaSchemaRegistrySecret() {
+		return properties.getPasswordPropertyValue(KAFKASCHEMAREGISTRYSECRET);
+	}
+
 }

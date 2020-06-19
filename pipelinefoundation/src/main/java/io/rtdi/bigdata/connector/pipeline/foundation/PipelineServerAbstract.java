@@ -35,7 +35,7 @@ public abstract class PipelineServerAbstract<S extends PipelineConnectionServerP
 	 * @see io.rtdi.bigdata.connector.pipeline.foundation.IPipelineServer#topicCreate(io.rtdi.bigdata.connector.pipeline.foundation.TopicName, int, int)
 	 */
 	@Override
-	public T topicCreate(TopicName topic, int partitioncount, int replicationfactor) throws PropertiesException {
+	public T topicCreate(TopicName topic, int partitioncount, short replicationfactor) throws PropertiesException {
 		return createTopic(topic, partitioncount, replicationfactor, null);
 	}
 
@@ -43,7 +43,7 @@ public abstract class PipelineServerAbstract<S extends PipelineConnectionServerP
 	 * @see io.rtdi.bigdata.connector.pipeline.foundation.IPipelineServer#getTopicOrCreate(io.rtdi.bigdata.connector.pipeline.foundation.TopicName, int, int, java.util.Map)
 	 */
 	@Override
-	public synchronized T getTopicOrCreate(TopicName topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException {
+	public synchronized T getTopicOrCreate(TopicName topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
 		T t = getTopic(topic);
 		if (t == null) {
 			t= createTopic(topic, replicationfactor, replicationfactor, configs);
@@ -55,7 +55,7 @@ public abstract class PipelineServerAbstract<S extends PipelineConnectionServerP
 	 * @see io.rtdi.bigdata.connector.pipeline.foundation.IPipelineServer#getTopicOrCreate(io.rtdi.bigdata.connector.pipeline.foundation.TopicName, int, int)
 	 */
 	@Override
-	public T getTopicOrCreate(TopicName topic, int partitioncount, int replicationfactor) throws PropertiesException {
+	public T getTopicOrCreate(TopicName topic, int partitioncount, short replicationfactor) throws PropertiesException {
 		return getTopicOrCreate(topic, partitioncount, replicationfactor, null);
 	}
 	

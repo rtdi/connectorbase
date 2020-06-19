@@ -1,5 +1,6 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 
+import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 
 public interface IAvroDatatype {
@@ -10,4 +11,7 @@ public interface IAvroDatatype {
 
 	Type getBackingType();
 
+	Schema getDatatypeSchema();
+
+	AvroType getAvroType();
 }

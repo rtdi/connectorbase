@@ -91,4 +91,14 @@ public class AvroDouble extends LogicalType implements IAvroPrimitive {
 		return Type.DOUBLE;
 	}
 
+	@Override
+	public Schema getDatatypeSchema() {
+		return schema;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVRODOUBLE;
+	}
+
 }

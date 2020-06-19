@@ -28,11 +28,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
 import io.rtdi.bigdata.connector.pipeline.foundation.test.FetchRowProcessor;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
-import io.rtdi.bigdata.pipelinehttp.ConnectionPropertiesHttp;
-import io.rtdi.bigdata.pipelinehttp.ConsumerSessionHttp;
-import io.rtdi.bigdata.pipelinehttp.PipelineHttp;
-import io.rtdi.bigdata.pipelinehttp.ProducerSessionHttp;
-import io.rtdi.bigdata.pipelinehttp.TopicHandlerHttp;
 
 public class TopicTestsIT {
 	private PipelineHttp api;
@@ -58,7 +53,7 @@ public class TopicTestsIT {
 	@Test
 	public void test() {
 		try {
-			TopicHandlerHttp handlerin = api.getTopicOrCreate("topic1", 1, 1);
+			TopicHandlerHttp handlerin = api.getTopicOrCreate("topic1", 1, (short) 1);
 			TopicHandlerHttp handlerout = api.getTopic("topic1");
 			assertEquals(handlerin, handlerout);
 			

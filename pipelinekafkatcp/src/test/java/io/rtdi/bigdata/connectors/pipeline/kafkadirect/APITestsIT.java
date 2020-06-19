@@ -22,8 +22,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.AvroRecordArray;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
-import io.rtdi.bigdata.connectors.pipeline.kafkadirect.KafkaAPIdirect;
-import io.rtdi.bigdata.connectors.pipeline.kafkadirect.KafkaConnectionProperties;
 
 public class APITestsIT {
 	private PipelineAbstract<?,?,?,?> api;
@@ -91,7 +89,7 @@ public class APITestsIT {
 		try {
 			TopicHandler topic1 = api.getTopic("Topic1");
 			if (topic1 == null) {
-				topic1 = api.topicCreate("Topic1", 1, 1);
+				topic1 = api.topicCreate("Topic1", 1, (short) 1);
 			}
 			Schema keyschema = getKeySchema().getSchema();
 			Schema valueschema = getValueSchema().getSchema();

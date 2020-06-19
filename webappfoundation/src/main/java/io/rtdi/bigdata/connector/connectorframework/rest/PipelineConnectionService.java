@@ -34,7 +34,8 @@ public class PipelineConnectionService {
 	@RolesAllowed(ServletSecurityConstants.ROLE_VIEW)
     public Response getPipelineConnection() {
 		try {
-			IPipelineAPI<?, ?, ?, ?> api = WebAppController.getPipelineAPI(servletContext);
+			ConnectorController connectorcontroller = WebAppController.getConnector(servletContext);
+			IPipelineAPI<?, ?, ?, ?> api = connectorcontroller.getPipelineAPI();
 			return Response.ok(api.getAPIProperties().getPropertyGroupNoPasswords()).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
@@ -47,16 +48,16 @@ public class PipelineConnectionService {
 	@RolesAllowed(ServletSecurityConstants.ROLE_CONFIG)
     public Response postPipelineConnection(PropertyRoot data) {
 		try {
-			IPipelineAPI<?, ?, ?, ?> api = WebAppController.getPipelineAPI(servletContext);
+			WebAppController.clearError(servletContext);
+			ConnectorController connectorcontroller = WebAppController.getConnector(servletContext);
+			IPipelineAPI<?, ?, ?, ?> api = connectorcontroller.getPipelineAPI();
 			api.getAPIProperties().setValue(data);
 			api.writeConnectionProperties();
 			api.reloadConnectionProperties();
-			WebAppController.clearError(servletContext);
-			ConnectorController connectorcontroller = WebAppController.getConnector(servletContext);
 			connectorcontroller.stopController(ControllerExitType.ABORT);
 			connectorcontroller.joinAll(ControllerExitType.ABORT);
 			connectorcontroller.readConfigs();
-			connectorcontroller.startController(false);
+			connectorcontroller.startController();
 			return Response.ok("created").build();
 		} catch (Exception e) {
 			WebAppController.setError(servletContext, e);

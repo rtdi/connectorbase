@@ -97,4 +97,14 @@ public class AvroUri extends LogicalType implements IAvroPrimitive {
 		return Type.STRING;
 	}
 
+	@Override
+	public Schema getDatatypeSchema() {
+		return schema;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVROURI;
+	}
+
 }

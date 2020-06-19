@@ -95,7 +95,7 @@ public class PipelineServerTest extends PipelineServerAbstract<PipelineConnectio
 	}
 
 	@Override
-	public TopicHandlerTest createTopic(TopicName topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException {
+	public TopicHandlerTest createTopic(TopicName topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
 		TopicHandlerTest t = topics.get(topic);
 		if (t == null) {
 			t = new TopicHandlerTest(topic, 1, 1);

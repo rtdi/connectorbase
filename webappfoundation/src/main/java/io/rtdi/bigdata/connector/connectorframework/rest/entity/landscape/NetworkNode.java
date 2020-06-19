@@ -1,5 +1,8 @@
 package io.rtdi.bigdata.connector.connectorframework.rest.entity.landscape;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesRuntimeException;
 
 public class NetworkNode {
@@ -7,16 +10,18 @@ public class NetworkNode {
 	private String label;
 	private String title;
 	private String type;
+	private List<NetworkNode> children;
+	private List<String> links;
 
 	public NetworkNode() {
 	}
 	
 	public NetworkNode(String id, NetworkNodeType type, String label, String desc) throws PropertiesRuntimeException {
-		if (id == null || label == null || desc == null) {
-			throw new PropertiesRuntimeException("Neither of id, label, desc or color can be null (\"" +
+		if (id == null || label == null || type == null) {
+			throw new PropertiesRuntimeException("Neither of id, label or type can be null (\"" +
 					id + "\"," +
 					label + "\"," +
-					desc + "\")" 
+					type + "\")" 
 					);
 		}
 		this.id = id;
@@ -24,7 +29,28 @@ public class NetworkNode {
 		this.title = desc;
 		this.type = type.name();
 	}
+	
+	public void addChild(NetworkNode n) {
+		if (children == null) {
+			children = new ArrayList<>();
+		}
+		children.add(n);
+	}
+	
+	public void addLink(NetworkNode n) {
+		if (links == null) {
+			links = new ArrayList<>();
+		}
+		links.add(n.getId());
+	}
 
+	public void addLink(String id) {
+		if (links == null) {
+			links = new ArrayList<>();
+		}
+		links.add(id);
+	}
+	
 	public String getId() {
 		return id;
 	}
@@ -36,19 +62,6 @@ public class NetworkNode {
 	public String getTitle() {
 		return title;
 	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public void setLabel(String label) {
-		this.label = label;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
 
 	@Override
 	public int hashCode() {
@@ -75,11 +88,12 @@ public class NetworkNode {
 		return type;
 	}
 
-	public void setType(String type) {
-		this.type = type;
+	public List<NetworkNode> getChildren() {
+		return children;
 	}
 
-	public void setType(NetworkNodeType type) {
-		this.type = type.name();
+	public List<String> getLinks() {
+		return links;
 	}
+
 }

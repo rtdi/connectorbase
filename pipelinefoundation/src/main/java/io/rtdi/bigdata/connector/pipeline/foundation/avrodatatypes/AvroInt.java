@@ -91,4 +91,14 @@ public class AvroInt extends LogicalType implements IAvroPrimitive {
 		return Type.INT;
 	}
 
+	@Override
+	public Schema getDatatypeSchema() {
+		return schema;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVROINT;
+	}
+
 }

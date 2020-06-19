@@ -11,10 +11,10 @@ import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericRecord;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
-import io.rtdi.bigdata.connector.pipeline.foundation.NameEncoder;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroInt;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.NameEncoder;
 
 /**
  * The base class for creating key and value schemas and to create subschemas 
@@ -29,7 +29,8 @@ public class SchemaBuilder {
 	private Map<String, SchemaBuilder> childbuilders = new HashMap<>();
 
 	protected SchemaBuilder(String name, String namespace, String description) {
-		schema = Schema.createRecord(name, description, namespace, false);
+		schema = Schema.createRecord(NameEncoder.encodeName(name), description, namespace, false);
+		schema.addProp(AvroField.COLUMN_PROP_ORIGINALNAME, name);
 	}
 	
 	public SchemaBuilder(String name, String description) {
@@ -96,12 +97,12 @@ public class SchemaBuilder {
 	 * Add a column of datatype array-of-records based on an existing SchemaBuilder.
 	 * 
 	 * @param columnname of the array column
-	 * @param arrayelement created via {@link ValueSchema#createNewSchema(String, String)}
+	 * @param arrayelement created via ValueSchema#createNewSchema(String, String)
 	 * @param description explaining the use of the field
 	 * @return AvroRecordArray, the added column
 	 * @throws SchemaException if the schema is invalid
 	 */
-	protected AvroRecordArray addColumnRecordArray(String columnname, SchemaBuilder arrayelement, String description) throws SchemaException {
+	public AvroRecordArray addColumnRecordArray(String columnname, SchemaBuilder arrayelement, String description) throws SchemaException {
 		validate(columnname);
 		
 		AvroRecordArray field = new AvroRecordArray(columnname, arrayelement, description, JsonProperties.NULL_VALUE);
@@ -212,7 +213,7 @@ public class SchemaBuilder {
 	}
 	
 	public String getName() {
-		return schema.getName();
+		return NameEncoder.decodeName(schema.getName());
 	}
 
 	public String getDescription() {

@@ -211,7 +211,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 
 	/**
 	 * Some implementations, the http-pipeline with the http-server, exchange the data in the serialized format already. Then this version comes in handy.
-	 * Therefore the {@link #addRowImpl(TopicHandler, Integer, SchemaHandler, GenericRecord, GenericRecord)}  
+	 * Therefore the addRowImpl(TopicHandler, Integer, SchemaHandler, GenericRecord, GenericRecord)  
 	 * 
 	 * @param topic this record should be put into
 	 * @param partition optional partition information

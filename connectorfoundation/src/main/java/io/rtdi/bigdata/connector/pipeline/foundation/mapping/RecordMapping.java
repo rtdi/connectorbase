@@ -17,11 +17,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.rtdi.bigdata.connector.connectorframework.entity.SchemaMappingData.SchemaElement;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeException;
-import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.IRecordMapping;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 public class RecordMapping extends Mapping implements IRecordMapping {
 

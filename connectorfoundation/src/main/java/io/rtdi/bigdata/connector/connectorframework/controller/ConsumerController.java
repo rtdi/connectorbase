@@ -1,5 +1,6 @@
 package io.rtdi.bigdata.connector.connectorframework.controller;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
@@ -28,10 +29,12 @@ public class ConsumerController extends Controller<ConsumerInstanceController> {
 
 	@Override
 	protected void stopControllerImpl(ControllerExitType exittype) {
+		stopChildControllers(exittype);
 	}
 
 	@Override
-	protected void startControllerImpl() throws PropertiesException {
+	protected void startControllerImpl() throws IOException {
+		startChildController();
 	}
 
 	public ConsumerProperties getConsumerProperties() {

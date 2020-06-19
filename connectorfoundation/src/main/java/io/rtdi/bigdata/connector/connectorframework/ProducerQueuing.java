@@ -10,6 +10,7 @@ import org.apache.avro.Schema.Field;
 
 import io.rtdi.bigdata.connector.connectorframework.controller.Controller;
 import io.rtdi.bigdata.connector.connectorframework.controller.ProducerInstanceController;
+import io.rtdi.bigdata.connector.connectorframework.controller.ThreadBasedController;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
@@ -43,7 +44,7 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 		int rows = 0;
 		Data data;
 		try {
-			while ((data = pollqueue.poll(1, TimeUnit.SECONDS)) != null && rows < 10000) {
+			while (getQueueProducer().isRunning() && (data = pollqueue.poll(1, TimeUnit.SECONDS)) != null && rows < 10000) {
 				if (executor == null || !executor.isRunning()) {
 					throw new ConnectorTemporaryException("Long Running executor terminated, nobody producing rows for the internal queue any longer", null,
 							"For whatever reason the Executor is no longer active", instance.getName());
@@ -59,7 +60,7 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 					commit(t, transactions.get(t));
 					transactions.remove(t);
 				} else {
-					logger.info("poll received record {}", data.valuerecord.toString());
+					logger.debug("poll received record {}", data.valuerecord.toString());
 					
 					JexlRecord targetvaluerecord;
 					if (data.schemahandler.getMapping() != null) {
@@ -78,8 +79,8 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 				}
 			}
 		} catch (InterruptedException e) {
-			instance.setLastException(e);
 			logger.info("Polling the source got interrupted");
+			this.getQueueProducer().interrupt();
 		}
 		return rows;
 	}
@@ -92,8 +93,8 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 		try {
 			pollqueue.put(commit);
 		} catch (InterruptedException e) {
-			instance.setLastException(e);
 			logger.info("Adding a record to the queue got interrupted");
+			this.getQueueProducer().interrupt();
 		}
 	}
 	
@@ -102,7 +103,7 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
-				instance.setLastException(e);
+				this.getQueueProducer().interrupt();
 				return;
 			}
 		}
@@ -116,8 +117,8 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 		try {
 			pollqueue.put(data);
 		} catch (InterruptedException e) {
-			instance.setLastException(e);
 			logger.info("Adding a record to the queue got interrupted");
+			this.getQueueProducer().interrupt();
 		}
 	}
 	
@@ -134,10 +135,17 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 		Controller<?> task = getQueueProducer();
 		instance.addChild(task.getName(), task);
 		this.executor = task;
-		task.startController(false);
+		task.startController();
 	}
 	
-	public abstract Controller<?> getQueueProducer();
+	@Override
+	public void close() {
+		instance.removeChildControllers();
+		super.close();
+	}
+
+	
+	public abstract ThreadBasedController<?> getQueueProducer();
 	
 	private static class Data {
 		private TopicHandler topichandler;

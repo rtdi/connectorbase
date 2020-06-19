@@ -30,29 +30,29 @@ public class ImpactLineageEntity extends NetworkEntity {
 	public void addProducedTopic(String topicname, ProducerEntity producer) throws PropertiesRuntimeException {
 		String topicid = "T:" + topicname;
 		String producerid = "P:" + producer.getProducerName();
-		addNode(topicid, NetworkNodeType.TOPIC, topicname, "Topic: " + topicname);
-		addEdge(producerid, topicid);
+		NetworkNode n = addNode(topicid, NetworkNodeType.TOPIC, topicname, "Topic: " + topicname);
+		n.addLink(producerid);
 	}
 
 	public void addConsumedTopic(String topicname, ConsumerEntity consumer) throws PropertiesRuntimeException {
 		String topicid = "T:" + topicname;
 		String consumerid = "P:" + consumer.getConsumerName();
-		addNode(topicid, NetworkNodeType.TOPIC, topicname, "Topic: " + topicname);
-		addEdge(topicid, consumerid);
+		NetworkNode n = addNode(topicid, NetworkNodeType.TOPIC, topicname, "Topic: " + topicname);
+		n.addLink(consumerid);
 	}
 
 	public void addServiceProducedTopic(String topicname, ServiceEntity service) throws PropertiesRuntimeException {
 		String topicid = "T:" + topicname;
 		String serviceid = "S:" + service.getServiceName();
-		addNode(topicid, NetworkNodeType.TOPIC, topicname, "Topic: " + topicname);
-		addEdge(serviceid, topicid);
+		NetworkNode n = addNode(topicid, NetworkNodeType.TOPIC, topicname, "Topic: " + topicname);
+		n.addLink(serviceid);
 	}
 
 	public void addServiceConsumedTopic(String topicname, ServiceEntity service) throws PropertiesRuntimeException {
 		String topicid = "T:" + topicname;
 		String serviceid = "S:" + service.getServiceName();
-		addNode(topicid, NetworkNodeType.TOPIC, topicname, "Topic: " + topicname);
-		addEdge(topicid, serviceid);
+		NetworkNode n = addNode(topicid, NetworkNodeType.TOPIC, topicname, "Topic: " + topicname);
+		n.addLink(serviceid);
 	}
 
 }

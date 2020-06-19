@@ -53,4 +53,14 @@ public class AvroRecord implements IAvroDatatype {
 		return Type.RECORD;
 	}
 
+	@Override
+	public Schema getDatatypeSchema() {
+		return null;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVRORECORD;
+	}
+
 }

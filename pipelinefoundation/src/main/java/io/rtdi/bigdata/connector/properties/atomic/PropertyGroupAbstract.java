@@ -113,6 +113,15 @@ public abstract class PropertyGroupAbstract {
 		}
 	}
 
+	public List<String> getMultiSchemaSelectorValue(String name) throws PropertiesException {
+		IProperty e = getElement(name);
+		if (e instanceof PropertyString) {
+			return ((PropertyMultiSchemaSelector) e).getValue();
+		} else {
+			throw new PropertiesException("A property of the name \"" + name + "\" exists but is not of a MultiSchemaSelector type");
+		}
+	}
+
 	public Boolean getBooleanPropertyValue(String name) {
 		IProperty e = getElement(name);
 		if (e instanceof PropertyBoolean) {
@@ -137,16 +146,6 @@ public abstract class PropertyGroupAbstract {
 		IProperty e = getElement(name);
 		if (e instanceof PropertyArrayList) {
 			return ((PropertyArrayList) e).getValue();
-		} else {
-			// throw new PropertiesException("A property of the name \"" + name + "\" exists but is not of an Array type");
-			return null;
-		}
-	}
-
-	public List<String> getSchemaSelectorValue(String name) {
-		IProperty e = getElement(name);
-		if (e instanceof PropertySchemaSelector) {
-			return ((PropertySchemaSelector) e).getValue();
 		} else {
 			// throw new PropertiesException("A property of the name \"" + name + "\" exists but is not of an Array type");
 			return null;
@@ -199,7 +198,19 @@ public abstract class PropertyGroupAbstract {
 	public void addStringProperty(String name, String displayname, String description, String icon, String defaultvalue, boolean mandatory) {
 		addProperty(new PropertyString(name, displayname, description, icon, defaultvalue, mandatory));
 	}
-	
+
+	public void addSchemaSelector(String name, String displayname, String description, String icon, String defaultvalue, boolean mandatory) {
+		addProperty(new PropertySchemaSelector(name, displayname, description, icon, defaultvalue, mandatory));
+	}
+
+	public void addTopicSelector(String name, String displayname, String description, String icon, String defaultvalue, boolean mandatory) {
+		addProperty(new PropertyTopicSelector(name, displayname, description, icon, defaultvalue, mandatory));
+	}
+
+	public void addMultiSchemaSelectorProperty(String name, String displayname, String description, String icon, boolean mandatory) {
+		addProperty(new PropertyMultiSchemaSelector(name, displayname, description, icon, mandatory));
+	}
+
 	public void addTextProperty(String name, String displayname, String description, String icon, String defaultvalue, boolean mandatory) {
 		addProperty(new PropertyText(name, displayname, description, icon, defaultvalue, mandatory));
 	}
@@ -212,10 +223,6 @@ public abstract class PropertyGroupAbstract {
 		addProperty(new PropertyArrayList(name, displayname, description, icon, mandatory));
 	}
 	
-	public void addSchemaSelectorProperty(String name, String displayname, String description, String icon, boolean mandatory) {
-		addProperty(new PropertySchemaSelector(name, displayname, description, icon, mandatory));
-	}
-
 	public PropertyGroup addPropertyGroupProperty(String name, String displayname, String description, String icon, boolean mandatory) {
 		PropertyGroup p = new PropertyGroup(name, displayname, description, icon, mandatory);
 		addProperty(p);

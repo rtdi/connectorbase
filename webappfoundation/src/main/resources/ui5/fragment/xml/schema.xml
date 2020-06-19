@@ -8,7 +8,6 @@
 				<core:Icon src="sap-icon://database" size="2.625rem" color="Default" class="sapUiTinyMarginBottom"/>
 			</HBox>
 			<Title text="{tablename}" wrapping="true" tooltip="{tablename}"/>
-			<Text text="{tablename}" wrapping="true"  class="sapUiTinyMarginTop" />
 			<Text text="{description}" wrapping="true"  class="sapUiTinyMarginTop" />
 			<HBox justifyContent="SpaceBetween" class="sapUiSmallMarginTopBottom">
  				<Label text="Type" />

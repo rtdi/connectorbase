@@ -21,7 +21,7 @@ import io.rtdi.bigdata.connector.properties.ConsumerProperties;
  * <li>fetchBatch() of the PipelineAPI calls for each row {@link #process(String, long, int, byte[], byte[])} or 
  * {@link #process(String, long, int, org.apache.avro.generic.GenericRecord, org.apache.avro.generic.GenericRecord, int, int)}</li>
  * <li>flushDataImpl() is called once a while to commit the data</li>
- * <li>close with {@link #closeImpl()} is called to stop</li>
+ * <li>close is called</li>
  * </ul>
  * 
  * @param <S> ConnectionProperties

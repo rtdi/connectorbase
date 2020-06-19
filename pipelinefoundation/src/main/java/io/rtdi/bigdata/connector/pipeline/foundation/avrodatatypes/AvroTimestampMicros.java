@@ -1,6 +1,5 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 import org.apache.avro.LogicalType;
@@ -101,6 +100,16 @@ public class AvroTimestampMicros extends LogicalType implements IAvroPrimitive {
 	@Override
 	public Type getBackingType() {
 		return Type.LONG;
+	}
+
+	@Override
+	public Schema getDatatypeSchema() {
+		return schema;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVROTIMESTAMPMICROS;
 	}
 
 }

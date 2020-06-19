@@ -17,7 +17,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import org.apache.avro.Schema;
 import org.glassfish.jersey.client.ClientConfig;
@@ -28,7 +27,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaName;
@@ -37,6 +35,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.JAXBErrorMessage;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.SchemaEntity;
@@ -57,6 +56,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.TopicM
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.HttpUtil;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
 import io.rtdi.bigdata.connector.properties.ServiceProperties;
@@ -156,7 +156,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	}
 
 	@Override
-	public TopicHandlerHttp topicCreate(TopicName topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException {
+	public TopicHandlerHttp topicCreate(TopicName topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
 		TopicHandlerEntity entityin = new TopicHandlerEntity(topic.getName(), partitioncount, replicationfactor, configs);
 		Response entityresponse = postRestfulService(getRestEndpoint("/topic/byname", topic.getName()), entityin);
 		TopicHandlerEntity entityout = entityresponse.readEntity(TopicHandlerEntity.class);
@@ -165,7 +165,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	}
 
 	@Override
-	public TopicHandlerHttp topicCreate(String topic, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException {
+	public TopicHandlerHttp topicCreate(String topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
 		return topicCreate(new TopicName(getTenantID(), topic), partitioncount, replicationfactor, configs);
 	}
 
@@ -189,17 +189,17 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	}
 
 	@Override
-	public TopicHandlerHttp topicCreate(TopicName topic, int partitioncount, int replicationfactor) throws PropertiesException {
+	public TopicHandlerHttp topicCreate(TopicName topic, int partitioncount, short replicationfactor) throws PropertiesException {
 		return topicCreate(topic, partitioncount, replicationfactor, null);
 	}
 
 	@Override
-	public TopicHandlerHttp topicCreate(String topic, int partitioncount, int replicationfactor) throws PropertiesException {
+	public TopicHandlerHttp topicCreate(String topic, int partitioncount, short replicationfactor) throws PropertiesException {
 		return topicCreate(topic, partitioncount, replicationfactor, null);
 	}
 
 	@Override
-	public synchronized TopicHandlerHttp getTopicOrCreate(String topicname, int partitioncount, int replicationfactor, Map<String, String> configs) throws PropertiesException {
+	public synchronized TopicHandlerHttp getTopicOrCreate(String topicname, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
 		TopicHandlerHttp t = getTopic(topicname);
 		if (t == null) {
 			t = topicCreate(new TopicName(getTenantID(), topicname), replicationfactor, replicationfactor, configs);
@@ -209,7 +209,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 
 	
 	@Override
-	public TopicHandlerHttp getTopicOrCreate(String topicname, int partitioncount, int replicationfactor) throws PropertiesException {
+	public TopicHandlerHttp getTopicOrCreate(String topicname, int partitioncount, short replicationfactor) throws PropertiesException {
 		return getTopicOrCreate(topicname, partitioncount, replicationfactor, null);
 	}
 
@@ -388,19 +388,13 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	}
 
 	protected Response callRestfulservice(String path) throws PipelineRuntimeException {
-		if (target != null) {
+		checkTarget();
 			try {
 				Response response = target
 						.path(path)
 						.request(MediaType.APPLICATION_JSON_TYPE)
 						.get();
-				if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
-					return null;
-				} else if (response.getStatus() >= 200 && response.getStatus() < 300) {
-					return response;
-				} else {
-					throw new PipelineTemporaryException("restful call did return status \"" + response.getStatus() + "\"", null, response.getEntity().toString(), path);
-				}
+				return validateRestfulResponse(response, path);
 			} catch (ProcessingException e) {
 				if (e.getCause() instanceof ConnectException) {
 					throw new PipelineTemporaryException("restful call got an error", e.getCause(), null, path);
@@ -408,8 +402,21 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 					throw new PipelineRuntimeException("restful call got an error", e, null, path);
 				}
 			}
+	}
+	
+	private void checkTarget() throws PipelineRuntimeException {
+		if (target == null) {
+			throw new PipelineRuntimeException("Pipeline not connected with server yet");			
+		}
+	}
+	
+	private Response validateRestfulResponse(Response response, String path) throws PipelineTemporaryException {
+		if (response.getStatus() >= 200 && response.getStatus() < 300) {
+			return response;
 		} else {
-			throw new PipelineRuntimeException("Pipeline not connected with server yet");
+			JAXBErrorMessage o = response.readEntity(JAXBErrorMessage.class);
+			String t = o.getErrortext();
+			throw new PipelineTemporaryException("restful call did return status \"" + response.getStatus() + "\"", null, t, path);
 		}
 	}
 
@@ -419,11 +426,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 					.path(path)
 					.request(MediaType.APPLICATION_JSON_TYPE)
 					.post(Entity.entity(jsonPOJO, MediaType.APPLICATION_JSON_TYPE));
-			if (response.getStatus() >= 200 && response.getStatus() < 300) {
-				return response;
-			} else {
-				throw new PipelineTemporaryException("restful call did return status \"" + response.getStatus() + "\"", null, response.getEntity().toString(), path);
-			}
+			return validateRestfulResponse(response, path);
 		} catch (ProcessingException e) {
 			if (e.getCause() instanceof ConnectException) {
 				throw new PipelineTemporaryException("restful call got an error", e.getCause(), null, path);
@@ -439,11 +442,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 					.path(path)
 					.request(MediaType.APPLICATION_JSON_TYPE)
 					.delete();
-			if (response.getStatus() >= 200 && response.getStatus() < 300) {
-				return response;
-			} else {
-				throw new PipelineTemporaryException("restful call did return status \"" + response.getStatus() + "\"", null, response.getEntity().toString(), path);
-			}
+			return validateRestfulResponse(response, path);
 		} catch (ProcessingException e) {
 			if (e.getCause() instanceof ConnectException) {
 				throw new PipelineTemporaryException("restful call got an error", e.getCause(), null, path);
@@ -484,8 +483,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	}
 
 	@Override
-	public void loadConnectionProperties(File webinfdir) throws PropertiesException {
-		this.webinfdir = webinfdir;
+	public void loadConnectionProperties() throws PropertiesException {
 		properties.read(webinfdir);
 	}
 
@@ -522,7 +520,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	}
 
 	@Override
-	public boolean hasConnectionProperties(File webinfdir) {
+	public boolean hasConnectionProperties() {
 		return properties.hasPropertiesFile(webinfdir);
 	}
 

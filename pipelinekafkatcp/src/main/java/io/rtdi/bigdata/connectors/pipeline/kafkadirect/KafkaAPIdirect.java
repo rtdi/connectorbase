@@ -1,6 +1,5 @@
 package io.rtdi.bigdata.connectors.pipeline.kafkadirect;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.apache.avro.Schema;
@@ -59,7 +58,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	}
 
 	@Override
-	public boolean hasConnectionProperties(File webinfdir) {
+	public boolean hasConnectionProperties() {
 		return getAPIProperties().hasPropertiesFile(webinfdir);
 	}
 

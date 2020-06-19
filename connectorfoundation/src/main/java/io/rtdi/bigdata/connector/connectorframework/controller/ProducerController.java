@@ -1,9 +1,9 @@
 package io.rtdi.bigdata.connector.connectorframework.controller;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
-import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -30,10 +30,12 @@ public class ProducerController extends Controller<ProducerInstanceController> {
 
 	@Override
 	protected void stopControllerImpl(ControllerExitType exittype) {
+		stopChildControllers(exittype);
 	}
 
 	@Override
-	protected void startControllerImpl() throws ConnectorRuntimeException {
+	protected void startControllerImpl() throws IOException {
+		startChildController();
 	}
 
 	public ProducerProperties getProducerProperties() {

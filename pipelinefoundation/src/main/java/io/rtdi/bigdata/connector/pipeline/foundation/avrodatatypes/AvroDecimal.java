@@ -21,6 +21,7 @@ public class AvroDecimal extends LogicalType implements IAvroPrimitive {
 	private static final DecimalConversion DECIMAL_CONVERTER = new DecimalConversion();
 	public static final String NAME = "DECIMAL";
 	private Decimal decimal;
+	private Schema schema;
 
 	public static Schema getSchema(int precision, int scale) {
 		return create(precision, scale).addToSchema(Schema.create(Type.BYTES));
@@ -28,8 +29,14 @@ public class AvroDecimal extends LogicalType implements IAvroPrimitive {
 
 	public static Schema getSchema(String text) {
 		String[] parts = text.split("[\\(\\)\\,]");
-		int precision = Integer.parseInt(parts[1]);
-		int scale = Integer.parseInt(parts[2]);
+		int precision = 28;
+		int scale = 7;
+		if (parts.length > 1) {
+			precision = Integer.parseInt(parts[1]);
+		}
+		if (parts.length > 2) {
+			scale = Integer.parseInt(parts[2]);
+		}
 		return getSchema(precision, scale);
 	}
 	
@@ -41,23 +48,39 @@ public class AvroDecimal extends LogicalType implements IAvroPrimitive {
 		return new AvroDecimal(l);
 	}
 
-	private static LogicalType create(int precision, int scale) {
+	public static AvroDecimal create(int precision, int scale) {
+		return new AvroDecimal(precision, scale);
+	}
+
+	public static AvroDecimal create(String text) {
+		String[] parts = text.split("[\\(\\)\\,]");
+		int precision = 28;
+		int scale = 7;
+		if (parts.length > 1) {
+			precision = Integer.parseInt(parts[1]);
+		}
+		if (parts.length > 2) {
+			scale = Integer.parseInt(parts[2]);
+		}
 		return new AvroDecimal(precision, scale);
 	}
 
 	public AvroDecimal(int precision, int scale) {
 		super(NAME);
 		decimal = LogicalTypes.decimal(precision, scale);
+		this.schema = decimal.addToSchema(Schema.create(Type.BYTES));
 	}
 
 	public AvroDecimal(Schema schema) {
 		super(NAME);
 		decimal = (Decimal) LogicalTypes.fromSchema(schema);
+		this.schema = schema;
 	}
 
 	public AvroDecimal(Decimal l) {
 		super(NAME);
 		decimal = l;
+		this.schema = l.addToSchema(Schema.create(Type.BYTES));
 	}
 
 	@Override
@@ -82,7 +105,7 @@ public class AvroDecimal extends LogicalType implements IAvroPrimitive {
 	
 	@Override
 	public String toString() {
-		return NAME;
+		return NAME + "(" + decimal.getPrecision() + "," + decimal.getScale() + ")";
 	}
 
 	@Override
@@ -140,6 +163,16 @@ public class AvroDecimal extends LogicalType implements IAvroPrimitive {
 	@Override
 	public Type getBackingType() {
 		return Type.BYTES;
+	}
+
+	@Override
+	public Schema getDatatypeSchema() {
+		return schema;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVRODECIMAL;
 	}
 
 }

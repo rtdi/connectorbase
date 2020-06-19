@@ -16,13 +16,15 @@ import javax.ws.rs.core.Response;
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
+import io.rtdi.bigdata.connector.connectorframework.entity.PipelineName;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 
 
 @Path("/")
 public class HomeService {
-	
+	private static List<PipelineName> pipelineAPIsAvailable = null;
+
 	@Context
     private Configuration configuration;
 
@@ -35,10 +37,9 @@ public class HomeService {
 	@RolesAllowed(ServletSecurityConstants.ROLE_VIEW)
     public Response getConnectionProperties() {
 		try {
-			IPipelineAPI<?, ?, ?, ?> api = WebAppController.getPipelineAPI(servletContext);
 			ConnectorController controller = WebAppController.getConnector(servletContext);
 			IConnectorFactory<?, ?, ?> factory = WebAppController.getConnectorFactory(servletContext);
-			return Response.ok(new HomeEntity(api, controller, factory)).build();
+			return Response.ok(new HomeEntity(controller, factory)).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -55,40 +56,55 @@ public class HomeService {
 		private Long lastprocessed = null;
 		private boolean supportsconnections = true;
 		private boolean supportsservices = true;
+		private String pipelineAPIName;
+		private boolean pipelineAPIConfigured;
 		
 		public HomeEntity() {
 			super();
 		}
 		
-		public HomeEntity(IPipelineAPI<?, ?, ?, ?> api, ConnectorController controller, IConnectorFactory<?, ?, ?> factory) throws IOException {
+		public HomeEntity(ConnectorController controller, IConnectorFactory<?, ?, ?> factory) throws IOException {
+			if (factory != null) {
+				supportsconnections = factory.supportsConnections();
+				supportsservices = factory.supportsServices();
+			}
 			if (controller != null) {
-				connectioncount = controller.getConnections().size();
-				producercount = controller.getProducerCount();
-				consumercount = controller.getConsumerCount();
-				rowsprocessedcount = controller.getRowsProcessed();
-				lastprocessed = controller.getLastProcessed();
-				servicecount = controller.getServices().size();
-				if (factory != null) {
-					supportsconnections = factory.supportsConnections();
-					supportsservices = factory.supportsServices();
+				if (pipelineAPIsAvailable == null) {
+					pipelineAPIsAvailable = controller.getPipelineAPIsAvailable();
+				}
+				IPipelineAPI<?, ?, ?, ?> api = controller.getPipelineAPI();
+				if (api != null) {
+					pipelineAPIName = api.getClass().getSimpleName();
+					pipelineAPIConfigured = api.hasConnectionProperties();
+					if (pipelineAPIConfigured) {
+						if (!controller.isRunning()) {
+							api.reloadConnectionProperties();
+							controller.startController();
+						}
+						List<String> l = api.getTopics();
+						if (l != null) {
+							topiccount = l.size();
+						} else {
+							topiccount = 0;
+						}
+						l = api.getSchemas();
+						if (l != null) {
+							schemacount = l.size();
+						} else {
+							schemacount = 0;
+						}
+						connectioncount = controller.getConnections().size();
+						producercount = controller.getProducerCount();
+						consumercount = controller.getConsumerCount();
+						rowsprocessedcount = controller.getRowsProcessed();
+						lastprocessed = controller.getLastProcessed();
+						servicecount = controller.getServices().size();
+					} else {
+					}
 				}
 			} else {
 				connectioncount = 0;
 				servicecount = 0;
-			}
-			if (api != null) {
-				List<String> l = api.getTopics();
-				if (l != null) {
-					topiccount = l.size();
-				} else {
-					topiccount = 0;
-				}
-				l = api.getSchemas();
-				if (l != null) {
-					schemacount = l.size();
-				} else {
-					schemacount = 0;
-				}
 			}
 		}
 		
@@ -124,6 +140,18 @@ public class HomeService {
 		}
 		public boolean isSupportservices() {
 			return supportsservices;
+		}
+
+		public List<PipelineName> getPipelineAPIsAvailable() {
+			return pipelineAPIsAvailable;
+		}
+
+		public String getPipelineAPIName() {
+			return pipelineAPIName;
+		}
+
+		public boolean isPipelineAPIConfigured() {
+			return pipelineAPIConfigured;
 		}
 	}
 }

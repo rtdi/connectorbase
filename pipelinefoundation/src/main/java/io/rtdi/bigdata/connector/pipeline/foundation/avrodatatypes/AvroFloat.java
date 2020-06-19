@@ -91,4 +91,14 @@ public class AvroFloat extends LogicalType implements IAvroPrimitive {
 		return Type.FLOAT;
 	}
 
+	@Override
+	public Schema getDatatypeSchema() {
+		return schema;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVROFLOAT;
+	}
+
 }

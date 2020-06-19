@@ -37,13 +37,14 @@ onPressSchemaEdit : function(oEvent) {
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	var oModel = this.getView().getModel();
 	var obj = oModel.getProperty(path);
-	window.location.href = './EditSchema?connectionname=' + encodeURI(sConnectionname) + "&name=" + encodeURI(obj.tablename);
+	window.location.href = './EditSchema?connectionname=' + encodeURI(sConnectionname) + "&schemaname=" + encodeURI(obj.tablename);
 },
 onPressCreateSchema : function(oEvent) {
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	window.location.href = 'EditSchema?connectionname=' + encodeURI(sConnectionname);
 },
 onPressMapping : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	var oModel = this.getView().getModel();
 	var obj = oModel.getProperty(path);

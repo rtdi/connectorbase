@@ -10,7 +10,6 @@ import javax.ws.rs.core.MediaType;
 import org.apache.avro.generic.GenericRecord;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.AvroSerializer;
-import io.rtdi.bigdata.connector.pipeline.foundation.IOUtils;
 import io.rtdi.bigdata.connector.pipeline.foundation.ProducerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
@@ -18,6 +17,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeE
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.HttpUtil;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
 
 public class ProducerSessionHttp extends ProducerSession<TopicHandlerHttp> {

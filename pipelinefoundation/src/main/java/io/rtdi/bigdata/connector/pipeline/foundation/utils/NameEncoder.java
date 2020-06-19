@@ -1,4 +1,4 @@
-package io.rtdi.bigdata.connector.pipeline.foundation;
+package io.rtdi.bigdata.connector.pipeline.foundation.utils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

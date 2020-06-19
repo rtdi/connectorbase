@@ -75,6 +75,7 @@ public abstract class LogicalTypeWithLength extends LogicalType implements IAvro
 	}
 
 	public static int getLengthPortion(String text) {
+		// TODO: Error handling
 		int i = text.indexOf('(');
 		int j = text.indexOf(')');
 		String l = text.substring(i+1, j);

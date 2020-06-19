@@ -146,7 +146,6 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	@Override
 	public void close() {
 		closeImpl();
-		instance.removeChildControllers();
 		producersession.close();
 	}
 	

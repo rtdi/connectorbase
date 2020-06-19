@@ -88,4 +88,14 @@ public class AvroEnum extends LogicalType implements IAvroPrimitive {
 		return Type.ENUM;
 	}
 
+	@Override
+	public Schema getDatatypeSchema() {
+		return null;
+	}
+
+	@Override
+	public AvroType getAvroType() {
+		return AvroType.AVROENUM;
+	}
+
 }

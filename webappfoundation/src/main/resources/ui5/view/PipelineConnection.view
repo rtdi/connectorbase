@@ -29,7 +29,10 @@
                     	<core:Icon src="{icon}"/>
             		</items>
                 </FlexBox>
-                <Input type="{path:'type', formatter:'.InputFormatter'}" value="{value}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
+                <components:PropertiesInput 
+                	type="{type}" 
+                	value="{value}" 
+                	enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
                 <Text text="{description}"/>
 			</cells>
 		</ColumnListItem>

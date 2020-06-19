@@ -10,6 +10,8 @@ import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
+
 /**
  * Creates a a binary representation of an Avro GenericRecord in the Kafka format.
  * Hence all data put into Kafka can be read by other tools like Kafka Connect.  
