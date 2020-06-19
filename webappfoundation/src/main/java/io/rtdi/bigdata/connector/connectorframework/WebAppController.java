@@ -1,7 +1,8 @@
 package io.rtdi.bigdata.connector.connectorframework;
 
 import java.io.File;
-import java.io.InputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -153,10 +154,15 @@ public class WebAppController implements ServletContextListener {
 
 			// First step is the global properties file. It might contain optional information.
 			Properties globalprops = null;
-			try (InputStream propertiesstream = sce.getServletContext().getResourceAsStream("WEB-INF/global.properties");) {
-				if (propertiesstream != null) {
-					globalprops = new Properties();
-					globalprops.load(propertiesstream);
+			File propertiesfile = new File(configdirpath, "global.properties");
+			if (propertiesfile.isFile()) {
+				try (FileReader propertiesstream = new FileReader(propertiesfile);) {
+					if (propertiesstream != null) {
+						globalprops = new Properties();
+						globalprops.load(propertiesstream);
+					}
+				} catch (IOException e) {
+					logger.error("Cannot read the global properties file although it exists \"{}\"", configdirpath);
 				}
 			}
 			
