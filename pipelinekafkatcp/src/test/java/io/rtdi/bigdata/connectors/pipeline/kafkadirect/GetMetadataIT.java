@@ -11,8 +11,6 @@ import org.junit.Test;
 import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEntity;
-import io.rtdi.bigdata.connectors.pipeline.kafkadirect.KafkaAPIdirect;
-import io.rtdi.bigdata.connectors.pipeline.kafkadirect.KafkaConnectionProperties;
 
 
 public class GetMetadataIT {

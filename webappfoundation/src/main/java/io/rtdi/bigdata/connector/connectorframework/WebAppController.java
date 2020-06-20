@@ -156,6 +156,7 @@ public class WebAppController implements ServletContextListener {
 			Properties globalprops = null;
 			File propertiesfile = new File(configdirpath, "global.properties");
 			if (propertiesfile.isFile()) {
+				logger.info("global.properties file found at \"" + configdir.getAbsolutePath() + "\"");
 				try (FileReader propertiesstream = new FileReader(propertiesfile);) {
 					if (propertiesstream != null) {
 						globalprops = new Properties();
@@ -164,6 +165,8 @@ public class WebAppController implements ServletContextListener {
 				} catch (IOException e) {
 					logger.error("Cannot read the global properties file although it exists \"{}\"", configdirpath);
 				}
+			} else {
+				logger.info("global.properties file not found at \"" + configdir.getAbsolutePath() + "\"");
 			}
 			
 			// Third load the connector
