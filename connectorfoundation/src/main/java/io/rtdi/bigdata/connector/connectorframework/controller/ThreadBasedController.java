@@ -13,6 +13,9 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 	 * The last non-recoverable exception
 	 */
 	
+	/**
+	 * @param name Controller name
+	 */
 	public ThreadBasedController(String name) {
 		super(name);
 	}

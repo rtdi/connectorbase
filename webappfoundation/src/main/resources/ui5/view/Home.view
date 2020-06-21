@@ -51,7 +51,7 @@
 		name="Connect to Kafka"
 		icon="sap-icon://pipeline-analysis"
 		href="./PipelineConnection"
-		description="How to connect to Kafka via {/pipelineAPIConfigured}"
+		description="How to connect to Kafka via {/pipelineAPIName}"
 		tooltip="" />
 	
 	<components:ApplicationTile
@@ -60,6 +60,14 @@
 		icon="sap-icon://table-chart"
 		href="https://github.com/rtdi/GlobalSchemas"
 		description="A directory of importable schema definitions"
+		target="_blank"
+		tooltip="" />
+
+	<components:ApplicationTile
+		name="Connector Help"
+		icon="sap-icon://sys-help"
+		href="{/connectorhelpurl}"
+		description="Connector specific help"
 		target="_blank"
 		tooltip="" />
 

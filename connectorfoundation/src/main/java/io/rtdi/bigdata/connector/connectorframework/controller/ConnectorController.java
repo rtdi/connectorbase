@@ -346,6 +346,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 		private String ui5url = "https://openui5.hana.ondemand.com/resources/sap-ui-core.js";
 		private String companyname = null;
 		private String pipelineapi;
+		private String connectorhelpurl;
 		
 		public GlobalSettings() {
 		}
@@ -357,6 +358,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 				}
 				companyname = props.getProperty("companyname");
 				pipelineapi = props.getProperty("api");
+				connectorhelpurl = props.getProperty("connectorhelpurl");
 			}
 		}
 
@@ -382,6 +384,10 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 
 		public void setPipelineAPI(String classname) {
 			this.pipelineapi = classname;
+		}
+
+		public String getConnectorHelpURL() {
+			return connectorhelpurl;
 		}
 
 	}
@@ -476,6 +482,10 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 				c.updateSchemaCache();
 			}
 		}
+	}
+
+	public String getConnectorHelpURL() {
+		return globalsettings.getConnectorHelpURL();
 	}
 
 }

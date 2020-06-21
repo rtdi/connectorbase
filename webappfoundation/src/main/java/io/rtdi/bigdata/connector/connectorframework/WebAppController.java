@@ -190,6 +190,7 @@ public class WebAppController implements ServletContextListener {
 
 			connectorcontroller = new ConnectorController(connectorfactory, configdirpath, globalprops); // globalprops can be null
 			sce.getServletContext().setAttribute(CONNECTOR, connectorcontroller);
+			connectorcontroller.setAPI();
 
 			// Third step is to start the controller
 			connectorcontroller.readConfigs();

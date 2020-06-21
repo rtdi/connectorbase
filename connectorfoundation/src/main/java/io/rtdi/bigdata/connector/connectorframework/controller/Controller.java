@@ -195,7 +195,7 @@ public abstract class Controller<C extends Controller<?>> implements IController
 
 	/**
 	 * Checks if all children are running and starts them in case
-	 * @throws IOException 
+	 * @throws IOException if any of the children have a problem
 	 */
 	public void checkChildren() throws IOException {
 		for (String childname : childcontrollers.keySet()) {

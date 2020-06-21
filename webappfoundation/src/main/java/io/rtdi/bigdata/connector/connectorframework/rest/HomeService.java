@@ -58,6 +58,7 @@ public class HomeService {
 		private boolean supportsservices = true;
 		private String pipelineAPIName;
 		private boolean pipelineAPIConfigured;
+		private String connectorhelpurl;
 		
 		public HomeEntity() {
 			super();
@@ -72,6 +73,7 @@ public class HomeService {
 				if (pipelineAPIsAvailable == null) {
 					pipelineAPIsAvailable = controller.getPipelineAPIsAvailable();
 				}
+				connectorhelpurl = controller.getConnectorHelpURL();
 				IPipelineAPI<?, ?, ?, ?> api = controller.getPipelineAPI();
 				if (api != null) {
 					pipelineAPIName = api.getClass().getSimpleName();
@@ -152,6 +154,10 @@ public class HomeService {
 
 		public boolean isPipelineAPIConfigured() {
 			return pipelineAPIConfigured;
+		}
+
+		public String getConnectorhelpurl() {
+			return connectorhelpurl;
 		}
 	}
 }
