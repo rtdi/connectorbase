@@ -16,34 +16,3 @@ init : function() {
 	oStateModel.setProperty("/title", "Homepage");
 	this.getView().setModel(oModel);
 },
-pressConnections : function(oEvent) {
-	window.location.href = './Connections';
-},
-pressServices : function(oEvent) {
-	window.location.href = './Services';
-},
-pressTopics : function(oEvent) {
-	window.location.href = './Topics';
-},
-pressSchemas : function(oEvent) {
-	window.location.href = './Schemas';
-},
-pressLineage : function(oEvent) {
-	window.location.href = './ImpactLineage';
-},
-pressLandscape : function(oEvent) {
-	window.location.href = './Landscape';
-},
-pressPipeline : function(oEvent) {
-	window.location.href = './PipelineConnection';
-},
-pressConnectors : function(oEvent) {
-},
-pressGlobalSchemas : function(oEvent) {
-},
-pressHelp : function(oEvent) {
-},
-save : function(oEvent) {
-},
-cancel : function(oEvent) {
-}

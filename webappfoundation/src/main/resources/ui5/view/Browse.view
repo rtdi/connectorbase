@@ -4,11 +4,10 @@
 			<Button icon="sap-icon://refresh" text="Reload" press="onPressRefresh" />
 		</OverflowToolbar>
 	</headerToolbar>
-	<l:HorizontalLayout
-		allowWrapping="true"
-		content="{/tablenames}">
+	<HBox wrap="Wrap"
+		items="{/tablenames}">
 		<core:Fragment fragmentName="com.rtdi.bigdata.connector.ui.fragment.xml.schema" type="XML" />
-	</l:HorizontalLayout>
+	</HBox>
 	
 	<core:Fragment fragmentName="com.rtdi.bigdata.connector.ui.fragment.xml.schemaadd" type="XML" />
 </Panel>

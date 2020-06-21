@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import io.rtdi.bigdata.connector.connectorframework.WebAppController;
+import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 @WebServlet("/login")
@@ -43,13 +45,20 @@ public class Login extends HttpServlet {
 		}
 		if (username == null) username = "";
 		if (password == null) password = "";
+		ConnectorController connector = WebAppController.getConnector(getServletContext());
+		String ui5url;
+		if (connector != null) {
+			ui5url = connector.getGlobalSettings().getUi5url();
+		} else {
+			ui5url = "https://openui5.hana.ondemand.com/resources/sap-ui-core.js";
+		}
 		
 		out.println("<!DOCTYPE html>");
 		out.println("<html style=\"height: 100%;\">");
 		out.println("<head>");
 		out.println("<meta charset=\"ISO-8859-1\">");
 		out.println("<title>Login</title>");
-		out.println("<script src=\"https://openui5.hana.ondemand.com/resources/sap-ui-core.js\"");
+		out.println("<script src=\"" + ui5url + "\"");
 		out.println("	id=\"sap-ui-bootstrap\""); 
 		out.println("	data-sap-ui-theme=\"sap_fiori_3\"");
 		out.println("	data-sap-ui-libs=\"sap.m\">");
@@ -93,7 +102,6 @@ public class Login extends HttpServlet {
 		out.println("<body class='sapUiBody' style=\"height: 100%;\" >");
 		out.println("<form action=\"j_security_check\" method=\"post\">");
 		out.println("    <div id=\"content\">");
-		out.println("       <p>Loading OpenUI5</p>");
 		out.println("    </div>");
 		out.println("</form>");
 		out.println("</body>");

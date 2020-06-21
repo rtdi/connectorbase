@@ -85,7 +85,7 @@ public class UI5View extends HttpServlet {
 				out.println("  <f:header>");
 				out.println("  </f:header>");
 				out.println("  <f:content>");
-				out.println("      <Panel height=\"100%\">");
+				out.println("      <Panel height=\"100%\" width=\"100%\" >");
 				int len;
 
 				// Provide an option for connectors to add more controls before

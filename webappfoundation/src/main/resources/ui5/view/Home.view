@@ -1,104 +1,66 @@
-<f:Card visible="{= ${/supportconnections} &amp;&amp; ${/pipelineAPIConfigured} }"
-	class="sapUiMediumMargin"
-	width="200px">
-	<f:header>
-		<card:Header
-			title="Connections"
-			subtitle="{/connectioncount}"
-			iconSrc="sap-icon://connected"
-			press="pressConnections" />
-	</f:header>
-</f:Card>
+<HBox wrap="Wrap" >
+	<components:ApplicationTile
+		visible="{= !!${/supportconnections} &amp;&amp; !!${/pipelineAPIConfigured} }"
+		name="Connections"
+		icon="sap-icon://connected"
+		href="./Connections"
+		description="All Producers, Consumers and Schemas are Connection specific"
+		tooltip="" />
+	
+	<components:ApplicationTile
+		visible="{= !!${/supportservices} &amp;&amp; !!${/pipelineAPIConfigured} }"
+		name="Services"
+		icon="sap-icon://commission-check"
+		href="./Services"
+		description="{/servicecount} Services defined"
+		tooltip="" />
+	
+	<components:ApplicationTile
+		visible="{= !!${/pipelineAPIConfigured} }"
+		name="Server Topics"
+		icon="sap-icon://batch-payments"
+		href="./Topics"
+		description="{/topiccount} Topics on the server"
+		tooltip="" />
+	
+	<components:ApplicationTile
+		visible="{= !!${/pipelineAPIConfigured} }"
+		name="Server Schemas"
+		icon="sap-icon://database"
+		href="./Schemas"
+		description="{/schemacount} Schemas on the server"
+		tooltip="" />
+	
+	<components:ApplicationTile
+		visible="{= !!${/pipelineAPIConfigured} }"
+		name="Lineage"
+		icon="sap-icon://combine"
+		href="./ImpactLineage"
+		description="How Producers, Topics, Consumers and Services are connected"
+		tooltip="" />
+	
+	<components:ApplicationTile
+		visible="{= !!${/pipelineAPIConfigured} }"
+		name="Landscape"
+		icon="sap-icon://background"
+		href="./Landscape"
+		description="Where each component is active"
+		tooltip="" />
+	
+	<components:ApplicationTile
+		name="Connect to Kafka"
+		icon="sap-icon://pipeline-analysis"
+		href="./PipelineConnection"
+		description="How to connect to Kafka via {/pipelineAPIConfigured}"
+		tooltip="" />
+	
+	<components:ApplicationTile
+		visible="{= !!${/pipelineAPIConfigured} }"
+		name="Public Schema Directory"
+		icon="sap-icon://table-chart"
+		href="https://github.com/rtdi/GlobalSchemas"
+		description="A directory of importable schema definitions"
+		target="_blank"
+		tooltip="" />
 
-<f:Card visible="{= ${/supportservices} &amp;&amp; ${/pipelineAPIConfigured} }"
-	class="sapUiMediumMargin"
-	width="200px">
-	<f:header>
-		<card:Header
-			title="Services"
-			subtitle="{/servicecount}"
-			iconSrc="sap-icon://commission-check"
-			press="pressServices" />
-	</f:header>
-</f:Card>
-
-<f:Card visible="{path: '/pipelineAPIConfigured', formatter: '.enableControl'}"
-	class="sapUiMediumMargin"
-	width="200px">
-	<f:header>
-		<card:Header
-			title="Server Topics"
-			subtitle="{/topiccount}"
-			iconSrc="sap-icon://batch-payments"
-			press="pressTopics" />
-	</f:header>
-</f:Card>
-
-<f:Card visible="{path: '/pipelineAPIConfigured', formatter: '.enableControl'}"
-	class="sapUiMediumMargin"
-	width="200px">
-	<f:header>
-		<card:Header
-			title="Server Schemas"
-			subtitle="{/schemacount}"
-			iconSrc="sap-icon://database"
-			press="pressSchemas" />
-	</f:header>
-</f:Card>
-
-<f:Card visible="{path: '/pipelineAPIConfigured', formatter: '.enableControl'}"
-	class="sapUiMediumMargin"
-	width="200px">
-	<f:header>
-		<card:Header
-			title="Lineage"
-			iconSrc="sap-icon://combine"
-			press="pressLineage" />
-	</f:header>
-</f:Card>
-
-<f:Card visible="{path: '/pipelineAPIConfigured', formatter: '.enableControl'}"
-	class="sapUiMediumMargin"
-	width="200px">
-	<f:header>
-		<card:Header
-			title="Landscape"
-			iconSrc="sap-icon://background"
-			press="pressLandscape" />
-	</f:header>
-</f:Card>
-
-<f:Card
-	class="sapUiMediumMargin"
-	width="200px">
-	<f:header>
-		<card:Header
-			title="Used Pipeline"
-			subtitle="{=${/pipelineAPIConfigured}?${/pipelineAPIName}:'Not configured'}"
-			iconSrc="sap-icon://pipeline-analysis"
-			press="pressPipeline" />
-	</f:header>
-</f:Card>
-
-<f:Card visible="{path: '/pipelineAPIConfigured', formatter: '.enableControl'}"
-	class="sapUiMediumMargin"
-	width="200px">
-	<f:header>
-		<card:Header
-			title="Global Schemas"
-			iconSrc="sap-icon://table-chart"
-			press="pressGlobalSchemas" />
-	</f:header>
-</f:Card>
-
-<f:Card
-	class="sapUiMediumMargin"
-	width="200px">
-	<f:header>
-		<card:Header
-			title="Help"
-			iconSrc="sap-icon://sys-help"
-			press="pressHelp" />
-	</f:header>
-</f:Card>
-
+</HBox>

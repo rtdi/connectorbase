@@ -8,11 +8,11 @@ For an end user centric point of view, checkout the [product page](https://rtdi.
 
 ## Relationship with Kafka Connect
 
-The obvious first choice would have been to enhance Kafka Connect. But Kafka Connect aims at a different audience and use cases. It is about IT professionals loading data with maximum parallelism. In addition most Kafka Connect Connectors do not support basic functionalities users would expect. Example: How does a reliable delta work in the JDBC Kafka Connect?
+The obvious first choice would have been to enhance Kafka Connect. But Kafka Connect aims at a different audience and use cases. It is about IT professionals loading data with maximum performance. In addition most Kafka Connect Connectors do not support basic functionalities users would expect. Example: How does a reliable delta work in the JDBC Kafka Connect?
 
 Key differences
 
-- Kafka Connect runs in a cluster, the RTDI Connectors are web applications
+- Kafka Connect runs in a cluster, the RTDI Connectors are web applications, e.g. wrapped into Docker containers
 - Kafka Connect is configured via property files, the RTDI-Connectors have UIs to configure and maintain them
 - Kafka Connect transfers low level data like tables, the RTDI-Connectors transfer Business Objects like a Sales Order
 - Kafka Connect does send data as is, the RTDI-Connectors add common metadata needed for the bigger picture
@@ -22,9 +22,11 @@ Aside from the differences, Kafka Connect and the RTDI-Connectors can work toget
 
 ## The various modules
 
-Generally speaking there are two different module types, the Pipeline and the Connector. The Pipeline is used by the Connector to talk with the backend and there are different types. The [pipelinehttp](https://github.com/rt-di/connectorbase/tree/master/pipelinehttp) module speaks to Kafka via https, using the [pipelinehttpserver](https://github.com/rt-di/connectorbase/tree/master/pipelinehttpserver) as bridge from https to the Kafka native protocol. This would be used if Kafka is installed in the could and the source is on premise.
+Note: All modules are available in Maven Central
 
-The [pipelinekafkatcp](https://github.com/rt-di/connectorbase/tree/master/pipelinekafkatcp) module on the other hand is using the Kafka TCP protocol and is useful in case Kafka and the sources are in the same network.
+Generally speaking there are two different module types, the Pipeline and the Connector. The Pipeline is used by the Connector to talk with the backend. The [pipelinehttp](https://github.com/rt-di/connectorbase/tree/master/pipelinehttp) module speaks to Kafka via https streams, using the [pipelinehttpserver](https://github.com/rt-di/connectorbase/tree/master/pipelinehttpserver) as bridge from https to the Kafka native protocol. This pipeline variant makes sense if Kafka is installed in the could and the source is on premise.
+
+The [pipelinekafkatcp](https://github.com/rt-di/connectorbase/tree/master/pipelinekafkatcp) module is using the Kafka TCP protocol and is useful in case Kafka and the sources are in the same network.
 
 Connectors themselves are built on top of the [webappfoundation](https://github.com/rt-di/connectorbase/tree/master/webappfoundation) module, which in turn is based on a lower level api, the [connectorfoundation](https://github.com/rt-di/connectorbase/tree/master/connectorfoundation). The webapp foundation provides mostly UI related code, the connectorfoundation is about reading and storing configuration files, starting stopping the various threads, error handling etc.
 
