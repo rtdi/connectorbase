@@ -89,7 +89,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	public void setAPI() throws PropertiesException {
 		String apiclassname = globalsettings.getPipelineAPI();
 		if (apiclassname == null) {
-			apiclassname = "io.rtdi.bigdata.connectors.pipeline.kafkadirect.KafkaAPIdirect";
+			apiclassname = "KafkaAPIdirect";
 			logger.info("The global.properties does not exist or has no settings for the PipelineAPI, using the default \"{}\"", apiclassname);
 		} else {
 			logger.info("The global.properties asks to use the class \"{}\"", apiclassname);
@@ -98,6 +98,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 		ServiceLoader<IPipelineAPI> loader = ServiceLoader.load(IPipelineAPI.class);
 		int count = 0;
 		for (IPipelineAPI<?,?,?,?> serv : loader) {
+		    count++;
 		    api = serv;
 			if (apiclassname != null && apiclassname.equals(serv.getClass().getSimpleName())) {
 				logger.info("The global.properties asks to use the class \"{}\" and we found it", apiclassname);
@@ -105,7 +106,6 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 			} else {
 				logger.info("Found the pipeline class \"{}\"", api.getClass().getSimpleName());
 			}
-		    count++;
 		}
 		
 		if (count == 0) {
