@@ -47,10 +47,13 @@ public class Login extends HttpServlet {
 		if (password == null) password = "";
 		ConnectorController connector = WebAppController.getConnector(getServletContext());
 		String ui5url;
+		String helpurl;
 		if (connector != null) {
 			ui5url = connector.getGlobalSettings().getUi5url();
+			helpurl = connector.getGlobalSettings().getConnectorHelpURL();
 		} else {
 			ui5url = "https://openui5.hana.ondemand.com/resources/sap-ui-core.js";
+			helpurl = null;
 		}
 		
 		out.println("<!DOCTYPE html>");
@@ -74,6 +77,9 @@ public class Login extends HttpServlet {
 		out.println("				<content>");
 		out.println("					<VBox fitContainer=\"true\" justifyContent=\"Center\" alignItems=\"Center\" alignContent=\"Center\">");
 		out.println("						<items>");
+		if (helpurl != null) {
+			out.println("						    <Link text=\"HELP Information\" target=\"_blank\" href=\"" + helpurl + "\" />");
+		}
 		out.println("							<Input id=\"uid\" name=\"j_username\" value=\"" + username + "\" placeholder=\"User ID\"></Input>");
 		out.println("							<Input id=\"pasw\" name=\"j_password\" value=\"" + password + "\" placeholder=\"Password\" type=\"Password\"></Input>");
 		out.println("							<Button width=\"12rem\" text=\"Login\" type=\"Emphasized\" press=\"onLoginTap\"></Button>");
@@ -84,7 +90,7 @@ public class Login extends HttpServlet {
 		out.println("        </App>");
 		out.println("    </mvc:View> ");
 		out.println("</script>");
-
+		
 		out.println("  <script>");
 		out.println("sap.ui.controller(\"local.controller\", {");
 		out.println("  onLoginTap:function() {");

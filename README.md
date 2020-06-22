@@ -22,7 +22,7 @@ Aside from the differences, Kafka Connect and the RTDI-Connectors can work toget
 
 ## The various modules
 
-Note: All modules are available in Maven Central
+Note: All modules are available in **Maven Central**
 
 Generally speaking there are two different module types, the Pipeline and the Connector. The Pipeline is used by the Connector to talk with the backend. The [pipelinehttp](https://github.com/rt-di/connectorbase/tree/master/pipelinehttp) module speaks to Kafka via https streams, using the [pipelinehttpserver](https://github.com/rt-di/connectorbase/tree/master/pipelinehttpserver) as bridge from https to the Kafka native protocol. This pipeline variant makes sense if Kafka is installed in the could and the source is on premise.
 
@@ -36,10 +36,6 @@ The [pipelinetest](https://github.com/rt-di/connectorbase/tree/master/pipelinete
 
 ## Sample Connectors
 
-https://github.com/rtdi/RTDIDemoConnector
+[RTDIDemoConnector](https://github.com/rtdi/RTDIDemoConnector): Simulates an ERP producer creating Material, Customer, Employee and SalesOrder Business Objects
 
-Simulates an ERP producer creating Material, Customer, Employee and SalesOrder Business Objects
-
-https://github.com/rtdi/RTDIFileConnector
-
-Allows reading flat files in realtime (as soon as they appear in a directory), convert them into a different structure and configure the file format settings interactively.
+[RTDIFileConnector](https://github.com/rtdi/RTDIFileConnector): Allows reading flat files in realtime (as soon as they appear in a directory), convert them into a different structure and configure the file format settings interactively.
