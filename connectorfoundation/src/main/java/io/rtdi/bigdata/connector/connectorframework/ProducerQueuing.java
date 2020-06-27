@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.avro.Schema.Field;
 
-import io.rtdi.bigdata.connector.connectorframework.controller.Controller;
 import io.rtdi.bigdata.connector.connectorframework.controller.ProducerInstanceController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ThreadBasedController;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
@@ -23,11 +22,19 @@ import io.rtdi.bigdata.connector.properties.ProducerProperties;
 public abstract class ProducerQueuing<S extends ConnectionProperties, P extends ProducerProperties> extends Producer<S,P> {
 	protected ArrayBlockingQueue<Data> pollqueue = new ArrayBlockingQueue<>(10000);
 	protected Data commit = new Data();
-	private Controller<?> executor;
+	protected Data rollback = new Data();
+	private ThreadBasedController<?> executor;
 	private Map<String, Object> transactions = new HashMap<>();
 
 	public ProducerQueuing(ProducerInstanceController instance) throws PropertiesException {
 		super(instance);
+		if (instance.getChildController("QueueProducer") == null) {
+			ThreadBasedController<?> task = getNewQueueProducer();
+			instance.addChild("QueueProducer", task);
+			this.executor = task;
+		} else {
+			executor = (ThreadBasedController<?>) instance.getChildController("QueueProducer");
+		}
 	}
 
 	/**
@@ -44,11 +51,7 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 		int rows = 0;
 		Data data;
 		try {
-			while (getQueueProducer().isRunning() && (data = pollqueue.poll(1, TimeUnit.SECONDS)) != null && rows < 10000) {
-				if (executor == null || !executor.isRunning()) {
-					throw new ConnectorTemporaryException("Long Running executor terminated, nobody producing rows for the internal queue any longer", null,
-							"For whatever reason the Executor is no longer active", instance.getName());
-				}
+			while (executor != null && executor.isRunning() && (data = pollqueue.poll(1, TimeUnit.SECONDS)) != null && rows < 10000) {
 				if (producersession.getTransactionID() == null) {
 					logger.info("poll starts transaction");
 					producersession.beginTransaction(data.sourcetransactionid);
@@ -58,6 +61,11 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 					producersession.commitTransaction();
 					logger.info("poll received commit");
 					commit(t, transactions.get(t));
+					transactions.remove(t);
+				} else if (data == rollback) {
+					String t = producersession.getTransactionID();
+					producersession.abortTransaction();
+					logger.info("poll received rollback");
 					transactions.remove(t);
 				} else {
 					logger.debug("poll received record {}", data.valuerecord.toString());
@@ -78,9 +86,13 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 					rows++;
 				}
 			}
+			if (executor == null || !executor.isRunning()) {
+				throw new ConnectorTemporaryException("Queue Producer terminated, nobody producing rows for the internal queue any longer", null,
+						"For whatever reason the Executor is no longer active", instance.getName());
+			}
 		} catch (InterruptedException e) {
 			logger.info("Polling the source got interrupted");
-			this.getQueueProducer().interrupt();
+			executor.interrupt();
 		}
 		return rows;
 	}
@@ -93,19 +105,24 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 		try {
 			pollqueue.put(commit);
 		} catch (InterruptedException e) {
-			logger.info("Adding a record to the queue got interrupted");
-			this.getQueueProducer().interrupt();
+			logger.debug("Adding a record to the queue got interrupted");
+			executor.interrupt();
+		}
+	}
+	
+	public void queueRollbackRecord() {
+		try {
+			pollqueue.put(rollback);
+		} catch (InterruptedException e) {
+			logger.debug("Adding a record to the queue got interrupted");
+			executor.interrupt();
 		}
 	}
 	
 	public void waitTransactionsCompleted() {
-		while (transactions.size() != 0) {
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				this.getQueueProducer().interrupt();
-				return;
-			}
+		while (executor != null && executor.isRunning() && transactions.size() != 0) {
+			logger.debug("Waiting for {} transactions to complete", transactions.size());
+			executor.sleep(500);
 		}
 	}
 
@@ -118,7 +135,7 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 			pollqueue.put(data);
 		} catch (InterruptedException e) {
 			logger.info("Adding a record to the queue got interrupted");
-			this.getQueueProducer().interrupt();
+			executor.interrupt();
 		}
 	}
 	
@@ -132,20 +149,16 @@ public abstract class ProducerQueuing<S extends ConnectionProperties, P extends 
 	 */
 	@Override
 	public final void startProducerCapture() throws IOException {
-		Controller<?> task = getQueueProducer();
-		instance.addChild(task.getName(), task);
-		this.executor = task;
-		task.startController();
+		executor.startController();
 	}
 	
 	@Override
 	public void close() {
-		instance.removeChildControllers();
 		super.close();
 	}
 
 	
-	public abstract ThreadBasedController<?> getQueueProducer();
+	public abstract ThreadBasedController<?> getNewQueueProducer();
 	
 	private static class Data {
 		private TopicHandler topichandler;

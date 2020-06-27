@@ -71,4 +71,11 @@
 		target="_blank"
 		tooltip="" />
 
+	<components:ApplicationTile
+		name="Support Info"
+		icon="sap-icon://pipeline-analysis"
+		href="./Support"
+		description="Support related settings and information"
+		tooltip="" />
+
 </HBox>

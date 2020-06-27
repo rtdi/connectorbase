@@ -25,17 +25,21 @@ public class ErrorListEntity {
 		}
 	}
 	
-	public void addError(String message, String exception, String stacktrace, String hint, String causingobject) {
-		ErrorEntity error = new ErrorEntity();
+	public void addError(String message, String exception, String stacktrace, String hint, String causingobject, String sourcecodeline, String errorhelp) {
+		ErrorEntity error = new ErrorEntity(message, exception, stacktrace, hint, causingobject, sourcecodeline, errorhelp);
 		addError(error);
 	}
 	
 	public void addError(PropertiesException e) {
-		addError(e, e.getHint(), e.getCausingObject());
+		addError(e, e.getHint(), e.getCausingObject(), e.getSourceCodeLink(), e.getErrorHelp());
 	}
 	
+	public void addError(Exception e, String hint, String causingobject, String sourcecodeline, String errorhelp) {
+		addError(e.getMessage(), e.getClass().getSimpleName(), getStackTrace(e), hint, causingobject, sourcecodeline, errorhelp);
+	}
+
 	public void addError(Exception e, String hint, String causingobject) {
-		addError(e.getMessage(), e.getClass().getSimpleName(), getStackTrace(e), hint, causingobject);
+		addError(e.getMessage(), e.getClass().getSimpleName(), getStackTrace(e), hint, causingobject, null, null);
 	}
 
 	public List<ErrorEntity> getErrors() {

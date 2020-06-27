@@ -1,6 +1,7 @@
 package io.rtdi.bigdata.connector.connectorframework.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -29,6 +30,7 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	private String name;
 	protected ErrorListEntity errors = new ErrorListEntity();
 	protected boolean controllerdisabled = false;
+	protected long lastalive = System.currentTimeMillis();
 	
 	public Controller(String name) {
 		super();
@@ -43,6 +45,7 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	 * @throws IOException if the controller or one of its children cannot be started 
 	 */
 	public void startController() throws IOException {
+		lastalive = System.currentTimeMillis();
 		controllerdisabled = false;
 		errors = new ErrorListEntity();
 		state = ControllerState.STARTING;
@@ -184,7 +187,21 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	public List<ErrorEntity> getErrorList() {
 		return errors.getErrors();
 	}
-	
+
+	/**
+	 * @return list of recent errors
+	 */
+	public List<ErrorEntity> getErrorListRecursive() {
+		List<ErrorEntity> l = new ArrayList<>();
+		l.addAll(errors.getErrors());
+		if (getChildControllers() != null) {
+			for (C c : getChildControllers().values()) {
+				l.addAll(c.getErrorListRecursive());
+			}
+		}
+		return l;
+	}
+
 	/* (non-Javadoc)
 	 * @see io.rtdi.bigdata.connector.pipeline.foundation.IControllerState#isRunning()
 	 */
@@ -202,12 +219,20 @@ public abstract class Controller<C extends Controller<?>> implements IController
 			Controller<?> t = childcontrollers.get(childname);
 			if (!t.isControllerDisabled()) {
 				if (!t.isRunning()) {
-					t.startController();
+					// Child is not running, maybe it halted a second ago?
+					if (System.currentTimeMillis() - t.getLastAlive() > 60000) {
+						t.stopController(ControllerExitType.ABORT); // bring down the thread completely in case it is currently starting
+						t.startController();
+					}
 				} else {
 					t.checkChildren();
 				}
 			}
 		}
+	}
+
+	private long getLastAlive() {
+		return lastalive ;
 	}
 
 	/* (non-Javadoc)
@@ -228,5 +253,13 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	 */
 	protected HashMap<String, C> getChildControllers() {
 		return childcontrollers;
+	}
+	
+	/**
+	 * @param name Name of the child controller to look for
+	 * @return the Controller of that name
+	 */
+	public C getChildController(String name) {
+		return childcontrollers.get(name);
 	}
 }

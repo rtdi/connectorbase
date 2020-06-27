@@ -25,6 +25,7 @@ import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorControll
 import io.rtdi.bigdata.connector.connectorframework.controller.ProducerController;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ErrorEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
@@ -137,7 +138,8 @@ public class ProducerService {
 					dir.mkdirs();
 				}
 				props.write(dir);
-				conn.addProducer(props);
+				ProducerController p = conn.addProducer(props);
+				p.startController();
 			} else {
 				producer.getProducerProperties().setValue(data);
 				producer.getProducerProperties().write(dir);
@@ -194,6 +196,7 @@ public class ProducerService {
 		private int instancecount;
 		private long rowsprocessedcount;
 		private String state;
+		List<ErrorEntity> messages;
 
 		public ProducerEntity(ProducerController producer) {
 			ProducerProperties props = producer.getProducerProperties();
@@ -202,6 +205,7 @@ public class ProducerService {
 			instancecount = producer.getInstanceCount();
 			rowsprocessedcount = producer.getRowsProcessedCount();
 			state = producer.getState().name();
+			messages = producer.getErrorListRecursive();
 		}
 
 		public long getRowsprocessedcount() {
@@ -222,6 +226,10 @@ public class ProducerService {
 
 		public String getState() {
 			return state;
+		}
+		
+		public List<ErrorEntity> getMessages() {
+			return messages;
 		}
 
 	}

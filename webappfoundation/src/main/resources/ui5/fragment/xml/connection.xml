@@ -1,6 +1,7 @@
 <core:FragmentDefinition
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
+    xmlns:component="com.rtdi.bigdata.connector.ui.components"
     >
 	<VBox justifyContent="SpaceBetween" width="200px" backgroundDesign="Solid" class="sapUiSmallMargin" >
 		<VBox class="sapUiSmallMargin">
@@ -10,6 +11,22 @@
 			</HBox>
 			<Title text="{name}" wrapping="true"/>
 			<Text text="{text}" wrapping="true"  class="sapUiTinyMarginTop" />
+			<component:ErrorMessageButton
+					items="{path: 'messages', templateShareable: true}"
+					messagecount="{= ${messages}.length }" >
+				<component:items>
+					<component:ErrorMessageItem
+						timestamp="{timestamp}"
+						exception="{exception}"
+						message="{message}"
+						stacktrace="{stacktrace}"
+						hint="{hint}"
+						causingobject="{causingobject}"
+						errorhelp="{errorhelp}"
+						sourcecodeline="{sourcecodeline}"
+						threadname="{threadname}" />
+				</component:items>
+			</component:ErrorMessageButton> 
 			<HBox justifyContent="SpaceBetween" class="sapUiSmallMarginTopBottom">
 				<Label text="Rows Processed" />
 				<ObjectNumber

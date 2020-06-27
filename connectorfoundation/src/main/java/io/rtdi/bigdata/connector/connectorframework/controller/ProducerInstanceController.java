@@ -59,7 +59,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 
 	@Override
 	protected void stopThreadControllerImpl(ControllerExitType exittype) {
-		this.stopChildControllers(exittype);
+		this.stopChildControllers(ControllerExitType.ABORT);
 	}
 	
 	public OperationState getOperation() {

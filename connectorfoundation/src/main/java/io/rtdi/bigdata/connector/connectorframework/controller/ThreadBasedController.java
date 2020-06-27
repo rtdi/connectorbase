@@ -63,6 +63,7 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 			state = ControllerState.STOPPED;
 			return true;
 		} else if (thread.isAlive()) {
+			logger.debug("Joining thread {} with grace period {}", thread.getName(), exittype.name());
 			switch (exittype) {
 			case ABORT:
 				join(10000);
@@ -94,6 +95,7 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 	@Override
 	public void run() {
 		try {
+			lastalive = System.currentTimeMillis();
 			logger.info("Controller thread {} started", Thread.currentThread().getName());
 			startThreadControllerImpl(); // start this thread
 			state = ControllerState.STARTED;
@@ -113,6 +115,7 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 			joinChildControllers(ControllerExitType.ABORT);
 			stopThreadControllerImpl(ControllerExitType.ABORT);
 			logger.info("Controller thread {} stopped", Thread.currentThread().getName());
+			lastalive = System.currentTimeMillis();
 		}
 	}
 

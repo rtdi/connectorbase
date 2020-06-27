@@ -202,7 +202,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 		long executioncounter = 0;
 		while (isRunning()) {
 			if (executioncounter % 60 == 0) {
-				// Every minute check if all children are active and restart them in case
+				// Every minute check if all children are active and restart them in case they have been down for a while
 				checkChildren();
 			}
 			periodictask(executioncounter);

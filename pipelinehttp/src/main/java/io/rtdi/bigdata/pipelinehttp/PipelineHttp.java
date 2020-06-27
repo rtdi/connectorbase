@@ -415,7 +415,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 			return response;
 		} else {
 			JAXBErrorMessage o = response.readEntity(JAXBErrorMessage.class);
-			String t = o.getErrortext();
+			String t = o.getMessage();
 			throw new PipelineTemporaryException("restful call did return status \"" + response.getStatus() + "\"", null, t, path);
 		}
 	}

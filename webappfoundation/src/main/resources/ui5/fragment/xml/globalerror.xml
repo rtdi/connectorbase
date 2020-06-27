@@ -8,6 +8,9 @@
             type="Error"
             title="{state>errortext}"
             description="{state>markup}"
+            subtitle="subtitle"
+            longtextUrl="http://rtdi.io"
+            link="http://github.com"
             markupDescription="true" >
         </MessageItem>
     </MessagePopover>

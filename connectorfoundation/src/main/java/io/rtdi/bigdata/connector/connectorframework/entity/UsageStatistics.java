@@ -148,7 +148,7 @@ public class UsageStatistics {
 		public Connection(ConnectionController connection, Connection prev) {
 			this.connectionname = connection.getName();
 			HashMap<String, ProducerController> producers = connection.getProducers();
-			errors = connection.getErrorList();
+			errors = connection.getErrorListRecursive();
 			if (producers != null) {
 				this.producers = new ArrayList<>();
 				this.producerindex = new HashMap<>();
@@ -298,7 +298,7 @@ public class UsageStatistics {
 		public ProducerInstance(ProducerInstanceController instance, ProducerInstance prev) {
 			this.lastdatatimestamp = instance.getLastProcessed();
 			this.state = instance.getState().name();
-			errors = instance.getErrorList();
+			errors = instance.getErrorListRecursive();
 			if (prev == null) {
 				this.pollcalls = instance.getPollCalls();
 				this.rowsproduced = instance.getRowsProduced();
@@ -409,7 +409,7 @@ public class UsageStatistics {
 		public ConsumerInstance(ConsumerInstanceController instance, ConsumerInstance prev) {
 			this.lastdatatimestamp = instance.getLastProcessed();
 			this.state = instance.getState().name();
-			errors = instance.getErrorList();
+			errors = instance.getErrorListRecursive();
 			if (prev == null) {
 				this.fetchcalls = instance.getFetchCalls();
 				this.rowsfetched = instance.getRowsFetched();

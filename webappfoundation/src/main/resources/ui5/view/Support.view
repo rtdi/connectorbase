@@ -1,0 +1,17 @@
+<form:SimpleForm width="100%" maxContainerCols="1" >
+	<form:content>
+		<Title text="Logging" />
+		<Label text="Logging level" />
+		<Select
+			forceSelection="true"
+			selectedKey="{/logginglevel}"
+			items="{/logginglevels}"
+			change=".onChangeDebuglevel">
+			<core:Item key="{logginglevel}" text="{logginglevel}" />
+		</Select>
+		<Label text="Webserver Log" />
+		<Text text="{/webserverlog}" />
+		<Label text="Application Log" />
+		<Text text="{/applog}" />
+	</form:content>
+</form:SimpleForm>
