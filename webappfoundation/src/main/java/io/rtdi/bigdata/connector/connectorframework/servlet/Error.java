@@ -21,6 +21,7 @@ public class Error extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String appname = req.getContextPath();
 		PrintWriter out = resp.getWriter();
 		try {
 			HttpSession session = req.getSession(false);
@@ -31,7 +32,27 @@ public class Error extends HttpServlet {
 		}
 		out.println("<!DOCTYPE html>");
 		out.println("<html><head></head><body>");
-		out.println("Not authenticated, login via <a href=\"login\">Login Form</a></body></html>");
+		out.println("Not authenticated, login via <a href=\"" + appname + "/login\">Login Form</a></body></html>");
+	}
+
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String appname = req.getContextPath();
+		String target = req.getHeader("referer");
+		if (target == null) {
+			target = appname + "/";
+		}
+		PrintWriter out = resp.getWriter();
+		try {
+			HttpSession session = req.getSession(false);
+			if (session != null) {
+				req.getSession(false).invalidate();
+			}
+		} catch (IllegalStateException e) {
+		}
+		out.println("<!DOCTYPE html>");
+		out.println("<html><head></head><body>");
+		out.println("Username/Password wrong, please try <a href=\"" + target + "\">again</a></body></html>");
 	}
 
 }
