@@ -15,8 +15,10 @@ public class LandscapePage extends UI5ServletAbstract {
 	
 	@Override
 	protected void printCustomHeader(PrintWriter out) {
-		out.println("<script src=\"https://unpkg.com/vis-network@latest/dist/vis-network.min.js\"></script>");
-		out.println("<link href=\"https://unpkg.com/vis-network@latest/dist/vis-network.min.css\" rel=\"stylesheet\" type=\"text/css\" />");
+		out.println("<script src=\"//www.amcharts.com/lib/4/core.js\"></script>");
+		out.println("<script src=\"//www.amcharts.com/lib/4/charts.js\"></script>");
+		out.println("<script src=\"//www.amcharts.com/lib/4/plugins/forceDirected.js\"></script>");
+		out.println("<script src=\"https://www.amcharts.com/lib/4/themes/animated.js\"></script>");
 	}
 
 }

@@ -19,11 +19,11 @@ public class LandscapeEntity extends NetworkEntity {
 		String host = producer.getHostname();
 		String remoteconnection = producer.getRemoteconnection();
 		String remoteconnectionid = "R:" + remoteconnection;
-		addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
-		addNode(producerid, NetworkNodeType.PRODUCER, producername, "Running at: " + host);
-		addNode(remoteconnectionid, NetworkNodeType.REMOTECONNECTION, remoteconnection, "Remote system: " + remoteconnection);
-		// addEdge(producerid, apiconnectionid);
-		// addEdge(remoteconnectionid, producerid);
+		NetworkNode n = addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
+		n = addNode(producerid, NetworkNodeType.PRODUCER, producername, "Running at: " + host);
+		n.addLink(apiconnectionid);
+		n = addNode(remoteconnectionid, NetworkNodeType.REMOTECONNECTION, remoteconnection, "Remote system: " + remoteconnection);
+		n.addLink(producerid);
 	}
 
 	public void addConsumerNode(ConsumerEntity consumer) throws PropertiesRuntimeException {
@@ -34,11 +34,11 @@ public class LandscapeEntity extends NetworkEntity {
 		String host = consumer.getHostname();
 		String remoteconnection = consumer.getRemoteconnection();
 		String remoteconnectionid = "R:" + remoteconnection;
-		addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
-		addNode(consumerid, NetworkNodeType.PRODUCER, consumername, "Running at: " + host);
-		addNode(remoteconnectionid, NetworkNodeType.REMOTECONNECTION, remoteconnection, "Remote system: " + remoteconnection);
-		// addEdge(apiconnectionid, consumerid);
-		// addEdge(consumerid, remoteconnectionid);
+		NetworkNode n = addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
+		n.addLink(consumerid);
+		n = addNode(consumerid, NetworkNodeType.CONSUMER, consumername, "Running at: " + host);
+		n.addLink(remoteconnectionid);
+		n = addNode(remoteconnectionid, NetworkNodeType.REMOTECONNECTION, remoteconnection, "Remote system: " + remoteconnection);
 	}
 
 	public void addServiceNode(ServiceEntity service) throws PropertiesRuntimeException {
@@ -48,17 +48,17 @@ public class LandscapeEntity extends NetworkEntity {
 		if (service.getProducedTopicList() == null || service.getProducedTopicList().size() == 0) {
 			String backingserver = service.getHostname();
 			String backingserverid = "A:" + backingserver;
-			addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
-			addNode(backingserverid, NetworkNodeType.PIPELINESERVER, backingserver, backingserver);
-			// addEdge(apiconnectionid, backingserverid);
-			// addEdge(backingserverid, apiconnectionid);		
+			NetworkNode n = addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
+			n.addLink(backingserverid);
+			n = addNode(backingserverid, NetworkNodeType.PIPELINESERVER, backingserver, backingserver);
+			n.addLink(apiconnectionid);
 		} else {
 			String id = "S:" + name;
 			String host = service.getHostname();
-			addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
-			addNode(id, NetworkNodeType.SERVICE, name, "Running at: " + host);
-			// addEdge(apiconnectionid, id);
-			// addEdge(id, apiconnectionid);
+			NetworkNode n = addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
+			n.addLink(id);
+			n = addNode(id, NetworkNodeType.SERVICE, name, "Running at: " + host);
+			n.addLink(apiconnectionid);
 		}
 	}
 
@@ -76,9 +76,9 @@ public class LandscapeEntity extends NetworkEntity {
 		if (backingserverconnection != null) {
 			String apiconnectionid = "A:" + apiconnection; 
 			String backingserverconnectionid = "A:" + backingserverconnection; 
-			addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
-			addNode(backingserverconnectionid, NetworkNodeType.PIPELINESERVER, backingserverconnection, backingserverconnection);
-			// addEdge(apiconnectionid, backingserverconnectionid);
+			NetworkNode n = addNode(apiconnectionid, NetworkNodeType.PIPELINESERVER, apiconnection, apiconnection);
+			n.addLink(backingserverconnectionid);
+			n = addNode(backingserverconnectionid, NetworkNodeType.PIPELINESERVER, backingserverconnection, backingserverconnection);
 		}
 	}
 

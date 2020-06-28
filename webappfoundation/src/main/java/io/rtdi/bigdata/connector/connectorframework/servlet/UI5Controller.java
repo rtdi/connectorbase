@@ -83,17 +83,6 @@ public class UI5Controller extends HttpServlet {
 					out.println("        return 'Text';");
 					out.println("    }");
 					out.println("},");
-					out.println("onGlobalErrorPopoverPress : function (oEvent) {"); 
-					out.println("    this._getMessagePopover().openBy(oEvent.getSource());"); 
-					out.println("},");
-					
-					out.println("_getMessagePopover : function () {"); 
-					out.println("    if (!this._oMessagePopover) {"); 
-					out.println("        this._oMessagePopover = sap.ui.xmlfragment(this.getView().getId(),\"com.rtdi.bigdata.connector.ui.fragment.xml.globalerror\", this);"); 
-					out.println("        this.getView().addDependent(this._oMessagePopover);"); 
-					out.println("    }"); 
-					out.println("    return this._oMessagePopover;"); 
-					out.println("},");
 					out.println("displayError : function(mesg) {");
 					out.println("    var messages = oStateModel.getProperty(\"/messages\");"); 
 					out.println("    var e = {\"errortext\" : mesg.message + \" \" + mesg.statusCode, \"markup\" : mesg.responseText};");

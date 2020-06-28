@@ -1,1 +1,1 @@
-<core:HTML content="&lt;div  id='visualization' style='height: 100%;' /&gt;" />
+<core:HTML id='visualization' content="&lt;div style='height: 100%;' /&gt;" />

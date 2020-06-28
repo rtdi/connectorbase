@@ -24,6 +24,7 @@ import io.rtdi.bigdata.connector.connectorframework.controller.ConnectionControl
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConsumerController;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ErrorEntity;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
 
@@ -156,6 +157,7 @@ public class ConsumerService {
 		private int instancecount;
 		private long rowsprocessedcount;
 		private String state;
+		List<ErrorEntity> messages;
 
 		public ConsumerEntity(ConsumerController consumer) {
 			ConsumerProperties props = consumer.getConsumerProperties();
@@ -164,6 +166,7 @@ public class ConsumerService {
 			instancecount = consumer.getInstanceCount();
 			rowsprocessedcount = consumer.getRowsProcessedCount();
 			state = consumer.getState().name();
+			messages = consumer.getErrorListRecursive();
 		}
 
 		public long getRowsprocessedcount() {
@@ -184,6 +187,10 @@ public class ConsumerService {
 
 		public String getState() {
 			return state;
+		}
+
+		public List<ErrorEntity> getMessages() {
+			return messages;
 		}
 
 	}

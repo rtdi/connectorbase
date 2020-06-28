@@ -1,5 +1,6 @@
 package io.rtdi.bigdata.connector.connectorframework.rest.entity;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class GlobalState {
 		if (error != null) {
 			messages = Collections.singletonList(new JAXBErrorMessage(error));
 		} else {
-			messages = null;
+			messages = new ArrayList<>(); // should be an empty array
 		}
 		roles = new RoleAssignment(securityContext);
 	}

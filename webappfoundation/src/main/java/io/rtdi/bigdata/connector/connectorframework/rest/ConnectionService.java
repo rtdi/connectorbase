@@ -23,6 +23,7 @@ import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectionController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ErrorEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
@@ -182,6 +183,7 @@ public class ConnectionService {
 		private int elements;
 		private long rowsprocessedcount;
 		private String state;
+		List<ErrorEntity> messages;
 
 		public ConnectionEntity(ConnectionController connection) {
 			ConnectionProperties props = connection.getConnectionProperties();
@@ -192,6 +194,7 @@ public class ConnectionService {
 			rowsprocessedcount = connection.getRowsProcessed();
 			elements = producercount + consumercount;
 			state = connection.getState().name();
+			messages = connection.getErrorListRecursive();
 		}
 
 		public long getRowsprocessedcount() {
@@ -220,6 +223,10 @@ public class ConnectionService {
 		
 		public String getState() {
 			return state;
+		}
+
+		public List<ErrorEntity> getMessages() {
+			return messages;
 		}
 
 	}
