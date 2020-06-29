@@ -32,7 +32,7 @@ public class ErrorEntity {
 	}
 	
 	public ErrorEntity(Throwable e) {
-		super();
+		this();
 		message = e.getMessage();
 		stacktrace = ErrorListEntity.getStackTrace(e);
 		exception = e.getClass().getSimpleName();

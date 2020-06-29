@@ -39,12 +39,10 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 		},
 		onShowErrorDetails : function(oEvent, oData) {
 			// this = is the Link control of a message item
-			var oContext = this.getBindingContext();
-			var oBindingObject = oContext.getObject();
-			var oDialog = this._getDialog(oBindingObject);
+			var oDialog = this._getDialog(this);
 			oDialog.open();
 		},
-		_getDialog : function(oBindingObject) {
+		_getDialog : function(oItem) {
 			var oDetailsDialog = new sap.m.Dialog({
 				title: "Error details",
 				contentWidth: "900px",
@@ -54,41 +52,41 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [
 						new sap.m.Title( { text: "Error" } ), 
 						new sap.m.Label( { text: "Process" } ), 
-						new sap.m.Text( { text: oBindingObject.threadname } ),
+						new sap.m.Text( { text: oItem.getThreadname() } ),
 						new sap.m.Label( { text: "Exception type" } ), 
-						new sap.m.Text( { text: oBindingObject.exception } ),
+						new sap.m.Text( { text: oItem.getException() } ),
 						new sap.m.Label( { text: "Time" } ), 
-						new sap.m.Text( { text: new Date(oBindingObject.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) } ),
+						new sap.m.Text( { text: new Date(oItem.getTimestamp()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) } ),
 					] } ),
 
 					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [						
 						new sap.m.Title( { text: "Messages" } ), 						
 						new sap.m.Label( { text: "Message" } ), 
-						new sap.m.Text( { text: oBindingObject.message } ),
+						new sap.m.Text( { text: oItem.getMessage() } ),
 						new sap.m.Label( { text: "Hint" } ), 
-						new sap.m.Text( { text: oBindingObject.hint } ),
+						new sap.m.Text( { text: oItem.getHint() } ),
 						new sap.m.Label( { text: "Help" } ), 
-						new sap.m.Text( { text: oBindingObject.errorhelp } )
+						new sap.m.Text( { text: oItem.getErrorhelp() } )
 					] } ),
 
 					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [
 						new sap.m.Title( { text: "Object in question" } ), 
 						new sap.m.Label( { text: "Causing Object" } ), 
-						new sap.m.Text( { text: oBindingObject.causingobject } ),
+						new sap.m.Text( { text: oItem.getCausingobject() } ),
 					] } ),
 
 					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [
 
 						new sap.m.Title( { text: "Source code reference" } ), 
 						new sap.m.Label( { text: "SourceCode" } ), 
-						new sap.m.Link( { href: oBindingObject.sourcecodeline, text: "Show Source line", target: "_blank" } ),
+						new sap.m.Link( { href: oItem.getSourcecodeline(), text: "Show Source line", target: "_blank" } ),
 					] } ),
 
 					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [
 						
 						new sap.m.Title( { text: "Stack trace" } ), 
 						new sap.m.Label( { text: "Trace" } ), 
-						new sap.m.Text( { text: oBindingObject.stacktrace } )
+						new sap.m.Text( { text: oItem.getStacktrace() } )
 					] } )
 				],
 				endButton: new sap.m.Button({
