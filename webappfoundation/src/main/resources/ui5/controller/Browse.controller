@@ -49,4 +49,10 @@ onPressMapping : function(oEvent) {
 	var oModel = this.getView().getModel();
 	var obj = oModel.getProperty(path);
 	window.location.href = 'SchemaMapping?connectionname=' + encodeURI(sConnectionname) + "&name=" + encodeURI(obj.tablename);
+},
+onPressRefresh : function(oEvent) {
+	var oModel = this.getView().getModel();
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas");
+	this.getView().setModel(oModel);
 }

@@ -296,7 +296,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	}
 
 	public ConnectionController addConnection(ConnectionProperties props) throws ConnectorRuntimeException {
-		File connectiondir = new File(configdir.getAbsolutePath() + File.separatorChar + props.getName());
+		File connectiondir = new File(configdir.getAbsolutePath() + File.separatorChar + "connections" + File.separatorChar + props.getName());
 		ConnectionController connectioncontroller = new ConnectionController(connectiondir, this);
 		connectioncontroller.setConnectionProperties(props);
 		connections.put(connectioncontroller.getName(), connectioncontroller);

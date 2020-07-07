@@ -4,7 +4,7 @@
 	<headerToolbar>
 		<OverflowToolbar>
             <Label text="Service name" />
-            <Input value="{/serviceproperties/name}" width="30%" enabled="{path: 'state>/new', formatter: '.enableControl'}" />
+            <Input value="{/serviceproperties/name}" width="30%" enabled="{= ${state>/new} }" />
             <ToolbarSpacer/>
             <Button text="Collapse all" press="onCollapseAll"/>
             <Button text="Expand first level" press="onExpandFirstLevel"/>
@@ -40,19 +40,30 @@
 	</items>
 </Table>
 
-<Panel headerText="Data streams through these Microservices"> 
+<Panel headerText="List all the steps to be executed one after the other"> 
 	<List
-		headerText="Microservices" items="{/microservices}" >
+		visible="{= ${state>/new} === false }"
+		headerText="Steps" items="{/microservices}" >
 		<headerToolbar>
 			<OverflowToolbar>
 	            <ToolbarSpacer/>
 	            <Button icon="sap-icon://add" type="Transparent" press="onAddMicroservice" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
 			</OverflowToolbar>
 		</headerToolbar>
-		<InputListItem label="Microservice Name">
+		<InputListItem label="Step:">
 			<HBox>
-				<Input value="{name}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
-		        <Button icon="sap-icon://edit" type="Transparent" press="onConfigureMicroservice" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
+				<Input value="{name}" enabled="{= (${state>/roles/config} &amp;&amp; !!${new}) }" />
+		        <Button
+					icon="sap-icon://edit"
+					type="Transparent"
+					press="onConfigureMicroservice"
+					visible="{= !${new} }"
+					enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
+		        <Button
+					icon="sap-icon://delete"
+					type="Transparent" press="onDeleteMicroservice"
+					visible="{= !${new} }"
+					enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
 	        </HBox>
 		</InputListItem>
 	</List>

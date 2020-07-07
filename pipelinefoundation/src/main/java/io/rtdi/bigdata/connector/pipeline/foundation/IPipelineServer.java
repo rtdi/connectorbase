@@ -30,7 +30,7 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 
 	public void setConnectionProperties(S properties);
 	
-	List<String> getSchemas(String tenantid) throws PipelineRuntimeException;
+	List<String> getSchemas() throws PipelineRuntimeException;
 
 	/**
 	 * To create or update an existing schema with all its metadata.
@@ -83,7 +83,7 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 	 */
 	T getTopicOrCreate(TopicName topic, int partitioncount, short replicationfactor) throws PropertiesException;
 
-	List<String> getTopics(String tenantid) throws IOException;
+	List<String> getTopics() throws IOException;
 
 	/**
 	 * This method can be used to re-read the last n records in a topic without impacting the consumption. Useful for
@@ -103,33 +103,33 @@ public interface IPipelineServer<S extends ConnectionProperties, T extends Topic
 
 	void close();
 
-	void removeProducerMetadata(String tenantid, String producername) throws IOException;
+	void removeProducerMetadata(String producername) throws IOException;
 
-	void removeConsumerMetadata(String tenantid, String consumername) throws IOException;
+	void removeConsumerMetadata(String consumername) throws IOException;
 
-	void removeServiceMetadata(String tenantid, String servicename) throws IOException;
+	void removeServiceMetadata(String servicename) throws IOException;
 
-	ProducerMetadataEntity getProducerMetadata(String tenantid) throws IOException;
+	ProducerMetadataEntity getProducerMetadata() throws IOException;
 
-	ConsumerMetadataEntity getConsumerMetadata(String tenantid) throws IOException;
+	ConsumerMetadataEntity getConsumerMetadata() throws IOException;
 	
-	ServiceMetadataEntity getServiceMetadata(String tenantid) throws IOException;
+	ServiceMetadataEntity getServiceMetadata() throws IOException;
 
 	S getAPIProperties();
 
-	void addProducerMetadata(String tenantid, ProducerEntity producer) throws IOException;
+	void addProducerMetadata(ProducerEntity producer) throws IOException;
 
-	void addConsumerMetadata(String tenantid, ConsumerEntity consumer) throws IOException;
+	void addConsumerMetadata(ConsumerEntity consumer) throws IOException;
 
-	void addServiceMetadata(String tenantid, ServiceEntity service) throws IOException;
+	void addServiceMetadata(ServiceEntity service) throws IOException;
 
 	public void loadConnectionProperties(File webinfdir) throws PropertiesException;
 
 	public void writeConnectionProperties(File webinfdir) throws PropertiesException;
 
-	P createNewProducerSession(String tenantid) throws PropertiesException;
+	P createNewProducerSession() throws PropertiesException;
 
-	C createNewConsumerSession(String consumername, String topicpattern, String tenantid) throws PropertiesException;
+	C createNewConsumerSession(String consumername, String topicpattern) throws PropertiesException;
 
 	public boolean isAlive();
 

@@ -33,6 +33,10 @@ public class GenericAvroSerializer implements Serializer<JexlRecord> {
 		String schemaname = record.getSchema().getName();
 		try {
 			SchemaHandler handler = schemaprovider.getSchema(schemaname);
+			if (handler == null) {
+				throw new AvroRuntimeException("Cannot serialize data for Avro schema \"" + schemaname +
+						"\" as a schema with that name cannot be found in the schema registry");
+			}
 			return AvroSerializer.serialize(handler.getValueSchemaId(), record);
 		} catch (IOException e) {
 			throw new AvroRuntimeException(e);

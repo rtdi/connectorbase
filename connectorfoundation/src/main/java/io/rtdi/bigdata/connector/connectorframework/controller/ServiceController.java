@@ -114,6 +114,15 @@ public class ServiceController extends Controller<Controller<?>> {
 	}
 
 	public MicroServiceTransformation getMicroserviceOrFail(String microservicename) throws ConnectorCallerException {
+		MicroServiceTransformation m = getMicroservice(microservicename);
+		if (m == null) {
+			throw new ConnectorCallerException("No Microservice with this name configured", null, "getMicroservice() was called for a non-existing name", microservicename);
+		} else {
+			return m;
+		}
+	}
+
+	public MicroServiceTransformation getMicroservice(String microservicename) throws ConnectorCallerException {
 		if (serviceprops != null && serviceprops.getMicroServices() != null) {
 			for ( MicroServiceTransformation m : serviceprops.getMicroServices()) {
 				if (m.getName().equals(microservicename)) {
@@ -121,7 +130,7 @@ public class ServiceController extends Controller<Controller<?>> {
 				}
 			}
 		}
-		throw new ConnectorCallerException("No Microservice with this name configured", null, "getMicroservice() was called for a non-existing name", microservicename);
+		return null;
 	}
 
 	@Override

@@ -36,7 +36,7 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 
 	/**
 	 * Same as {@link #getSchema(SchemaName)} except that it accepts as input a string. Should return the same as 
-	 * getSchema(new SchemaName(api.genTenantID(), schemaname))
+	 * getSchema(new SchemaName(schemaname))
 	 * 
 	 * @param schemaname The schema name of this tenant. It is not the FQN.
 	 * @return SchemaHandler or null if not found
@@ -192,12 +192,6 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @throws IOException if something goes wrong
 	 */
 	List<TopicPayload> getLastRecords(TopicName topicname, long timestamp) throws IOException;
-
-	/**
-	 * @return The tenantid as being set in the constructor
-	 * @throws PropertiesException if something goes wrong
-	 */
-	String getTenantID() throws PropertiesException;
 
 	P createNewProducerSession(ProducerProperties properties) throws PropertiesException;
 

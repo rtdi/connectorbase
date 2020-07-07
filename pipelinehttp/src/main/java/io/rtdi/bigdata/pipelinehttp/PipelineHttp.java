@@ -47,7 +47,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicHandlerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicHandlerEntity.ConfigPair;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicListEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayloadBinaryData;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -95,7 +94,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 			return null;
 		} else {
 			SchemaHandlerEntity entityout = entityresponse.readEntity(SchemaHandlerEntity.class);
-			return new SchemaHandler(getTenantID(), schemaname, entityout.getKeySchema(), entityout.getValueSchema(), entityout.getKeySchemaId(), entityout.getValueSchemaId());
+			return new SchemaHandler(schemaname, entityout.getKeySchema(), entityout.getValueSchema(), entityout.getKeySchemaId(), entityout.getValueSchemaId());
 		}
 	}
 
@@ -117,9 +116,6 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 
 	@Override
 	public SchemaHandler registerSchema(SchemaName schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
-		if (!schemaname.getTenant().equals(getTenantID())) {
-			throw new PipelineCallerException("The provided SchemaName is for a different tenantid");
-		}
 		return registerSchema(schemaname.getName(), description, keyschema, valueschema);
 	}
 
@@ -132,7 +128,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 		entityin.setValueSchemaString(valueschema.toString());
 		Response entityresponse = postRestfulService(getRestEndpoint("/schema/byname", schemaname), entityin);
 		SchemaHandlerEntity entityout = entityresponse.readEntity(SchemaHandlerEntity.class);
-		return new SchemaHandler(getTenantID(), schemaname, keyschema, valueschema, entityout.getKeySchemaId(), entityout.getValueSchemaId());
+		return new SchemaHandler(schemaname, keyschema, valueschema, entityout.getKeySchemaId(), entityout.getValueSchemaId());
 	}
 
 	@Override
@@ -166,7 +162,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 
 	@Override
 	public TopicHandlerHttp topicCreate(String topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
-		return topicCreate(new TopicName(getTenantID(), topic), partitioncount, replicationfactor, configs);
+		return topicCreate(new TopicName(topic), partitioncount, replicationfactor, configs);
 	}
 
 	private TopicMetadata getTopicMetadata(TopicHandlerEntity entity) {
@@ -202,7 +198,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	public synchronized TopicHandlerHttp getTopicOrCreate(String topicname, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
 		TopicHandlerHttp t = getTopic(topicname);
 		if (t == null) {
-			t = topicCreate(new TopicName(getTenantID(), topicname), replicationfactor, replicationfactor, configs);
+			t = topicCreate(new TopicName(topicname), replicationfactor, replicationfactor, configs);
 		} 
 		return t;
 	}
@@ -220,7 +216,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 			return null;
 		} else {
 			TopicHandlerEntity entityout = entityresponse.readEntity(TopicHandlerEntity.class);
-			return new TopicHandlerHttp(getTenantID(), topicname, getTopicMetadata(entityout));
+			return new TopicHandlerHttp(topicname, getTopicMetadata(entityout));
 		}
 	}
 
@@ -270,11 +266,6 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	@Override
 	public List<TopicPayload> getLastRecords(TopicName topicname, long timestamp) throws IOException {
 		return getLastRecords(topicname.getName(), timestamp);
-	}
-
-	@Override
-	public String getTenantID() throws PropertiesException {
-		return properties.getTenantid();
 	}
 
 	@Override
@@ -465,7 +456,7 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	}
 
 	private String getRestEndpoint(String base) throws PropertiesException {
-		return "/rest/" + getTenantID() + base;
+		return "/rest/" + base;
 	}
 
 	/**
@@ -475,11 +466,11 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	 * @throws PropertiesException 
 	 */
 	private String getRestEndpoint(String base, String detail) throws PropertiesException {
-		return "/rest/" + getTenantID() + base + "/" + detail;
+		return "/rest/" + base + "/" + detail;
 	}
 
 	private String getRestEndpoint(String base, String detail1, String detail2) throws PropertiesException {
-		return "/rest/" + getTenantID() + base + "/" + detail1 + "/" + detail2;
+		return "/rest/" + base + "/" + detail1 + "/" + detail2;
 	}
 
 	@Override

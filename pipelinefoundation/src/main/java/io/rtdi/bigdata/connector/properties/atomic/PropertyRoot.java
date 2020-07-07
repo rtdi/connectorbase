@@ -120,7 +120,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 	public static class Simplified {
 		String type;
 		String name;
-		String value;
+		Object value;
 		ArrayList<Simplified> values;
 
 		public Simplified() {
@@ -149,14 +149,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 	    			values.add(new Simplified(e));
 	    		}
 			} else if (element instanceof IPropertyValue) {
-				Object obj = ((IPropertyValue) element).getValue();
-				if (obj == null) {
-					value = null;
-				} else if (obj instanceof String) {
-					value = (String) obj;
-				} else {
-					value = obj.toString();
-				}
+				value = ((IPropertyValue) element).getValue();
 			}
 		}
 		
@@ -172,10 +165,10 @@ public class PropertyRoot extends PropertyGroupAbstract {
 		public void setName(String name) {
 			this.name = name;
 		}
-		public String getValue() {
+		public Object getValue() {
 			return value;
 		}
-		public void setValue(String value) {
+		public void setValue(Object value) {
 			this.value = value;
 		}
 		public ArrayList<Simplified> getValues() {

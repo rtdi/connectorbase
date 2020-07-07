@@ -5,7 +5,7 @@
 		</OverflowToolbar>
 	</headerToolbar>
 	<HBox wrap="Wrap"
-		content="{/services}">
+		items="{/services}">
 		<core:Fragment fragmentName="com.rtdi.bigdata.connector.ui.fragment.xml.service" type="XML" />
 	</HBox>
 	

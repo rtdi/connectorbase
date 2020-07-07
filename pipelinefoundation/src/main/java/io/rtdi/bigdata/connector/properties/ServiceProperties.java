@@ -26,8 +26,8 @@ public abstract class ServiceProperties<M extends MicroServiceTransformation> {
 	public ServiceProperties(String name) throws PropertiesException {
 		super();
 		properties = new PropertyRoot(name);
-		properties.addStringProperty(SOURCE, "Source topic name", "Topic name the service consumes", null, null, true);
-		properties.addStringProperty(TARGET, "Target topic name", "Topic name the service writes the results into", null, null, true);
+		properties.addTopicSelector(SOURCE, "Source topic name", "Topic name the service consumes", null, null, true);
+		properties.addTopicSelector(TARGET, "Target topic name", "Topic name the service writes the results into", null, null, true);
 	}
 	
 	public ServiceProperties(File dir, String name) throws PropertiesException {

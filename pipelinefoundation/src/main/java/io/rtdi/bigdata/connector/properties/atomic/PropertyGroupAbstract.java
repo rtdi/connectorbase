@@ -115,7 +115,7 @@ public abstract class PropertyGroupAbstract {
 
 	public List<String> getMultiSchemaSelectorValue(String name) throws PropertiesException {
 		IProperty e = getElement(name);
-		if (e instanceof PropertyString) {
+		if (e instanceof PropertyMultiSchemaSelector) {
 			return ((PropertyMultiSchemaSelector) e).getValue();
 		} else {
 			throw new PropertiesException("A property of the name \"" + name + "\" exists but is not of a MultiSchemaSelector type");

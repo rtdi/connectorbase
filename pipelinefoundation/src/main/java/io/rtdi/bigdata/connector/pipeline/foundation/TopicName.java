@@ -7,50 +7,24 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesExcept
  *
  */
 public class TopicName implements Comparable<TopicName> {
-	private String fqn;
-	private String tenant;
 	private String name;
-
-	/**
-	 * Create a topic name based on the FQN.
-	 * 
-	 * @param fqn topic name as fqn
-	 * @throws PropertiesException in case the fqn is null or invalid
-	 */
-	public TopicName(String fqn) throws PropertiesException {
-		if (fqn == null) {
-			throw new PropertiesException("Topic cannot be constructed from an empty string");
-		}
-		int tenantsplitpos = fqn.indexOf('-');
-		if (tenantsplitpos != -1) {
-			tenant = TopicUtil.validate(fqn.substring(0, tenantsplitpos));
-			name = TopicUtil.validate(fqn.substring(tenantsplitpos+1));
-		} else {
-			tenant = null;
-			name = fqn.toString();
-		}
-		this.fqn = fqn;
-	}
 
 	/**
 	 * Create a topic name based on the tenant and the tenant specific name. 
 	 * 
-	 * @param tenantID optional
 	 * @param name topic name within the tenant
 	 * @throws PropertiesException in case the name is null
 	 */
-	public TopicName(String tenantID, String name) throws PropertiesException {
+	public TopicName(String name) throws PropertiesException {
 		if (name == null || name.length() == 0) {
 			throw new PropertiesException("Topicname cannot be null or empty");
 		}
-		this.fqn = TopicUtil.createTopicFQN(tenantID, name);
 		this.name = name;
-		this.tenant = tenantID;
 	}
 	
 	@Override
 	public int hashCode() {
-		return fqn.hashCode();
+		return name.hashCode();
 	}
 
 	@Override
@@ -59,7 +33,7 @@ public class TopicName implements Comparable<TopicName> {
 			return false;
 		} else if (obj instanceof TopicName) {
 			TopicName t = (TopicName) obj;
-			return fqn.equals(t.fqn);
+			return name.equals(t.name);
 		} else {
 			return false;
 		}
@@ -67,14 +41,7 @@ public class TopicName implements Comparable<TopicName> {
 
 	@Override
 	public String toString() {
-		return fqn;
-	}
-
-	/**
-	 * @return the fully qualified topic name string
-	 */
-	public String getTopicFQN() {
-		return fqn;
+		return name;
 	}
 
 	/**
@@ -82,35 +49,28 @@ public class TopicName implements Comparable<TopicName> {
 	 * @return fqn.indexOf(c)
 	 */
 	public int indexOf(char c) {
-		return fqn.indexOf(c);
+		return name.indexOf(c);
 	}
 
 	/**
 	 * @param beginindex start position
 	 * @param len substring length
-	 * @return fqn.substring(beginindex, len)
+	 * @return name.substring(beginindex, len)
 	 */
 	public String substring(int beginindex, int len) {
-		return fqn.substring(beginindex, len);
+		return name.substring(beginindex, len);
 	}
 
 	/**
 	 * @param beginindex start position
-	 * @return fqn.substring(beginindex)
+	 * @return name.substring(beginindex)
 	 */
 	public String substring(int beginindex) {
-		return fqn.substring(beginindex);
+		return name.substring(beginindex);
 	}
 
 	/**
-	 * @return the tenant part of the topic name
-	 */
-	public String getTenant() {
-		return tenant;
-	}
-
-	/**
-	 * @return The tenant specific topic name
+	 * @return The topic name
 	 */
 	public String getName() {
 		return name;
@@ -121,7 +81,7 @@ public class TopicName implements Comparable<TopicName> {
 		if (o == null) {
 			return -1;
 		} else {
-			return fqn.compareTo(o.fqn);
+			return name.compareTo(o.name);
 		}
 	}
 

@@ -165,7 +165,7 @@ public class ProducerControllerTests {
 			super(instance);
 		}
 		
-		public int poll(boolean after) throws IOException {
+		public void poll() throws IOException {
 			int mod = messagecount % 10;
 			if (mod == 9) {
 				// in the pause interval set various errors
@@ -175,7 +175,7 @@ public class ProducerControllerTests {
 			switch (mod) {
 			case 0:
 				System.out.println("No data");
-				return 0; // for the poll to wait the polling interval once a while
+				return;
 			case 10:
 				System.out.println("Throw a ConnectorTemporaryException");
 				throw new ConnectorTemporaryException("Temp Connector error", null, null, null);
@@ -189,15 +189,12 @@ public class ProducerControllerTests {
 				System.out.println("Throw a PipelineRuntimeException");
 				throw new PipelineRuntimeException("Permanent Pipeline error");
 			default: 
-				JexlRecord keyrecord = new JexlRecord(schemahandler.getKeySchema());
 				JexlRecord valuerecord = new JexlRecord(schemahandler.getValueSchema());
-				keyrecord.put("KEY", messagecount);
 				valuerecord.put("KEY", messagecount);
 				valuerecord.put("VALUE", 1);
-				getProducerSession().addRow(topichandler, null, schemahandler,
-						keyrecord, valuerecord, RowType.INSERT, String.valueOf(messagecount), "FAIL");
+				addRow(topichandler, null, schemahandler,
+						valuerecord, RowType.INSERT, String.valueOf(messagecount), "FAIL");
 				System.out.println("Producing message #" + String.valueOf(messagecount));
-				return 1;
 			}
 		}
 
@@ -246,7 +243,7 @@ public class ProducerControllerTests {
 		protected Schema createSchema(String sourceschemaname) throws SchemaException, IOException {
 			return null;
 		}
-		
+
 	}
 	
 	private static Schema getKeySchema() throws ConnectorRuntimeException {

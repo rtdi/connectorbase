@@ -8,6 +8,7 @@ import java.util.Set;
 
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
 import io.rtdi.bigdata.connector.connectorframework.Producer;
+import io.rtdi.bigdata.connector.connectorframework.exceptions.ShutdownException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
@@ -26,9 +27,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	private ProducerController producercontroller;
 	private String lastsourcetransactionid;
 	private OperationState operationstate;
-	private long rowsprocessed = 0;
 	private int pollcalls = 0;
-	private Long lastdatatimestamp = null;
 	
 	/**
 	 * A nested structure containing the impact/lineage information of topics and their schemas being created by this ProducerSession.
@@ -46,6 +45,8 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	private boolean ismetadatachanged = false;
 	private int instancenumber;
 	private boolean updateschemacaches;
+	private long rowsprocessed;
+	private Long lastdatatimestamp;
 
 	public ProducerInstanceController(String name, ProducerController producercontroller, int instancenumber) {
 		super(name);
@@ -73,45 +74,37 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	@Override
 	public void runUntilError() throws IOException {
 		try (Producer<?,?> rowproducer = getConnectorFactory().createProducer(this)) {
-			rowproducer.createTopiclist();
-			rowproducer.startProducerChangeLogging();
-			
-			lastsourcetransactionid = rowproducer.getLastSuccessfulSourceTransaction();
-
-			if (lastsourcetransactionid == null || lastsourcetransactionid.length() == 0) {
-				rowproducer.initialLoad();
-			} else {
-				rowproducer.restartWith(lastsourcetransactionid);
-			}
-
-			operationstate = OperationState.REQUESTDATA;
-			rowproducer.startProducerCapture();
-			
-			boolean aftersleep = true;
-			
-			while (isRunning()) {
-				operationstate = OperationState.REQUESTDATA;
-				int rows = rowproducer.poll(aftersleep);
-				rowsprocessed += rows;
-				if (rows != 0) {
-					lastdatatimestamp = System.currentTimeMillis();
-				}
-				pollcalls++;
-				if (updateschemacaches) {
-					updateSchemaWithLatest();
-				}
-				if (ismetadatachanged) {
-					updateLandscape();
-				}
-				operationstate = OperationState.DONEREQUESTDATA;
-				// Sleep when no rows have been found, else continue reading the next batch
-				if (rows == 0 && isRunning()) {
-					sleep(rowproducer.getPollingInterval()*1000L);
-					aftersleep = true;
+			try {
+				rowproducer.createTopiclist();
+				rowproducer.startProducerChangeLogging();
+				
+				lastsourcetransactionid = rowproducer.getLastSuccessfulSourceTransaction();
+	
+				if (lastsourcetransactionid == null || lastsourcetransactionid.length() == 0) {
+					rowproducer.initialLoad();
 				} else {
-					aftersleep = false;
+					rowproducer.restartWith(lastsourcetransactionid);
 				}
-			}
+	
+				operationstate = OperationState.REQUESTDATA;
+				rowproducer.startProducerCapture();
+				
+				while (isRunning()) {
+					operationstate = OperationState.REQUESTDATA;
+					rowproducer.poll();
+					pollcalls++;
+					if (updateschemacaches) {
+						updateSchemaWithLatest();
+					}
+					if (ismetadatachanged) {
+						updateLandscape();
+					}
+					operationstate = OperationState.DONEREQUESTDATA;
+					sleep(rowproducer.getPollingInterval()*1000L);
+				}
+			} catch (ShutdownException e) { // A shutdown signal should silently terminate
+				rowproducer.abortTransaction();
+			}				
 		}
 	}
 	
@@ -253,6 +246,11 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 		return rowsprocessed;
 	}
 	
+	public void incrementRowsProducedBy(long increment) {
+		rowsprocessed += increment;
+		lastdatatimestamp = System.currentTimeMillis();
+	}
+	
 	public int getPollCalls() {
 		return pollcalls;
 	}
@@ -316,4 +314,5 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 		 */
 		this.updateschemacaches = true;
 	}
+
 }

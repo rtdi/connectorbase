@@ -26,12 +26,12 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 	private KafkaServer api = null;
 
 	public ProducerSessionKafkaDirect(ProducerProperties properties, KafkaAPIdirect api) throws PropertiesException {
-		super(properties, api.getTenantID(), api);
+		super(properties, api);
 		this.api = api.getKafkaServer();
 	}
 
-	public ProducerSessionKafkaDirect(ProducerProperties properties, String tenantid, KafkaServer api) throws PropertiesException {
-		super(properties, tenantid, api);
+	public ProducerSessionKafkaDirect(ProducerProperties properties, KafkaServer api) throws PropertiesException {
+		super(properties, api);
 		this.api = api;
 	}
 
@@ -70,7 +70,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 		} else if (keyrecord == null || valuerecord == null) {
 			throw new PipelineRuntimeException("Sending rows requires a key and value record");
 		}
-		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getTopicFQN(), partition, keyrecord, valuerecord);
+		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getName(), partition, keyrecord, valuerecord);
 		messagestatus.add(api.getProducer().send(record));
 
 		throttleReceiver(messagestatus);
@@ -86,7 +86,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 		byte[] key = AvroSerializer.serialize(handler.getDetails().getKeySchemaID(), keyrecord);
 		
 		byte[] value = AvroSerializer.serialize(handler.getDetails().getValueSchemaID(), valuerecord);
-		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getTopicFQN(), partition, key, value);
+		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getName(), partition, key, value);
 		messagestatus.add(api.getProducer().send(record));
 
 		throttleReceiver(messagestatus);

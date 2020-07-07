@@ -15,7 +15,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEnti
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
@@ -73,7 +72,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public SchemaHandler getSchema(String schemaname) throws PropertiesException {
-		return server.getSchema(new SchemaName(getTenantID(), schemaname));
+		return server.getSchema(new SchemaName(schemaname));
 	}
 	
 	/* (non-Javadoc)
@@ -89,11 +88,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public SchemaHandler getSchema(SchemaName schemaname) throws PropertiesException {
-		if (schemaname.getTenant().equals(getTenantID())) {
-			return server.getSchema(schemaname);
-		} else {
-			throw new PipelineRuntimeException("getSchema() request failed, the request is not within the current tenant");
-		}
+		return server.getSchema(schemaname);
 	}
 
 	/* (non-Javadoc)
@@ -101,11 +96,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public SchemaHandler registerSchema(SchemaName schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
-		if (schemaname.getTenant().equals(getTenantID())) {
-			return server.getOrCreateSchema(schemaname, description, keyschema, valueschema);
-		} else {
-			throw new PipelineRuntimeException("registerSchema() request failed, the request is not within the current tenant");
-		}
+		return server.getOrCreateSchema(schemaname, description, keyschema, valueschema);
 	}
 
 	/* (non-Javadoc)
@@ -113,7 +104,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public SchemaHandler registerSchema(String schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
-		return server.getOrCreateSchema(new SchemaName(getTenantID(), schemaname), description, keyschema, valueschema);
+		return server.getOrCreateSchema(new SchemaName(schemaname), description, keyschema, valueschema);
 	}
 
 	@Override
@@ -131,7 +122,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public List<String> getSchemas() throws PropertiesException {
-		return server.getSchemas(getTenantID());
+		return server.getSchemas();
 	}
 	
 	/* (non-Javadoc)
@@ -139,11 +130,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public T topicCreate(TopicName topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
-		if (topic.getTenant().equals(getTenantID())) {
-			return server.createTopic(topic, partitioncount, replicationfactor, configs);
-		} else {
-			throw new PipelineRuntimeException("topicCreate() request failed, the request is not within the current tenant");
-		}
+		return server.createTopic(topic, partitioncount, replicationfactor, configs);
 	}
 	
 	/* (non-Javadoc)
@@ -151,17 +138,13 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public T topicCreate(TopicName topic, int partitioncount, short replicationfactor) throws PropertiesException {
-		if (topic.getTenant().equals(getTenantID())) {
-			return server.topicCreate(topic, partitioncount, replicationfactor);
-		} else {
-			throw new PipelineRuntimeException("topicCreate() request failed, the request is not within the current tenant");
-		}
+		return server.topicCreate(topic, partitioncount, replicationfactor);
 	}
 	
 
 	@Override
 	public T topicCreate(String topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
-		return topicCreate(new TopicName(getTenantID(), topic), partitioncount, replicationfactor, configs);
+		return topicCreate(new TopicName(topic), partitioncount, replicationfactor, configs);
 	}
 
 
@@ -177,7 +160,7 @@ public abstract class PipelineAbstract<
 	public synchronized T getTopicOrCreate(String name, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
 		T t = getTopic(name);
 		if (t == null) {
-			t = server.createTopic(new TopicName(getTenantID(), name), replicationfactor, replicationfactor, configs);
+			t = server.createTopic(new TopicName(name), replicationfactor, replicationfactor, configs);
 		} 
 		return t;
 	}
@@ -195,7 +178,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public T getTopic(String topicname) throws PropertiesException {
-		return server.getTopic(new TopicName(getTenantID(), topicname));
+		return server.getTopic(new TopicName(topicname));
 	}
 
 	/* (non-Javadoc)
@@ -203,11 +186,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public T getTopic(TopicName topic) throws PropertiesException {
-		if (topic.getTenant().equals(getTenantID())) {
-			return server.getTopic(topic);
-		} else {
-			throw new PipelineRuntimeException("getTopic() request failed, the request is not within the current tenant");
-		}	
+		return server.getTopic(topic);
 	}
 
 	/* (non-Javadoc)
@@ -215,7 +194,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public List<String> getTopics() throws IOException {
-		return server.getTopics(getTenantID());
+		return server.getTopics();
 	}
 
 	/* (non-Javadoc)
@@ -223,7 +202,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public List<TopicPayload> getLastRecords(String topicname, int count) throws IOException {
-		return server.getLastRecords(new TopicName(getTenantID(), topicname), count);
+		return server.getLastRecords(new TopicName(topicname), count);
 	}
 
 	/* (non-Javadoc)
@@ -231,7 +210,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public List<TopicPayload> getLastRecords(String topicname, long timestamp) throws IOException {
-		return server.getLastRecords(new TopicName(getTenantID(), topicname), timestamp);
+		return server.getLastRecords(new TopicName(topicname), timestamp);
 	}
 
 	/* (non-Javadoc)
@@ -239,11 +218,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public List<TopicPayload> getLastRecords(TopicName topicname, int count) throws IOException {
-		if (topicname.getTenant().equals(getTenantID())) {
-			return server.getLastRecords(topicname, count);
-		} else {
-			throw new PipelineRuntimeException("getLastRecords() request failed, the request is not within the current tenant");
-		}	
+		return server.getLastRecords(topicname, count);
 	}
 
 	/* (non-Javadoc)
@@ -251,11 +226,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public List<TopicPayload> getLastRecords(TopicName topicname, long timestamp) throws IOException {
-		if (topicname.getTenant().equals(getTenantID())) {
-			return server.getLastRecords(topicname, timestamp);
-		} else {
-			throw new PipelineRuntimeException("getLastRecords() request failed, the request is not within the current tenant");
-		}	
+		return server.getLastRecords(topicname, timestamp);
 	}
 
 	/* (non-Javadoc)
@@ -325,7 +296,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public void removeProducerMetadata(String producername) throws IOException {
-		server.removeProducerMetadata(getTenantID(), producername);
+		server.removeProducerMetadata(producername);
 	}
 	
 	/* (non-Javadoc)
@@ -333,7 +304,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public void removeConsumerMetadata(String consumername) throws IOException {
-		server.removeConsumerMetadata(getTenantID(), consumername);
+		server.removeConsumerMetadata(consumername);
 	}
 	
 	/* (non-Javadoc)
@@ -341,12 +312,12 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public void addProducerMetadata(ProducerEntity producer) throws IOException {
-		server.addProducerMetadata(getTenantID(), producer);
+		server.addProducerMetadata(producer);
 	}
 
 	@Override
 	public void addServiceMetadata(ServiceEntity service) throws IOException {
-		server.addServiceMetadata(getTenantID(), service);
+		server.addServiceMetadata(service);
 	}
 
 	/* (non-Javadoc)
@@ -354,7 +325,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public void addConsumerMetadata(ConsumerEntity consumer) throws IOException {
-		server.addConsumerMetadata(getTenantID(), consumer);
+		server.addConsumerMetadata(consumer);
 	}
 
 	/* (non-Javadoc)
@@ -362,7 +333,7 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public ProducerMetadataEntity getProducerMetadata() throws IOException {
-		return server.getProducerMetadata(getTenantID());
+		return server.getProducerMetadata();
 	}
 	
 	/* (non-Javadoc)
@@ -370,12 +341,12 @@ public abstract class PipelineAbstract<
 	 */
 	@Override
 	public ConsumerMetadataEntity getConsumerMetadata() throws IOException {
-		return server.getConsumerMetadata(getTenantID());
+		return server.getConsumerMetadata();
 	}
 	
 	@Override
 	public ServiceMetadataEntity getServiceMetadata() throws IOException {
-		return server.getServiceMetadata(getTenantID());
+		return server.getServiceMetadata();
 	}
 
 	/* (non-Javadoc)

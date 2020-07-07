@@ -20,46 +20,4 @@ public class TopicUtil {
 		}
 	}
 
-	public static String extractTopicName(String fqn) throws PropertiesException {
-		if (fqn == null) {
-			return null;
-		} else {
-			int pos = fqn.indexOf('-');
-			if (pos == -1 || pos >= fqn.length()) {
-				throw new PropertiesException("Not a valid <Tenant>-<Topicname> fqn (\"" + fqn + "\")");
-			} else {
-				return fqn.substring(pos+1);
-			}
-		}
-	}
-	
-	public static String extractSchemaName(String fqn) throws PropertiesException {
-		if (fqn == null) {
-			return null;
-		} else {
-			int pos = fqn.indexOf('-');
-			if (pos == -1 || pos >= fqn.length()) {
-				throw new PropertiesException("Not a valid <Tenant>-<Schemaname> fqn (\"" + fqn + "\")");
-			} else {
-				return fqn.substring(pos+1);
-			}
-		}
-	}
-
-	/**
-	 * Used to combine tenant and topic name without validation. Useful for example when the topic name is actually a regex pattern.
-	 * @param tenantid as string
-	 * @param name topic name within the tenant
-	 * @return fqn
-	 * @throws PropertiesException in case the input is invalid
-	 */
-	public static String createTopicFQN(String tenantid, String name) throws PropertiesException {
-		StringBuffer b = new StringBuffer();
-		if (tenantid != null) {
-			b.append(TopicUtil.validate(tenantid));
-			b.append("-");
-		}
-		b.append(TopicUtil.validate(name));
-		return b.toString();
-	}
 }

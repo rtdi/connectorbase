@@ -36,16 +36,11 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 
 	@Override
 	protected ConsumerSessionKafkaDirect createConsumerSession(ConsumerProperties properties) throws PropertiesException {
-		return new ConsumerSessionKafkaDirect(properties, getTenantID(), this);
+		return new ConsumerSessionKafkaDirect(properties, this);
 	}
 	
 	public KafkaProducer<byte[], byte[]> getProducer() {
 		return ((KafkaServer) getServer()).getProducer();
-	}
-
-	@Override
-	public String getTenantID() throws PropertiesException {
-		return getAPIProperties().getTenantid();
 	}
 
 	public KafkaServer getKafkaServer() {

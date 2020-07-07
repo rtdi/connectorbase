@@ -28,7 +28,7 @@ public class ProducerSessionHttp extends ProducerSession<TopicHandlerHttp> {
 	private HttpUtil http;
 
 	public ProducerSessionHttp(ProducerProperties properties, PipelineHttp api) throws PropertiesException {
-		super(properties, api.getTenantID(), api);
+		super(properties, api);
 		this.api = api;
 	}
 
@@ -39,7 +39,6 @@ public class ProducerSessionHttp extends ProducerSession<TopicHandlerHttp> {
 			http.getConnection().setRequestProperty("Content-Type", MediaType.APPLICATION_OCTET_STREAM);
 			http.getConnection().setChunkedStreamingMode(1024*1024*2);
 			http.getConnection().setUseCaches(false);
-			http.getConnection().setRequestProperty("TENANTID", this.getTenantId());
 			
 			out = http.getConnection().getOutputStream();
 		} catch (IOException e) {

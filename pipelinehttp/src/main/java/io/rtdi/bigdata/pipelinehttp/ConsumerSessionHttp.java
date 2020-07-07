@@ -23,7 +23,7 @@ public class ConsumerSessionHttp extends ConsumerSession<TopicHandlerHttp> {
 	private HttpUtil http;
 
 	protected ConsumerSessionHttp(ConsumerProperties properties, PipelineHttp api) throws PropertiesException {
-		super(properties, api.getTenantID(), api);
+		super(properties, api);
 		this.api = api;
 		try {
 			url = api.getTransactionEndpointForFetch().toURL();
@@ -77,7 +77,6 @@ public class ConsumerSessionHttp extends ConsumerSession<TopicHandlerHttp> {
 		state = OperationState.OPEN;
 		http.getHttpConnection(url, "POST");
 		try (OutputStream out = http.getConnection().getOutputStream();) {
-			io.sendString(out, getTenantId());
 			io.sendString(out, getProperties().getName());
 			io.sendString(out, getProperties().getTopicPattern());
 			io.sendInt(out, getProperties().getFlushMaxRecords());

@@ -25,6 +25,12 @@ init : function() {
 	}
 	this.getView().setModel(oModel);
 	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"}, {"text" : "Services", "link" : "./Services"} ] );
+	
+	var oModelTopics = new JSONModel();
+	oModelTopics.setSizeLimit(1000);
+	oModelTopics.loadData("../rest/topics");
+	this.getView().setModel(oModelTopics, "topics");
+
 },
 save : function(oEvent) {
 	var oModel = this.getView().getModel();
@@ -36,6 +42,12 @@ save : function(oEvent) {
 	    if (xmlhttp.readyState == 4) {
 	    	if (xmlhttp.status == 200) {
 		        sap.m.MessageToast.show("Saved");
+		        oStateModel.setProperty("/new", false);
+		        var aMS = oModel.getProperty("/microservices");
+		        aMS.forEach(function(oItem) {
+		        	oItem.new = false;
+		        });
+		        oModel.setProperty("/microservices", aMS);
 		    } else {
 		        this.displayError({ "message" : xmlhttp.responseText });
 		    }
@@ -49,9 +61,9 @@ onAddMicroservice : function(oEvent) {
 	var oModel = this.getView().getModel();
 	var aMicroservices = oModel.getProperty("/microservices");
 	if (!!!aMicroservices) {
-		aMicroservices = [ { "name" : "" } ];
+		aMicroservices = [ { "name" : "", new: true } ];
 	} else {
-		aMicroservices.push({ "name" : "" });
+		aMicroservices.push({ "name" : "", new: true });
 	}
 	oModel.setProperty("/microservices", aMicroservices);
 },
@@ -59,6 +71,6 @@ onConfigureMicroservice : function(oEvent) {
 	var path = oEvent.getSource().getBindingContext().getPath();
 	var oModel = this.getView().getModel();
 	var obj = oModel.getProperty(path);
-	var sServicename = jQuery.sap.getUriParameters().get("servicename");
+	var sServicename = oModel.getProperty("/serviceproperties/name");
 	window.location.href = './Microservice?servicename=' + encodeURI(sServicename) + '&microservice=' + encodeURI(obj.name);
 }

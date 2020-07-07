@@ -15,8 +15,8 @@ import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 
 public class ConsumerSessionTest extends ConsumerSession<TopicHandlerTest> {
 
-	protected ConsumerSessionTest(ConsumerProperties properties, IPipelineBase<?, TopicHandlerTest> api, String tenantid) throws PropertiesException {
-		super(properties, tenantid, api);
+	protected ConsumerSessionTest(ConsumerProperties properties, IPipelineBase<?, TopicHandlerTest> api) throws PropertiesException {
+		super(properties, api);
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class ConsumerSessionTest extends ConsumerSession<TopicHandlerTest> {
 
 	@Override
 	public void setTopics() throws PropertiesException {
-		TopicHandlerTest topic = getPipelineAPI().getTopic(new TopicName(getTenantId(), getProperties().getTopicPattern()));
+		TopicHandlerTest topic = getPipelineAPI().getTopic(new TopicName(getProperties().getTopicPattern()));
 		addTopic(topic);
 	}
 

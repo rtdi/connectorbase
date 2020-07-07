@@ -7,8 +7,8 @@ import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.TopicM
 
 public class TopicHandlerHttp extends TopicHandler {
 
-	public TopicHandlerHttp(String tenant, String name, TopicMetadata topicmetadata) throws PropertiesException {
-		super(tenant, name, topicmetadata);
+	public TopicHandlerHttp(String name, TopicMetadata topicmetadata) throws PropertiesException {
+		super(name, topicmetadata);
 	}
 
 	public TopicHandlerHttp(TopicName topicname, TopicMetadata topicmetadata) throws PropertiesException {

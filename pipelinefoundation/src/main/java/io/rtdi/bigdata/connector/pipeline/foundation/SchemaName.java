@@ -9,58 +9,25 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesExcept
  *
  */
 public class SchemaName implements Comparable<SchemaName>{
-	private String fqn;
-	private String tenant;
 	private String name;
-
-	/**
-	 * Based on a FQN creates the name parts. Normally the string passed in is the format of 
-	 * &lt;<i>tenantid</i>&gt;-&lt;<i>schemaname</i>&gt; but simple strings (without tenant) are allowed as well.
-	 * Then the tenant is null.
-	 * 
-	 * @param fqn is the full qualified name of the topic
-	 * @throws PropertiesException in case the fqn is null or invalid
-	 */
-	public SchemaName(String fqn) throws PropertiesException {
-		if (fqn == null) {
-			throw new PropertiesException("Schemaname cannot be constructed from an empty string");
-		}
-		int tenantsplitpos = fqn.indexOf('-');
-		if (tenantsplitpos != -1) {
-			tenant = TopicUtil.validate(fqn.substring(0, tenantsplitpos));
-			name = TopicUtil.validate(fqn.substring(tenantsplitpos+1));
-		} else {
-			tenant = null;
-			name = fqn.toString();
-		}
-		this.fqn = fqn;
-	}
 
 	/**
 	 * Build the schema name based on the tenant and name.
 	 * 
-	 * @param tenantID can be null
 	 * @param schemaname is the tenant specific name of the schema
 	 * @throws PropertiesException in case the fqn is null
 	 */
-	public SchemaName(String tenantID, String schemaname) throws PropertiesException {
+	public SchemaName(String schemaname) throws PropertiesException {
 		if (schemaname == null || schemaname.length() == 0) {
 			throw new PropertiesException("schemaname cannot be null or empty");
 		}
-		StringBuffer b = new StringBuffer();
-		if (tenantID != null) {
-			b.append(TopicUtil.validate(tenantID));
-			b.append("-");
-		}
-		b.append(TopicUtil.validate(schemaname));
-		this.fqn = b.toString();
-		this.tenant = tenantID;
+		TopicUtil.validate(schemaname);
 		this.name = schemaname;
 	}
 
 	@Override
 	public int hashCode() {
-		return fqn.hashCode();
+		return name.hashCode();
 	}
 
 	@Override
@@ -69,7 +36,7 @@ public class SchemaName implements Comparable<SchemaName>{
 			return false;
 		} else if (obj instanceof SchemaName) {
 			SchemaName s = (SchemaName) obj;
-			return fqn.equals(s.fqn);
+			return name.equals(s.name);
 		} else {
 			return false;
 		}
@@ -77,57 +44,44 @@ public class SchemaName implements Comparable<SchemaName>{
 
 	@Override
 	public String toString() {
-		return fqn;
+		return name;
 	}
 
-	/**
-	 * @return the schema fully qualified name
-	 */
-	public String getSchemaFQN() {
-		return fqn;
-	}
 
 	/**
-	 * Duplicate the string operations based on the fqn.
+	 * Duplicate the string operations based on the name.
 	 * 
 	 * @param c character to find
 	 * @return fqn.indexOf(c)
 	 */
 	public int indexOf(char c) {
-		return fqn.indexOf(c);
+		return name.indexOf(c);
 	}
 
 	/**
-	 * Duplicate the string operations based on the fqn.
+	 * Duplicate the string operations based on the name.
 	 * 
 	 * @param beginindex start position
 	 * @param len length of the substring
 	 * @return fqn.substring(beginindex, len)
 	 */
 	public String substring(int beginindex, int len) {
-		return fqn.substring(beginindex, len);
+		return name.substring(beginindex, len);
 	}
 
 	/**
-	 * Duplicate the string operations based on the fqn.
+	 * Duplicate the string operations based on the name.
 	 * 
 	 * @param beginindex start position
 	 * @return fqn.substring(beginindex)
 	 */
 	public String substring(int beginindex) {
-		return fqn.substring(beginindex);
+		return name.substring(beginindex);
 	}
 	
 
 	/**
-	 * @return The TenantID of the schema
-	 */
-	public String getTenant() {
-		return tenant;
-	}
-
-	/**
-	 * @return The tenant specific name part of the schema
+	 * @return The name of the schema
 	 */
 	public String getName() {
 		return name;
@@ -138,7 +92,7 @@ public class SchemaName implements Comparable<SchemaName>{
 		if (o == null) {
 			return -1;
 		} else {
-			return fqn.compareTo(o.fqn);
+			return name.compareTo(o.name);
 		}
 	}
 

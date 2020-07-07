@@ -23,7 +23,6 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	private boolean isopen = false;
 	private ProducerProperties properties;
 	protected Logger logger = LogManager.getLogger(this.getClass().getName());
-	private String tenantid;
 	private IPipelineBase<?, T> api;
 
 
@@ -31,13 +30,11 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * This constructor should not throw exceptions as it creates the object only. It should not start anything.
 	 * 
 	 * @param properties optional, needed by the producer
-	 * @param tenantid used for this session
 	 * @param api to use
 	 */
-	public ProducerSession(ProducerProperties properties, String tenantid, IPipelineBase<?, T> api) {
+	public ProducerSession(ProducerProperties properties, IPipelineBase<?, T> api) {
 		super();
 		this.properties = properties;
-		this.tenantid = tenantid;
 		this.api = api;
 	}
 
@@ -227,13 +224,6 @@ public abstract class ProducerSession<T extends TopicHandler> {
 		return "ProducerSession " + properties.getName();
 	}
 
-	/**
-	 * @return the configured tenant for this session
-	 */
-	public String getTenantId() {
-		return tenantid;
-	}
-	
 	/**
 	 * @return pipeline api as quick access
 	 */

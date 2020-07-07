@@ -17,7 +17,7 @@ public class TopicHandlerTest extends TopicHandler {
 	long offest = 0;
 
 	public TopicHandlerTest(String tenant, String name, TopicMetadata topicmetadata) throws PropertiesException {
-		super(tenant, name, topicmetadata);
+		super(name, topicmetadata);
 	}
 
 	public TopicHandlerTest(TopicName topicname, TopicMetadata topicmetadata) throws PropertiesException {

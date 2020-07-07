@@ -19,6 +19,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ServiceController;
@@ -257,6 +259,7 @@ public class ServiceService {
 		
 	}
 	
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class MicroService {
 
 		private String name;

@@ -21,17 +21,12 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 
 	@Override
 	protected ProducerSessionTest createProducerSession(ProducerProperties properties) throws PropertiesException {
-		return new ProducerSessionTest(properties, getTenantID(), this);
+		return new ProducerSessionTest(properties, this);
 	}
 
 	@Override
 	protected ConsumerSessionTest createConsumerSession(ConsumerProperties properties) throws PropertiesException {
-		return new ConsumerSessionTest(properties, this, getTenantID());
-	}
-
-	@Override
-	public String getTenantID() throws PropertiesException {
-		return "TESTTENANT";
+		return new ConsumerSessionTest(properties, this);
 	}
 
 	@Override

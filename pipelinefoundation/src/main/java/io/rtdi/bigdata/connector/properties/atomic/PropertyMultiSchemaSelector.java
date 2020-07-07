@@ -1,5 +1,6 @@
 package io.rtdi.bigdata.connector.properties.atomic;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PropertyMultiSchemaSelector extends PropertyAbstract implements IPropertyValue {
@@ -13,22 +14,18 @@ public class PropertyMultiSchemaSelector extends PropertyAbstract implements IPr
 		super(name, displayname, description, icon, mandatory);
 	}
 	
-	public void setValuearray(List<String> value) {
+	public void setValue(List<String> value) {
 		this.value = value;
 	}
 	
 	@Override
 	public List<String> getValue() {
-		return null;
-	}
-
-	public List<String> getValuearray() {
 		return value;
 	}
 
 	public void parseValue(IProperty property, boolean ignorepasswords) {
 		if (property instanceof PropertyMultiSchemaSelector) {
-			this.value = ((PropertyMultiSchemaSelector) property).getValuearray();
+			this.value = ((PropertyMultiSchemaSelector) property).getValue();
 		} else {
 			throw new Error("PropertySchemaSelector's value not of type PropertySchemaSelector");
 		}
@@ -42,8 +39,11 @@ public class PropertyMultiSchemaSelector extends PropertyAbstract implements IPr
 	@Override
 	public IProperty clone(boolean ignorepasswords) {
 		PropertyMultiSchemaSelector c = new PropertyMultiSchemaSelector(this.getName(), this.getDisplayname(), this.getDescription(), this.getIcon(), this.getMandatory());
-		// TODO: Copy values instead of replacing the array
-		c.setValuearray(getValuearray());
+		List<String> l = new ArrayList<String>();
+		if (value != null) {
+			l.addAll(value);
+		}
+		c.setValue(l);
 		return c;
 	}
 

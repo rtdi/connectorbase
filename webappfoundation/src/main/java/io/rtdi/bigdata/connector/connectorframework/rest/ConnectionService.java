@@ -123,7 +123,7 @@ public class ConnectionService {
 			if (conn == null) {
 				ConnectionProperties props = connector.getConnectorFactory().createConnectionProperties(connectionname);
 				props.setValue(data);
-				File dir = new File(connector.getConnectorDirectory().getAbsolutePath() + File.separatorChar + connectionname);
+				File dir = new File(connector.getConnectorDirectory().getAbsolutePath() + File.separatorChar + "connections" + File.separatorChar + connectionname);
 				if (dir.exists() == false) {
 					dir.mkdirs();
 				}

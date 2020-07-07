@@ -2,6 +2,8 @@ package io.rtdi.bigdata.connectors.pipeline.kafkadirect;
 
 import java.util.Properties;
 
+import org.apache.kafka.common.config.SaslConfigs;
+import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -35,11 +37,28 @@ public class ServiceSessionKafkaDirect extends ServiceSession {
 		    streamsConfiguration.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArray().getClass().getName());
 		    streamsConfiguration.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, GenericAvroSerde.class);
 		    streamsConfiguration.put(GenericAvroSerde.SCHEMA_PROVIDER_CONFIG, api);
+		    KafkaConnectionProperties connectionprops = api.getAPIProperties();
+			if (connectionprops.getKafkaAPIKey() != null && connectionprops.getKafkaAPIKey().length() > 0) {
+				/*
+				 * 	security.protocol=SASL_SSL
+				 *	sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule   required username="{{ CLUSTER_API_KEY }}"   password="{{ CLUSTER_API_SECRET }}";
+				 *	ssl.endpoint.identification.algorithm=https
+				 *	sasl.mechanism=PLAIN
+				 */
+				streamsConfiguration.put("security.protocol", "SASL_SSL");
+				streamsConfiguration.put(SaslConfigs.SASL_JAAS_CONFIG, 
+						"org.apache.kafka.common.security.plain.PlainLoginModule   required username=\"" +
+								connectionprops.getKafkaAPIKey() + "\"   password=\"" + 
+								connectionprops.getKafkaAPISecret() + "\";");
+				streamsConfiguration.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, SslConfigs.DEFAULT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM);
+				streamsConfiguration.put(SaslConfigs.SASL_MECHANISM, "PLAIN");
+			}    	
 	
-		    TopicName source = new TopicName(api.getTenantID(), properties.getSourceTopic());
-		    TopicName target = new TopicName(api.getTenantID(), properties.getTargetTopic());
+		    TopicName source = new TopicName(properties.getSourceTopic());
+		    TopicName target = new TopicName(properties.getTargetTopic());
+		    api.getTopicOrCreate(target.getName(), 1, (short) 1); // make sure the target topic exists
 		    StreamsBuilder builder = new StreamsBuilder();
-		    KStream<byte[], JexlRecord> input = builder.stream(source.getTopicFQN());
+		    KStream<byte[], JexlRecord> input = builder.stream(source.getName());
 	
 		    KStream<byte[], JexlRecord> microservice = input;
 		    
@@ -47,7 +66,7 @@ public class ServiceSessionKafkaDirect extends ServiceSession {
 				microservice = microservice.mapValues(new ValueMapperMicroService(m)); // chain the objects together starting with input
 		    }
 	
-			microservice.to(target.getTopicFQN());
+			microservice.to(target.getName());
 	
 		    stream = new KafkaStreams(builder.build(), streamsConfiguration);
 	

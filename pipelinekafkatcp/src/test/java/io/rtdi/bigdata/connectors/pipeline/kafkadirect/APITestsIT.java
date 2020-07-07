@@ -94,7 +94,7 @@ public class APITestsIT {
 			Schema keyschema = getKeySchema().getSchema();
 			Schema valueschema = getValueSchema().getSchema();
 			@SuppressWarnings("unused")
-			SchemaHandler employeeschema = api.registerSchema(new SchemaName(api.getTenantID(), "Employee"), "The employee schema", keyschema, valueschema);
+			SchemaHandler employeeschema = api.registerSchema(new SchemaName("Employee"), "The employee schema", keyschema, valueschema);
 			
 		} catch (Exception e) {
 			e.printStackTrace();

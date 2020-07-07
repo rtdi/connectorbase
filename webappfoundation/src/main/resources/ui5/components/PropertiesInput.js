@@ -3,7 +3,7 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 		metadata : {
 			properties : {
 				"type" : "string",
-				"value" : "string",
+				"value" : "any",
 				"enabled": "boolean"
 			},
 			aggregations : {
@@ -24,7 +24,12 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 		setValue : function(value) {
 			this.setProperty("value", value, true);
 			if (this.getAggregation("_control")) {
-				this.getAggregation("_control").setValue(value);
+				var oControl = this.getAggregation("_control");
+				if (oControl instanceof sap.m.MultiComboBox) {
+					oControl.setSelectedKeys(value);
+				} else {
+					oControl.setValue(value);
+				}
 			}
 		},
 		setType : function(type) {
@@ -89,8 +94,15 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 						template: new sap.ui.core.Item( { key: '{schemas>tablename}', text: '{schemas>tablename}' })
 					},
 					width: "100%",
-					selectionChange: function(oEvent){
-						that.setProperty("value", oEvent.getParameter("newValue"), true);
+					selectionChange: function(oEvent) {
+						var oItems = oEvent.getSource().getItems();
+						var aSchemaNames = [];
+						if (oItems) {
+							oItems.forEach(function(oItem) {
+								aSchemaNames.push(oItem.getKey());
+							});
+						}
+						that.setProperty("value", aSchemaNames, true);
 					}
 				});
 				this.setAggregation("_control", oControl);

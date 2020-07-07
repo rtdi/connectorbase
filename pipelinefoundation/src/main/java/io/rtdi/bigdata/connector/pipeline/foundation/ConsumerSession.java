@@ -35,9 +35,8 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 	protected long lastoffset = -1;
 	protected String lasttopic = null;
 	private IControllerState controller;
-	private String tenantid;
 
-	protected ConsumerSession(ConsumerProperties properties, String tenantid, IPipelineBase<?, T> api) throws PropertiesException {
+	protected ConsumerSession(ConsumerProperties properties, IPipelineBase<?, T> api) throws PropertiesException {
 		super();
 		if (properties == null) {
 			throw new PropertiesException("The ConsumerSession needs a valid PipelineConsumerProperties object to know the topics to listen on");
@@ -45,7 +44,6 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 		this.properties = properties;
 		this.api = api;
 		logger = LogManager.getLogger(this.getClass().getName());
-		this.tenantid = tenantid;
 	}
 
 	
@@ -205,10 +203,6 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 
 	public IPipelineBase<?, T> getPipelineAPI() {
 		return api;
-	}
-
-	public String getTenantId() {
-		return tenantid;
 	}
 
 }

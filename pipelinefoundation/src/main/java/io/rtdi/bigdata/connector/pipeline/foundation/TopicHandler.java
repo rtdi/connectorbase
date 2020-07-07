@@ -15,13 +15,12 @@ public class TopicHandler implements Comparable<TopicHandler> {
 	/**
 	 * Create a new TopicHandler based on the TenantID and the tenant specific topic name.
 	 * 
-	 * @param tenant tenant id as string
 	 * @param name tenant specific topic name
 	 * @param topicmetadata optional topic metadata
 	 * @throws PropertiesException in case the name is invalid
 	 */
-	public TopicHandler(String tenant, String name, TopicMetadata topicmetadata) throws PropertiesException {
-		this(new TopicName(tenant, name), topicmetadata); // validates that name is not null
+	public TopicHandler(String name, TopicMetadata topicmetadata) throws PropertiesException {
+		this(new TopicName(name), topicmetadata); // validates that name is not null
 	}
 
 	/**

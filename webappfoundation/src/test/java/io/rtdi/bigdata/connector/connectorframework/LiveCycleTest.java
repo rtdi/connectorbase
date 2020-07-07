@@ -38,10 +38,10 @@ public class LiveCycleTest {
 	@Test
 	public void test() {
 		try {
-			SchemaName schemaname = new SchemaName(api.getTenantID(), "HWMonitor");
+			SchemaName schemaname = new SchemaName("HWMonitor");
 			SchemaHandler schemahandler = api.registerSchema(schemaname, "HWMonitor structure contains detailed data about the hardware utilization",
 					getKeySchema(), getValueSchema());
-			TopicName topic = new TopicName(api.getTenantID(), "TOPIC1");
+			TopicName topic = new TopicName("TOPIC1");
 			TopicHandlerTest topichandler = api.topicCreate(topic, 1, (short) 1);
 			
 			/* IConnectorFactory<?, ?, ?> connector = new ConnectorFactoryTest("TEST");

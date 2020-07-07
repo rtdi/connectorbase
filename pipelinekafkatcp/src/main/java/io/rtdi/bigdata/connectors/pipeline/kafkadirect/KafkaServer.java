@@ -75,7 +75,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.SchemaName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
-import io.rtdi.bigdata.connector.pipeline.foundation.TopicUtil;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
@@ -121,10 +120,6 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 	private AdminClient admin;
 	private WebTarget target;
 
-	
-	private Map<String, TopicName> tenantproducermetadataname = new HashMap<>();
-	private Map<String, TopicName> tenantconsumermetadataname = new HashMap<>();
-	private Map<String, TopicName> tenantservicemetadataname = new HashMap<>();
 	
 	private Cache<Integer, Schema> schemaidcache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(1000).build();
 	private Cache<SchemaName, SchemaHandler> schemacache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(31)).maximumSize(1000).build();
@@ -203,6 +198,9 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 	private TopicPartition schemaregistrypartition = new TopicPartition(SCHEMA_TOPIC_NAME, 0);
 	private Collection<TopicPartition> schemaregistrypartitions = Collections.singletonList(schemaregistrypartition);
 	private KafkaConnectionProperties connectionprops;
+	private TopicName producermetadatatopicname;
+	private TopicName consumermetadatatopicname;
+	private TopicName servicemetadatatopicname;
 
 	public KafkaServer(File rootdir) throws PropertiesException {
 		this();
@@ -298,16 +296,16 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 				}
 
 								
-				SchemaName producermetadataschemaname = new SchemaName(null, PRODUCER_METADATA);
+				SchemaName producermetadataschemaname = new SchemaName(PRODUCER_METADATA);
 				producermetadataschema = getOrCreateSchema(producermetadataschemaname, null, producerkeyschema, producervalueschema);
 				
-				SchemaName consumermetadataschemaname = new SchemaName(null, CONSUMER_METADATA);
+				SchemaName consumermetadataschemaname = new SchemaName(CONSUMER_METADATA);
 				consumermetadataschema = getOrCreateSchema(consumermetadataschemaname, null, consumerkeyschema, consumervalueschema);
 				
-				SchemaName servicemetadataschemaname = new SchemaName(null, SERVICE_METADATA);
+				SchemaName servicemetadataschemaname = new SchemaName(SERVICE_METADATA);
 				servicemetadataschema = getOrCreateSchema(servicemetadataschemaname, null, servicekeyschema, servicevalueschema);
 				
-				TopicName schemaregistrytopic = new TopicName(null, SCHEMA_TOPIC_NAME);
+				TopicName schemaregistrytopic = new TopicName(SCHEMA_TOPIC_NAME);
 				createInternalTopic(schemaregistrytopic);
 				
     		} catch (PipelineRuntimeException e) {
@@ -370,17 +368,14 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
     	}
 	}
 	
-	protected void createMetadataTopics(String tenantid) throws PipelineRuntimeException {
+	protected void createMetadataTopics() throws PipelineRuntimeException {
 		try {
-			TopicName producermetadatatopicname = new TopicName(tenantid, PRODUCER_METADATA);
+			producermetadatatopicname = new TopicName(PRODUCER_METADATA);
 			createInternalTopic(producermetadatatopicname);
-			TopicName consumermetadatatopicname = new TopicName(tenantid, CONSUMER_METADATA);
+			consumermetadatatopicname = new TopicName(CONSUMER_METADATA);
 			createInternalTopic(consumermetadatatopicname);
-			TopicName servicemetadatatopicname = new TopicName(tenantid, SERVICE_METADATA);
+			servicemetadatatopicname = new TopicName(SERVICE_METADATA);
 			createInternalTopic(servicemetadatatopicname);
-			tenantproducermetadataname.put(tenantid, producermetadatatopicname);
-			tenantconsumermetadataname.put(tenantid, consumermetadatatopicname);
-			tenantservicemetadataname.put(tenantid, servicemetadatatopicname);
 		} catch (PropertiesException e) {
 			throw new PipelineRuntimeException("Creation of the Metadata topics failed", e, null);
 		}
@@ -443,12 +438,12 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 					throw new PipelineRuntimeException("Reading the schema from the server failed", e, null);
 				}
     		} else {
-    			Response entityresponse = callRestfulservice("subjects/" + kafkaschemaname.getSchemaFQN() + "-key/versions/latest");
+    			Response entityresponse = callRestfulservice("subjects/" + kafkaschemaname.getName() + "-key/versions/latest");
     			if (entityresponse != null) {
 	    			SchemaValue keyschemadef = entityresponse.readEntity(SchemaValue.class);
 					Schema keyschema = new Schema.Parser().parse(keyschemadef.getSchema());
 					
-	    			entityresponse = callRestfulservice("subjects/" + kafkaschemaname.getSchemaFQN() + "-value/versions/latest");
+	    			entityresponse = callRestfulservice("subjects/" + kafkaschemaname.getName() + "-value/versions/latest");
 	    			SchemaValue valueschemadef = entityresponse.readEntity(SchemaValue.class);
 	    			Schema valueschems = new Schema.Parser().parse(valueschemadef.getSchema()); // Parser does cache names hence cannot be reused
 	    			
@@ -596,7 +591,7 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 			TopicHandler topichandler = new TopicHandler(topic, topicdetails);
 			return topichandler;
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
-			throw new PipelineRuntimeException("Creation of the topic failed", e, null, topic.getTopicFQN());
+			throw new PipelineRuntimeException("Creation of the topic failed", e, null, topic.getName());
 		}
 	}
 
@@ -604,10 +599,10 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
     @Override
 	public TopicHandler getTopic(TopicName kafkatopicname) throws PropertiesException {
 		try {
-			Collection<String> topicNames = Collections.singleton(kafkatopicname.getTopicFQN());
+			Collection<String> topicNames = Collections.singleton(kafkatopicname.getName());
 			DescribeTopicsResult result = admin.describeTopics(topicNames);
 			Map<String, TopicDescription> v = result.all().get(10, TimeUnit.SECONDS);
-			TopicDescription d = v.get(kafkatopicname.getTopicFQN());
+			TopicDescription d = v.get(kafkatopicname.getName());
 			TopicMetadata m = new TopicMetadata();
 			m.setPartitionCount(d.partitions().size());
 			List<TopicMetadataPartition> partitionRestEntities = new ArrayList<TopicMetadataPartition>();
@@ -620,10 +615,10 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 			m.setPartitions(partitionRestEntities);
 			return new TopicHandler(kafkatopicname, m);
 		} catch (InterruptedException | TimeoutException e) {
-			throw new PipelineTemporaryException("Topic cannot be read", e, kafkatopicname.getTopicFQN());
+			throw new PipelineTemporaryException("Topic cannot be read", e, kafkatopicname.getName());
 		} catch (ExecutionException e) {
 			if (e.getCause() == null || e.getCause().getClass().equals(UnknownTopicOrPartitionException.class) == false) {
-				throw new PipelineRuntimeException("Topic cannot be read", e, kafkatopicname.getTopicFQN());
+				throw new PipelineRuntimeException("Topic cannot be read", e, kafkatopicname.getName());
 			} else { // return null if the topic is not known yet
 				return null;
 			}
@@ -631,30 +626,23 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 	}
 
     @Override
-	public List<String> getTopics(String tenantid) throws PipelineRuntimeException {
-		if (tenantid == null) {
-			throw new PipelineRuntimeException("TenantID cannot be null");
-		} else {
-			try {
-				ListTopicsResult result = admin.listTopics();
-				Collection<TopicListing> listing = result.listings().get(10, TimeUnit.SECONDS);
-				List<String> topicNames = new ArrayList<>();
-				String topicprefix = tenantid + "-";
-				for ( TopicListing t : listing) {
-					if (t.name().startsWith(topicprefix)) {
-						String n = TopicUtil.extractTopicName(t.name());
-						if (!n.equals(PRODUCER_METADATA) && !n.equals(CONSUMER_METADATA) && !n.equals(SERVICE_METADATA)) {
-							topicNames.add(n);
-						}
-					}
+	public List<String> getTopics() throws PipelineRuntimeException {
+		try {
+			ListTopicsResult result = admin.listTopics();
+			Collection<TopicListing> listing = result.listings().get(10, TimeUnit.SECONDS);
+			List<String> topicNames = new ArrayList<>();
+			for ( TopicListing t : listing) {
+				String n = t.name();
+				if (!n.equals(PRODUCER_METADATA) && !n.equals(CONSUMER_METADATA) && !n.equals(SERVICE_METADATA)) {
+					topicNames.add(n);
 				}
-				Collections.sort(topicNames);
-				return topicNames;
-			} catch (InterruptedException | TimeoutException | PropertiesException e) {
-				throw new PipelineTemporaryException("Reading the list of topics failed", e, tenantid);
-			} catch (ExecutionException e) {
-				throw new PipelineRuntimeException("Reading the list of topics failed", e, tenantid);
 			}
+			Collections.sort(topicNames);
+			return topicNames;
+		} catch (InterruptedException | TimeoutException e) {
+			throw new PipelineTemporaryException("Reading the list of topics failed", e, null);
+		} catch (ExecutionException e) {
+			throw new PipelineRuntimeException("Reading the list of topics failed", e, null);
 		}
 	}
 
@@ -769,7 +757,7 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 					}
 				} while (offsetstoreachtable.size() != 0 && maxtimeout > System.currentTimeMillis());
 				if (offsetstoreachtable.size() != 0) {
-					throw new PipelineRuntimeException("Getting last records operation timed out for topic \"" + kafkatopicname.getTopicFQN() + "\"");
+					throw new PipelineRuntimeException("Getting last records operation timed out for topic \"" + kafkatopicname.getName() + "\"");
 				} else {
 					return ret;
 				}
@@ -778,9 +766,8 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 	}
 		
     @Override
-	public List<String> getSchemas(String tenantid) throws PipelineRuntimeException {
+	public List<String> getSchemas() throws PipelineRuntimeException {
     	List<String> subjects = new ArrayList<>();
-    	String prefix = tenantid + "-";
 		if (target == null) {
 			try (KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<>(consumerprops);) {
 				consumer.assign(schemaregistrypartitions);
@@ -797,9 +784,8 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 						SchemaRegistryKey key = Converter.getKey(record.key());
 						if (key != null && key instanceof SchemaKey && record.value() != null) {
 							SchemaValue schemadef = Converter.getSchema(record.value());
-							if (schemadef.getSubject().endsWith("-key") && schemadef.getSubject().startsWith(prefix)) {
+							if (schemadef.getSubject().endsWith("-key")) {
 								String subject = schemadef.getSubject().substring(0, schemadef.getSubject().lastIndexOf('-'));
-								subject = TopicUtil.extractSchemaName(subject);
 								if (schemadef.isDeleted()) {
 									subjects.remove(subject);
 								} else if (!subjects.contains(subject)) {
@@ -821,9 +807,8 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 					List<String> entityout = entityresponse.readEntity(new GenericType<List<String>>() { });
 					if (entityout != null) {
 						for (String s : entityout) {
-							if (s.endsWith("-key") && s.startsWith(prefix)) {
+							if (s.endsWith("-key")) {
 								String subject = s.substring(0, s.lastIndexOf('-'));
-								subject = TopicUtil.extractSchemaName(subject);
 								subjects.add(subject);
 							}
 						}
@@ -840,273 +825,12 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 		}
 	}
     	
-/*	private TopicHandler getorcreateNetworkTopic(TopicName topicnodes) throws ConnectorException {
-		TopicHandler nodetopic = getTopicAllTenants(topicnodes);
-		if (nodetopic == null) {
-			Hashtable<String, String> props = new Hashtable<String, String>();
-			props.put(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_COMPACT);
-			nodetopic = topicCreateAllTenants(topicnodes, 1, 1, props);
-		}
-		return nodetopic;
-	}
-
-	private SchemaHandler getorcreateNetworkNodeSchema(SchemaName schemanodes) throws ConnectorException {
-		SchemaHandler nodeschema = getSchemaAllTenants(schemanodes);
-		if (nodeschema == null) { 
-			SchemaRecordBuilderKey keyschema = new SchemaRecordBuilderKey(TOPIC_INFRASTRUCTURE_NODES, "Nodes");
-			keyschema.addColumn("nodeid", Type.STRING, "The node id", null, false);
-			keyschema.addColumn("connectorname", Type.STRING, "connectorname", null, false);
-			keyschema.build();
-			
-			SchemaRecordBuilderValue valueschema = new SchemaRecordBuilderValue(TOPIC_INFRASTRUCTURE_NODES, "Nodes");
-			valueschema.addColumn("nodeid", Type.STRING, "The node id", null, false);
-			valueschema.addColumn("label", Type.STRING, "node label", null, false);
-			valueschema.addColumn("title", Type.STRING, "node title", null, false);
-			valueschema.addColumn("color", Type.STRING, "node color", null, false);
-			valueschema.addColumn("group", Type.STRING, "node groupname", null, true);
-			valueschema.addColumn("connectorname", Type.STRING, "connectorname", null, true);
-			valueschema.build();
-			nodeschema = registerSchemaAllTenants(schemanodes, "Schema for the landscape nodes", keyschema.getSchema(), valueschema.getSchema());
-		}
-		return nodeschema;
-	}
-
-	private SchemaHandler getorcreateNetworkEdgeSchema(SchemaName schemanodes) throws ConnectorException {
-		SchemaHandler edgeschema = getSchemaAllTenants(schemanodes);
-		if (edgeschema == null) { 
-			SchemaRecordBuilderKey keyschema = new SchemaRecordBuilderKey(TOPIC_INFRASTRUCTURE_EDGES, "Edges");
-			keyschema.addColumn("from", Type.STRING, "from node id", null, false);
-			keyschema.addColumn("to", Type.STRING, "to node id", null, false);
-			keyschema.addColumn("connectorname", Type.STRING, "connectorname", null, true);
-			keyschema.build();
-			SchemaRecordBuilderValue valueschema = new SchemaRecordBuilderValue(TOPIC_INFRASTRUCTURE_EDGES, "Edges");
-			valueschema.addColumn("from", Type.STRING, "from node id", null, false);
-			valueschema.addColumn("to", Type.STRING, "to node id", null, false);
-			valueschema.addColumn("connectorname", Type.STRING, "connectorname", null, true);
-			valueschema.build();
-			edgeschema = registerSchemaAllTenants(schemanodes, "Schema for all infrastructure edges", keyschema.getSchema(), valueschema.getSchema());
-		}
-		return edgeschema;
-	}
-	
-	private void addNodeRecord(TopicHandler nodetopic, SchemaHandler nodeschema, String nodeid, String label, String title, String color, String groupname, String connectorname, long changetime) throws IOException, ConnectorException {
-		Record keyrecord = new GenericData.Record(nodeschema.getKeySchema());
-		keyrecord.put("nodeid", nodeid);
-		keyrecord.put("connectorname", connectorname);
-		Record valuerecord = new GenericData.Record(nodeschema.getValueSchema());
-		valuerecord.put("nodeid", nodeid);
-		valuerecord.put("label", label);
-		valuerecord.put("title", title);
-		valuerecord.put("color", color);
-		valuerecord.put("connectorname", connectorname);
-		valuerecord.put("group", groupname);
-		valuerecord.put(IOUtils.SCHEMA_COLUMN_CHANGE_TIME, changetime);
-		valuerecord.put(IOUtils.SCHEMA_COLUMN_CHANGE_TYPE, RowType.UPSERT.getIdentifer());
-		byte[] key = AvroSerializer.serialize(SchemaMetadataDetails.getSchemaIDFromSchema(keyrecord.getSchema()), keyrecord);
-		
-		byte[] value = AvroSerializer.serialize(SchemaMetadataDetails.getSchemaIDFromSchema(valuerecord.getSchema()), valuerecord);
-		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(nodetopic.getTopicName().toString(), null, key, value);
-		messagestatus.add(producer.send(record));
-	}
-	
-	private void addEdgeRecord(TopicHandler edgetopic, SchemaHandler edgeschema, String from, String to, String connectorname, long changetime) throws IOException, ConnectorException {
-		Record keyrecord = new GenericData.Record(edgeschema.getKeySchema());
-		keyrecord.put("from", from);
-		keyrecord.put("to", to);
-		keyrecord.put("connectorname", connectorname);
-		Record valuerecord = new GenericData.Record(edgeschema.getValueSchema());
-		valuerecord.put("from", from);
-		valuerecord.put("to", to);
-		valuerecord.put("connectorname", connectorname);
-		valuerecord.put(IOUtils.SCHEMA_COLUMN_CHANGE_TIME, changetime);
-		valuerecord.put(IOUtils.SCHEMA_COLUMN_CHANGE_TYPE, RowType.UPSERT.getIdentifer());
-		byte[] key = AvroSerializer.serialize(SchemaMetadataDetails.getSchemaIDFromSchema(keyrecord.getSchema()), keyrecord);
-		
-		byte[] value = AvroSerializer.serialize(SchemaMetadataDetails.getSchemaIDFromSchema(valuerecord.getSchema()), valuerecord);
-		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(edgetopic.getTopicName().toString(), null, key, value);
-		messagestatus.add(producer.send(record));
-	}
-	
-	private void networkcommit() throws ConnectorException {
-		ProducerSessionKafkaDirect.checkMessageStatus(messagestatus);
-	}
-
-	public void updateInfrastructureAllTenants(LandscapeEntity childinfrastructure, String tenantid) throws ConnectorException {
-		long changetime = System.currentTimeMillis();
-		TopicName topicnodes = new TopicName(tenantid, TOPIC_INFRASTRUCTURE_NODES);
-		TopicName topicedges = new TopicName(tenantid, TOPIC_INFRASTRUCTURE_EDGES);
-		SchemaName schemanodes = new SchemaName(tenantid, TOPIC_INFRASTRUCTURE_NODES);
-		SchemaName schemaedges = new SchemaName(tenantid, TOPIC_INFRASTRUCTURE_EDGES);
-		TopicHandler nodetopic = getorcreateNetworkTopic(topicnodes);
-		SchemaHandler nodeschema = getorcreateNetworkNodeSchema(schemanodes);
-		
-		TopicHandler edgetopic = getorcreateNetworkTopic(topicedges);
-		SchemaHandler edgeschema = getorcreateNetworkEdgeSchema(schemaedges);
-		
-		try {
-			deleteData(topicnodes, nodeschema, changetime, childinfrastructure.getconnectorname());
-			deleteData(topicedges, edgeschema, changetime, childinfrastructure.getconnectorname());
-			if (childinfrastructure.getNodes() != null) {
-				for (NetworkNode node : childinfrastructure.getNodes()) {
-					addNodeRecord(nodetopic, nodeschema, node.getId(), node.getLabel(), node.getTitle(), node.getColor(), node.getGroup(), childinfrastructure.getconnectorname(), changetime);
-				}
-			}
-			if (childinfrastructure.getEdges() != null) {
-				for (NetworkEdge edge : childinfrastructure.getEdges()) {
-					addEdgeRecord(edgetopic, edgeschema, edge.getFrom(), edge.getTo(), childinfrastructure.getconnectorname(), changetime);
-				}
-				networkcommit();
-			}
-		} catch (IOException e) {
-			throw new ConnectorException(e);
-		}	
-	}
-
-	public void updateImpactLineageAllTenants(ImpactLineageEntity childimpactlineage, String tenantid) throws ConnectorException {
-		long changetime = System.currentTimeMillis();
-		TopicName topicnodes = new TopicName(tenantid, TOPIC_IMPACTLINEAGE_NODES);
-		TopicName topicedges = new TopicName(tenantid, TOPIC_IMPACTLINEAGE_EDGES);
-		SchemaName schemanodes = new SchemaName(tenantid, TOPIC_IMPACTLINEAGE_NODES);
-		SchemaName schemaedges = new SchemaName(tenantid, TOPIC_IMPACTLINEAGE_EDGES);
-		TopicHandler nodetopic = getorcreateNetworkTopic(topicnodes);
-		SchemaHandler nodeschema = getorcreateNetworkNodeSchema(schemanodes);
-		TopicHandler edgetopic = getorcreateNetworkTopic(topicedges);
-		SchemaHandler edgeschema = getorcreateNetworkEdgeSchema(schemaedges);
-		try {
-			deleteData(topicnodes, nodeschema, changetime, childimpactlineage.getconnectorname());
-			deleteData(topicedges, edgeschema, changetime, childimpactlineage.getconnectorname());
-			if (childimpactlineage.getNodes() != null) {
-				for (NetworkNode node : childimpactlineage.getNodes()) {
-					addNodeRecord(nodetopic, nodeschema, node.getId(), node.getLabel(), node.getTitle(), node.getColor(), node.getGroup(), childimpactlineage.getconnectorname(), changetime);
-				}
-			}
-			if (childimpactlineage.getEdges() != null) {
-				for (NetworkEdge edge : childimpactlineage.getEdges()) {
-					addEdgeRecord(edgetopic, edgeschema, edge.getFrom(), edge.getTo(), childimpactlineage.getconnectorname(), changetime);
-				}
-				networkcommit();
-			}
-		} catch (IOException e) {
-			throw new ConnectorException(e);
-		}	
-	}
-	
-	private void deleteData(TopicName kafkatopicname, SchemaHandler schema, long changetime, String connectorname) throws ConnectorException, IOException {
-		Map<String, Object> consumerprops = new HashMap<>();
-		consumerprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapserver);
-		consumerprops.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-		consumerprops.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 30);
-		consumerprops.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
-
-		consumerprops.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
-		consumerprops.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
-		ArrayList<TopicPartition> partitions = new ArrayList<TopicPartition>();
-		try (KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<byte[], byte[]>(consumerprops);) {
-			List<PartitionInfo> partitioninfos = consumer.partitionsFor(kafkatopicname.toString());
-			for (PartitionInfo p : partitioninfos) {
-				partitions.add(new TopicPartition(p.topic(), p.partition()));
-			}
-			consumer.assign(partitions);
-			consumer.seekToBeginning(consumer.assignment());
-			ConsumerRecords<byte[], byte[]> records = consumer.poll(500);
-			while (records.count() != 0) {
-				Iterator<ConsumerRecord<byte[], byte[]>> recordsiterator = records.iterator();
-				while (recordsiterator.hasNext()) {
-					ConsumerRecord<byte[], byte[]> record = recordsiterator.next();
-					
-					Record valuerecord = AvroDeserialize.deserialize(record.value(), this);
-					if (valuerecord.get("connectorname") != null && valuerecord.get("connectorname").equals(connectorname)) {
-						valuerecord.put(IOUtils.SCHEMA_COLUMN_CHANGE_TIME, changetime);
-						valuerecord.put(IOUtils.SCHEMA_COLUMN_CHANGE_TYPE, RowType.DELETE.getIdentifer());
-						byte[] value = AvroSerializer.serialize(SchemaMetadataDetails.getSchemaIDFromSchema(valuerecord.getSchema()), valuerecord);
-						
-						ProducerRecord<byte[], byte[]> producerrecord = new ProducerRecord<byte[], byte[]>(kafkatopicname.toString(), null, record.key(), value);
-						messagestatus.add(producer.send(producerrecord));
-					}
-				}
-				records = consumer.poll(500);
-			}
-			networkcommit();
-		}
-	}
-	*/
-
-
-	/*
-	public LandscapeEntity getInfrastructureAllTenants(String tenantid) throws ConnectorException, IOException {
-		TopicName topicnodes = new TopicName(tenantid, TOPIC_INFRASTRUCTURE_NODES);
-		TopicName topicedges = new TopicName(tenantid, TOPIC_INFRASTRUCTURE_EDGES);
-		LandscapeEntity impactlineage = new LandscapeEntity();
-		readNetworkEntity(impactlineage, topicnodes, topicedges);
-		return impactlineage;
-	}
-
-	public ImpactLineageEntity getImpactLineageAllTenants(String tenantid) throws IOException, ConnectorException {
-		TopicName topicnodes = new TopicName(tenantid, TOPIC_IMPACTLINEAGE_NODES);
-		TopicName topicedges = new TopicName(tenantid, TOPIC_IMPACTLINEAGE_EDGES);
-		ImpactLineageEntity impactlineage = new ImpactLineageEntity();
-		readNetworkEntity(impactlineage, topicnodes, topicedges);
-		return impactlineage;
-	}
-	
-	public void readNetworkEntity(NetworkEntity network, TopicName topicnodes, TopicName topicedges) throws ConnectorException, IOException {
-		try {
-	        Map<String, Object> consumerprops = new HashMap<>();
-			consumerprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapserver);
-			consumerprops.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-			consumerprops.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-			consumerprops.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10000);
-			consumerprops.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 30000);
-			consumerprops.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 60000);
-			
-			consumerprops.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
-			consumerprops.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
-			try (KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<byte[], byte[]>(consumerprops);) {
-				ArrayList<TopicPartition> topics = new ArrayList<TopicPartition>();
-				topics.add(new TopicPartition(topicnodes.toString(), 0));
-				topics.add(new TopicPartition(topicedges.toString(), 0));
-				consumer.assign(topics);
-				ConsumerRecords<byte[], byte[]> records = consumer.poll(5000); // take all records you can get in 5 seconds. Not an ideal implementation.
-				if (records != null) {
-					Iterator<ConsumerRecord<byte[], byte[]>> iter = records.iterator();
-					while (iter.hasNext()) {
-						ConsumerRecord<byte[], byte[]> rec = iter.next();
-						Record key = AvroDeserialize.deserialize(rec.key(), this);
-						Record value = AvroDeserialize.deserialize(rec.value(), this);
-						if (value == null || value.get(IOUtils.SCHEMA_COLUMN_CHANGE_TYPE).toString().equals(RowType.DELETE.getIdentifer())) {
-							network.removeNode(key.get("nodeid").toString());
-						} else if (rec.topic().equals(topicnodes.toString())) {
-							String label = null;
-							String title = null;
-							String color = null;
-							String group = null;
-							if (value.get("nodeid") != null) {
-								if (value.get("label") != null) label = value.get("label").toString();
-								if (value.get("title") != null) title = value.get("title").toString();
-								if (value.get("color") != null) color = value.get("color").toString();
-								if (value.get("group") != null) group = value.get("group").toString();
-								network.addNode(value.get("nodeid").toString(), label, title, color, group);
-							}
-						} else if (rec.topic().equals(topicedges.toString())) {
-							if (value.get("from") != null && value.get("to") != null) {
-								network.addEdge(value.get("from").toString(), value.get("to").toString());
-							}
-						}
-					}
-				}
-			}
-		} catch (KafkaException e) {
-			throw new ConnectorException(e);
-		}
-	}
-	*/
-
     @Override
-	public void removeProducerMetadata(String producername, String tenantid) throws IOException {
+	public void removeProducerMetadata(String producername) throws IOException {
     	GenericRecord keyrecord = new Record(producermetadataschema.getKeySchema());
     	keyrecord.put(AVRO_FIELD_PRODUCERNAME, producername);
 		byte[] key = AvroSerializer.serialize(producermetadataschema.getDetails().getKeySchemaID(), keyrecord);
-    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(this.getTenantProducerMetadataName(tenantid).getTopicFQN(), 0, key, null);
+    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getTenantProducerMetadataName().getName(), 0, key, null);
     	getProducer().send(record);
 	}
 
@@ -1115,27 +839,27 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
     }
 
 	@Override
-	public void removeConsumerMetadata(String consumername, String tenantid) throws IOException {
+	public void removeConsumerMetadata(String consumername) throws IOException {
     	GenericRecord keyrecord = new Record(consumermetadataschema.getKeySchema());
     	keyrecord.put(AVRO_FIELD_CONSUMERNAME, consumername);
 		byte[] key = AvroSerializer.serialize(consumermetadataschema.getDetails().getKeySchemaID(), keyrecord);
-    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(this.getTenantConsumerMetadataName(tenantid).getTopicFQN(), 0, key, null);
+    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(this.getTenantConsumerMetadataName().getName(), 0, key, null);
     	
     	producer.send(record);
 	}
 	
     @Override
-	public void removeServiceMetadata(String servicename, String tenantid) throws IOException {
+	public void removeServiceMetadata(String servicename) throws IOException {
     	GenericRecord keyrecord = new Record(servicemetadataschema.getKeySchema());
     	keyrecord.put(AVRO_FIELD_SERVICENAME, servicename);
 		byte[] key = AvroSerializer.serialize(servicemetadataschema.getDetails().getKeySchemaID(), keyrecord);
-    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(this.getTenantServiceMetadataName(tenantid).getTopicFQN(), 0, key, null);
+    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(this.getTenantServiceMetadataName().getName(), 0, key, null);
     	getProducer().send(record);
 	}
 
 	
     @Override
-	public void addProducerMetadata(String tenantid, ProducerEntity producer) throws IOException {
+	public void addProducerMetadata(ProducerEntity producer) throws IOException {
     	if (producer != null) {
         	GenericRecord keyrecord = new Record(producermetadataschema.getKeySchema());
         	keyrecord.put(AVRO_FIELD_PRODUCERNAME, producer.getProducerName());
@@ -1159,7 +883,7 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 			byte[] key = AvroSerializer.serialize(producermetadataschema.getDetails().getKeySchemaID(), keyrecord);
 			byte[] value = AvroSerializer.serialize(producermetadataschema.getDetails().getValueSchemaID(), valuerecord);
 	    	
-	    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(this.getTenantProducerMetadataName(tenantid).getTopicFQN(), 0, key, value);
+	    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getTenantProducerMetadataName().getName(), 0, key, value);
 	    	
 	    	this.producer.send(record);
 
@@ -1167,7 +891,7 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 	}
 
 	@Override
-	public void addConsumerMetadata(String tenantid, ConsumerEntity consumer) throws IOException {
+	public void addConsumerMetadata(ConsumerEntity consumer) throws IOException {
 		if (consumer != null) {
 	    	GenericRecord keyrecord = new Record(consumermetadataschema.getKeySchema());
 	    	keyrecord.put(AVRO_FIELD_CONSUMERNAME, consumer.getConsumerName());
@@ -1182,14 +906,14 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 			byte[] key = AvroSerializer.serialize(consumermetadataschema.getDetails().getKeySchemaID(), keyrecord);
 			byte[] value = AvroSerializer.serialize(consumermetadataschema.getDetails().getValueSchemaID(), valuerecord);
 	    	
-	    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getTenantConsumerMetadataName(tenantid).getTopicFQN(), 0, key, value);
+	    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getTenantConsumerMetadataName().getName(), 0, key, value);
 	    	
 	    	producer.send(record);
 		}
 	}
 	
     @Override
-	public void addServiceMetadata(String tenantid, ServiceEntity service) throws IOException {
+	public void addServiceMetadata(ServiceEntity service) throws IOException {
     	if (service != null) {
         	GenericRecord keyrecord = new Record(servicemetadataschema.getKeySchema());
         	keyrecord.put(AVRO_FIELD_SERVICENAME, service.getServiceName());
@@ -1217,7 +941,7 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 			byte[] key = AvroSerializer.serialize(servicemetadataschema.getDetails().getKeySchemaID(), keyrecord);
 			byte[] value = AvroSerializer.serialize(servicemetadataschema.getDetails().getValueSchemaID(), valuerecord);
 	    	
-	    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(this.getTenantServiceMetadataName(tenantid).getTopicFQN(), 0, key, value);
+	    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(this.getTenantServiceMetadataName().getName(), 0, key, value);
 	    	
 	    	this.producer.send(record);
 
@@ -1226,9 +950,9 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 
 
     @Override
-	public ProducerMetadataEntity getProducerMetadata(String tenantid) throws PipelineRuntimeException {
+	public ProducerMetadataEntity getProducerMetadata() throws PipelineRuntimeException {
     	long metadatamaxage = System.currentTimeMillis() - METADATAAGE;
-		List<TopicPayload> records = getLastRecords(getTenantProducerMetadataName(tenantid), 10000); // list is sorted descending
+		List<TopicPayload> records = getLastRecords(getTenantProducerMetadataName(), 10000); // list is sorted descending
 		if (records != null && records.size() > 0) {
 			List<ProducerEntity> producerlist = new ArrayList<>();
 			Set<String> uniqueproducers = new HashSet<>();
@@ -1279,9 +1003,9 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 	}
 
     @Override
-	public ConsumerMetadataEntity getConsumerMetadata(String tenantid) throws PipelineRuntimeException {
+	public ConsumerMetadataEntity getConsumerMetadata() throws PipelineRuntimeException {
     	long metadatamaxage = System.currentTimeMillis() - METADATAAGE;
-		List<TopicPayload> records = getLastRecords(getTenantConsumerMetadataName(tenantid), 10000); // list is sorted descending
+		List<TopicPayload> records = getLastRecords(getTenantConsumerMetadataName(), 10000); // list is sorted descending
 		if (records != null && records.size() > 0) {
 			List<ConsumerEntity> list = new ArrayList<>();
 			Set<String> uniqueconsumers = new HashSet<>();
@@ -1325,9 +1049,9 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 	}
     
     @Override
-	public ServiceMetadataEntity getServiceMetadata(String tenantid) throws PipelineRuntimeException {
+	public ServiceMetadataEntity getServiceMetadata() throws PipelineRuntimeException {
     	long metadatamaxage = System.currentTimeMillis() - METADATAAGE;
-		List<TopicPayload> records = getLastRecords(getTenantServiceMetadataName(tenantid), 10000); // list is sorted descending
+		List<TopicPayload> records = getLastRecords(getTenantServiceMetadataName(), 10000); // list is sorted descending
 		if (records != null && records.size() > 0) {
 			List<ServiceEntity> servicelist = new ArrayList<>();
 			Set<String> uniqueservices = new HashSet<>();
@@ -1390,34 +1114,25 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 	}
 
 
-	private TopicName getTenantConsumerMetadataName(String tenantid) throws PipelineRuntimeException {
-		TopicName t = tenantconsumermetadataname.get(tenantid);
-		if (t == null) {
-			createMetadataTopics(tenantid);
-			return tenantconsumermetadataname.get(tenantid);
-		} else {
-			return t;
+	private TopicName getTenantConsumerMetadataName() throws PipelineRuntimeException {
+		if (consumermetadatatopicname == null) {
+			createMetadataTopics();
 		}
+		return consumermetadatatopicname;
 	}
 
-	private TopicName getTenantProducerMetadataName(String tenantid) throws PipelineRuntimeException {
-		TopicName t = tenantproducermetadataname.get(tenantid);
-		if (t == null) {
-			createMetadataTopics(tenantid);
-			return tenantproducermetadataname.get(tenantid);
-		} else {
-			return t;
+	private TopicName getTenantProducerMetadataName() throws PipelineRuntimeException {
+		if (producermetadatatopicname == null) {
+			createMetadataTopics();
 		}
+		return producermetadatatopicname;
 	}
 
-	private TopicName getTenantServiceMetadataName(String tenantid) throws PipelineRuntimeException {
-		TopicName t = tenantservicemetadataname.get(tenantid);
-		if (t == null) {
-			createMetadataTopics(tenantid);
-			return tenantservicemetadataname.get(tenantid);
-		} else {
-			return t;
+	private TopicName getTenantServiceMetadataName() throws PipelineRuntimeException {
+		if (servicemetadatatopicname == null) {
+			createMetadataTopics();
 		}
+		return servicemetadatatopicname;
 	}
 
 	@Override
@@ -1426,15 +1141,15 @@ public class KafkaServer extends PipelineServerAbstract<KafkaConnectionPropertie
 	}
 
 	@Override
-	public ProducerSessionKafkaDirect createNewProducerSession(String tenantid) throws PropertiesException {
-		return new ProducerSessionKafkaDirect(new ProducerProperties("default"), tenantid, this);
+	public ProducerSessionKafkaDirect createNewProducerSession() throws PropertiesException {
+		return new ProducerSessionKafkaDirect(new ProducerProperties("default"), this);
 	}
 
 	@Override
-	public ConsumerSessionKafkaDirect createNewConsumerSession(String consumername, String topicpattern, String tenantid) throws PropertiesException {
+	public ConsumerSessionKafkaDirect createNewConsumerSession(String consumername, String topicpattern) throws PropertiesException {
 		ConsumerProperties props = new ConsumerProperties(consumername);
 		props.setTopicPattern(topicpattern);
-		return new ConsumerSessionKafkaDirect(props, tenantid, this);
+		return new ConsumerSessionKafkaDirect(props, this);
 	}
 
 	@Override

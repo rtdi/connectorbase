@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -16,11 +17,13 @@ import io.rtdi.bigdata.connector.connectorframework.controller.ProducerControlle
 import io.rtdi.bigdata.connector.connectorframework.controller.ProducerInstanceController;
 import io.rtdi.bigdata.connector.connectorframework.entity.SchemaMappingData;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeException;
+import io.rtdi.bigdata.connector.connectorframework.exceptions.ShutdownException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.ProducerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
+import io.rtdi.bigdata.connector.pipeline.foundation.enums.RowType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
@@ -50,7 +53,7 @@ import io.rtdi.bigdata.connector.properties.ProducerProperties;
  */
 public abstract class Producer<S extends ConnectionProperties, P extends ProducerProperties> implements Closeable {
 
-	protected ProducerSession<?> producersession;
+	private ProducerSession<?> producersession;
 	protected ProducerInstanceController instance;
 	protected final Logger logger;
 
@@ -121,22 +124,17 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	public abstract void restartWith(String lastsourcetransactionid) throws IOException;
 	
 	/**
-	 * The poll method is supposed to be a blocking call that exits either when
-	 * 10'000 records have been produced or one second passed.<br>
-	 * The record limit is needed to handle memory consumption, the time limit to update the
-	 * variables and to allow a clean exit in case of a shutdown.
+	 * The poll method implementer must test if the process is active still and update the counters.
 	 * 
-	 * @param aftersleep indicates if the previous poll call returned zero records and hence the sleep for poll interval did happen 
-	 * @return Number of records produced in this cycle
 	 * @throws IOException if error
 	 */
-	public abstract int poll(boolean aftersleep) throws IOException;
+	public abstract void poll() throws IOException;
 	
 	public void commit(String sourcetransactionid, Object payload) throws ConnectorRuntimeException {
 	}
 
 	/**
-	 * The {@link #poll(boolean)} calls are either blocking, meaning they themselves wait for data or return asap.
+	 * The {@link #poll()} calls are either blocking, meaning they themselves wait for data or return asap.
 	 * The time the process waits between two poll calls is returned by this method here.
 	 * 
 	 * @return number of ms to wait between polls from the source system
@@ -169,13 +167,7 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 		return instance.getPipelineAPI();
 	}
 
-	/**
-	 * @return convenience function to return the instance controller's ConnectionProperties
-	 */
-	public ProducerSession<?> getProducerSession() {
-		return producersession;
-	}
-	
+
 	/**
 	 * Convenience function to add a topic to the instance controller
 	 * 
@@ -340,4 +332,24 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 		return instance.getConnectorController();
 	}
 	
+	public void addRow(TopicHandler topic, Integer partition, SchemaHandler handler,
+			GenericRecord valuerecord, RowType changetype, String sourceRowID, String sourceSystemID) throws IOException {
+		if (!instance.isRunning()) {
+			throw new ShutdownException("Controller is shutting down", instance.getName());
+		}
+		producersession.addRow(topic, partition, handler, valuerecord, changetype, sourceRowID, sourceSystemID);
+		instance.incrementRowsProducedBy(1);
+	}
+	
+	public void beginTransaction(String transactionid) throws PipelineRuntimeException {
+		producersession.beginTransaction(transactionid);
+	}
+	
+	public void commitTransaction() throws IOException {
+		producersession.commitTransaction();
+	}
+	
+	public void abortTransaction() throws PipelineRuntimeException {
+		producersession.abortTransaction();
+	}
 }

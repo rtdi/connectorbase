@@ -32,9 +32,9 @@ public class PipelineServerTest extends PipelineServerAbstract<PipelineConnectio
 	private Map<SchemaName, SchemaHandler> schemahandlers = new HashMap<>();
 	private Map<TopicName, TopicHandlerTest> topics = new HashMap<>();
 	
-	private Map<String, ProducerMetadataEntity> producerdirectory = new HashMap<>();
-	private Map<String, ConsumerMetadataEntity> consumerdirectory = new HashMap<>();
-	private Map<String, ServiceMetadataEntity> servicedirectory = new HashMap<>();
+	private ProducerMetadataEntity producerdirectory = null;
+	private ConsumerMetadataEntity consumerdirectory = null;
+	private ServiceMetadataEntity servicedirectory = null;
 	
 	public PipelineServerTest(PipelineConnectionServerProperties connectionproperties) {
 		super(connectionproperties);
@@ -69,12 +69,10 @@ public class PipelineServerTest extends PipelineServerAbstract<PipelineConnectio
 	}
 
 	@Override
-	public List<String> getSchemas(String tenantid) throws PipelineRuntimeException {
+	public List<String> getSchemas() throws PipelineRuntimeException {
 		ArrayList<String> ret = new ArrayList<>();
 		for (SchemaName n : schemahandlers.keySet()) {
-			if (n.getTenant().equals(tenantid)) {
-				ret.add(n.getName());
-			}
+			ret.add(n.getName());
 		}
 		return ret;
 	}
@@ -110,7 +108,7 @@ public class PipelineServerTest extends PipelineServerAbstract<PipelineConnectio
 	}
 
 	@Override
-	public List<String> getTopics(String tenantid) throws PipelineRuntimeException {
+	public List<String> getTopics() throws PipelineRuntimeException {
 		ArrayList<String> list = new ArrayList<>();
 		for (TopicName t : topics.keySet()) {
 			list.add(t.getName());
@@ -163,84 +161,75 @@ public class PipelineServerTest extends PipelineServerAbstract<PipelineConnectio
 	}
 
 	@Override
-	public void removeProducerMetadata(String tenantid, String producername) throws PipelineRuntimeException {
-		ProducerMetadataEntity producers = producerdirectory.get(tenantid);
-		if (producers != null) {
-			producers.remove(producername);
+	public void removeProducerMetadata(String producername) throws PipelineRuntimeException {
+		if (producerdirectory != null) {
+			producerdirectory.remove(producername);
 		}
 	}
 
 	@Override
-	public void removeConsumerMetadata(String tenantid, String consumername) throws PipelineRuntimeException {
-		ConsumerMetadataEntity consumers = consumerdirectory.get(tenantid);
-		if (consumers != null) {
-			consumers.remove(consumername);
+	public void removeConsumerMetadata(String consumername) throws PipelineRuntimeException {
+		if (consumerdirectory != null) {
+			consumerdirectory.remove(consumername);
 		}
 	}
 
 	@Override
-	public void removeServiceMetadata(String tenantid, String servicename) throws IOException {
-		ServiceMetadataEntity services = servicedirectory.get(tenantid);
-		if (services != null) {
-			services.remove(servicename);
+	public void removeServiceMetadata(String servicename) throws IOException {
+		if (servicedirectory != null) {
+			servicedirectory.remove(servicename);
 		}
 	}
 
 	@Override
-	public void addConsumerMetadata(String tenantid, ConsumerEntity consumer) throws IOException {
-		ConsumerMetadataEntity consumers = consumerdirectory.get(tenantid);
-		if (consumers == null) {
-			consumers = new ConsumerMetadataEntity();
-			consumerdirectory.put(tenantid, consumers);
+	public void addConsumerMetadata(ConsumerEntity consumer) throws IOException {
+		if (consumerdirectory == null) {
+			consumerdirectory = new ConsumerMetadataEntity();
 		}
-		consumers.update(consumer);
+		consumerdirectory.update(consumer);
 	}
 
 	@Override
-	public void addProducerMetadata(String tenantid, ProducerEntity producer) throws IOException {
-		ProducerMetadataEntity producers = producerdirectory.get(tenantid);
-		if (producers == null) {
-			producers = new ProducerMetadataEntity();
-			producerdirectory.put(tenantid, producers);
+	public void addProducerMetadata(ProducerEntity producer) throws IOException {
+		if (producerdirectory == null) {
+			producerdirectory = new ProducerMetadataEntity();
 		}
-		producers.update(producer);
+		producerdirectory.update(producer);
 	}
 
 	@Override
-	public void addServiceMetadata(String tenantid, ServiceEntity service) throws IOException {
-		ServiceMetadataEntity services = servicedirectory.get(tenantid);
-		if (services == null) {
-			services = new ServiceMetadataEntity();
-			servicedirectory.put(tenantid, services);
+	public void addServiceMetadata(ServiceEntity service) throws IOException {
+		if (servicedirectory == null) {
+			servicedirectory = new ServiceMetadataEntity();
 		}
-		services.update(service);
+		servicedirectory.update(service);
 	}
 
 	@Override
-	public ProducerMetadataEntity getProducerMetadata(String tenantid) throws IOException {
-		return producerdirectory.get(tenantid);
+	public ProducerMetadataEntity getProducerMetadata() throws IOException {
+		return producerdirectory;
 	}
 
 	@Override
-	public ConsumerMetadataEntity getConsumerMetadata(String tenantid) throws IOException {
-		return consumerdirectory.get(tenantid);
+	public ConsumerMetadataEntity getConsumerMetadata() throws IOException {
+		return consumerdirectory;
 	}
 
 	@Override
-	public ServiceMetadataEntity getServiceMetadata(String tenantid) throws IOException {
-		return servicedirectory.get(tenantid);
+	public ServiceMetadataEntity getServiceMetadata() throws IOException {
+		return servicedirectory;
 	}
 
 	@Override
-	public ProducerSessionTest createNewProducerSession(String tenantid) throws PropertiesException {
-		return new ProducerSessionTest(new ProducerProperties("producer"), tenantid, this);
+	public ProducerSessionTest createNewProducerSession() throws PropertiesException {
+		return new ProducerSessionTest(new ProducerProperties("producer"), this);
 	}
 
 	@Override
-	public ConsumerSessionTest createNewConsumerSession(String consumername, String topicpattern, String tenantid) throws PropertiesException {
+	public ConsumerSessionTest createNewConsumerSession(String consumername, String topicpattern) throws PropertiesException {
 		ConsumerProperties props = new ConsumerProperties(consumername);
 		props.setTopicPattern(topicpattern);
-		return new ConsumerSessionTest(props, this, tenantid);
+		return new ConsumerSessionTest(props, this);
 	}
 
 	@Override

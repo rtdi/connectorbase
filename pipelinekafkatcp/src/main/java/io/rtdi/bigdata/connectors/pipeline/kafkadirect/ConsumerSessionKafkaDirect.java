@@ -24,7 +24,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineBase;
 import io.rtdi.bigdata.connector.pipeline.foundation.IProcessFetchedRow;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
-import io.rtdi.bigdata.connector.pipeline.foundation.TopicUtil;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
@@ -35,9 +34,8 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 
 	public ConsumerSessionKafkaDirect(
 			ConsumerProperties properties,
-			String tenantid, 
 			IPipelineBase<KafkaConnectionProperties, TopicHandler> api) throws PropertiesException {
-		super(properties, tenantid, api);
+		super(properties, api);
 		try {
 	        Map<String, Object> consumerprops = new HashMap<>();
 			consumerprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, api.getAPIProperties().getKafkaBootstrapServers());
@@ -57,7 +55,7 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 
 	@Override
 	public void open() throws PropertiesException {
-		consumer.subscribe(Pattern.compile(getTenantId() + "-" + getProperties().getTopicPattern()));
+		consumer.subscribe(Pattern.compile(getProperties().getTopicPattern()));
 	}
 
 	@Override
@@ -95,13 +93,13 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 				logger.error("Cannot deserialize data Value with offset {}, row not processed", String.valueOf(record.offset()));
 			}
 			if (valuerecord != null) {
-				String topicname = TopicUtil.extractTopicName(record.topic());
+				String topicname = record.topic();
 				processor.process(topicname, record.offset(), record.partition(), keyrecord, valuerecord, keyschemaid[0], valueschemaid[0]);
 				rowcount++;
 
 				// Due to a rebalance a new topic might be subscribed to
 				if (getTopic(topicname) == null) { 
-					addTopic(getPipelineAPI().getTopic(new TopicName(getTenantId(), topicname)));
+					addTopic(getPipelineAPI().getTopic(new TopicName(topicname)));
 				}
 			}
 		}

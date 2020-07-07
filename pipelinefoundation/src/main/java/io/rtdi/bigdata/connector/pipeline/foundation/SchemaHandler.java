@@ -19,16 +19,15 @@ public class SchemaHandler {
 	/**
 	 * Constructs a new SchemaHandler by specifying the optional tenantid and the tenant's schema name.
 	 * 
-	 * @param tenantid optional tenant id
-	 * @param name schemaname within the tenant
+	 * @param name schemaname
 	 * @param keyschema Avro schema of the key
 	 * @param valueschema Avro schema of the value
 	 * @param keyschemaid schema id of the key
 	 * @param valueschemaid schema id of the value
 	 * @throws PropertiesException in case of any error
 	 */
-	public SchemaHandler(String tenantid, String name, Schema keyschema, Schema valueschema, int keyschemaid, int valueschemaid) throws PropertiesException {
-		this(new SchemaName(tenantid, name), keyschema, valueschema, keyschemaid, valueschemaid); // includes the test if the name is null
+	public SchemaHandler(String name, Schema keyschema, Schema valueschema, int keyschemaid, int valueschemaid) throws PropertiesException {
+		this(new SchemaName(name), keyschema, valueschema, keyschemaid, valueschemaid); // includes the test if the name is null
 	}
 
 	/**
