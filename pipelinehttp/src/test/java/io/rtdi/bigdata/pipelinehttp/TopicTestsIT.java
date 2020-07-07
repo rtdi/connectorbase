@@ -36,7 +36,6 @@ public class TopicTestsIT {
 	public void setUp() throws Exception {
 		ConnectionPropertiesHttp connprops = new ConnectionPropertiesHttp("localhost:8080");
 		connprops.setAdapterServerURI("https://localhost/pipelinehttpserver");
-		connprops.setTenantid("TESTTENANT");
 		connprops.setUser("pipeline1");
 		connprops.setPassword("pipeline1");
 		api = new PipelineHttp(connprops);
