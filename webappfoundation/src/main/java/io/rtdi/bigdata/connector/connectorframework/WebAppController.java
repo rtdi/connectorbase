@@ -21,7 +21,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
-import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesRuntimeException;
 
@@ -88,8 +87,7 @@ public class WebAppController implements ServletContextListener {
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
 		try {
-			getConnectorOrFail(sce.getServletContext()).stopController(ControllerExitType.ABORT);
-			getConnectorOrFail(sce.getServletContext()).joinAll(ControllerExitType.ABORT);
+			getConnectorOrFail(sce.getServletContext()).disableController();
 		} catch (PropertiesRuntimeException e) {
 			logger.error(e);
 		}

@@ -38,10 +38,11 @@ save : function(oEvent) {
 	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.open("POST", "../rest/services/" + encodeURI(oModel.getProperty("/serviceproperties/name")));
 	xmlhttp.setRequestHeader("Content-Type", "application/json");
+	var that = this;
 	xmlhttp.onreadystatechange = function() {
 	    if (xmlhttp.readyState == 4) {
 	    	if (xmlhttp.status == 200) {
-		        sap.m.MessageToast.show("Saved");
+		        that.displaySuccess(JSON.parse(xmlhttp.responseText));
 		        oStateModel.setProperty("/new", false);
 		        var aMS = oModel.getProperty("/microservices");
 		        aMS.forEach(function(oItem) {
@@ -49,7 +50,7 @@ save : function(oEvent) {
 		        });
 		        oModel.setProperty("/microservices", aMS);
 		    } else {
-		        this.displayError({ "message" : xmlhttp.responseText });
+		        that.displayError(JSON.parse(xmlhttp.responseText));
 		    }
 		}
 	}

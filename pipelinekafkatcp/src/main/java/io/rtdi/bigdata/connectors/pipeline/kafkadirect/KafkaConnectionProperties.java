@@ -22,13 +22,14 @@ public class KafkaConnectionProperties extends PipelineConnectionProperties {
 	private static final String APISECRET = "kafka.api.secret";
 	private static final String KAFKASCHEMAREGISTRYKEY = "kafka.schemaregistry.security.key";
 	private static final String KAFKASCHEMAREGISTRYSECRET = "kafka.schemaregistry.security.secret";
+	public static final String APINAME = "Kafka";
 	
 	
 	/**
 	 * Create a new KafkaConnectionProperties object with the list of available properties. 
 	 */
 	public KafkaConnectionProperties() {
-		super("Kafka");
+		super(APINAME);
 		properties.addStringProperty(KAFKABOOTSTRAPSERVERS, "Bootstrap Server list", "A comma separated list of kafka servers", null, null, false);
 		properties.addStringProperty(APIKEY, "Optional cluster key", "The SASL security key", null, null, true);
 		properties.addPasswordProperty(APISECRET, "Optional cluster secret string", "The SASL secret matching the key", null, null, true);

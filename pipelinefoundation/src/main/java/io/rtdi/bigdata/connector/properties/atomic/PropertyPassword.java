@@ -36,7 +36,7 @@ public class PropertyPassword extends PropertyAbstract implements IPropertyValue
 
 	@Override
 	public String toString() {
-		return "******";
+		return "";
 	}
 
 	@Override

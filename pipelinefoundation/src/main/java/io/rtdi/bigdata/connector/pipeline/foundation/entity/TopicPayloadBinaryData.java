@@ -9,7 +9,6 @@ import org.apache.avro.Schema;
 import com.github.benmanes.caffeine.cache.Cache;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
-import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineServer;
 import io.rtdi.bigdata.connector.pipeline.foundation.ISchemaRegistrySource;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
 
@@ -35,7 +34,7 @@ public class TopicPayloadBinaryData {
 		this.rows = data;
 	}
 
-	public TopicPayloadBinaryData(List<TopicPayload> data, IPipelineServer<?, ?, ?, ?> api) throws IOException {
+	public TopicPayloadBinaryData(List<TopicPayload> data, IPipelineAPI<?, ?, ?, ?> api) throws IOException {
 		if (data != null) {
 			rows = new ArrayList<>();
 			for (TopicPayload d : data) {

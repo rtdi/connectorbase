@@ -1,15 +1,21 @@
 package io.rtdi.bigdata.connectors.pipeline.kafkadirect;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.AvroSerializer;
 import io.rtdi.bigdata.connector.pipeline.foundation.ProducerSession;
@@ -23,16 +29,10 @@ import io.rtdi.bigdata.connector.properties.ProducerProperties;
 public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 	public static final long COMMIT_TIMEOUT = 20000L;
 	ArrayDeque<Future<RecordMetadata>> messagestatus = new ArrayDeque<Future<RecordMetadata>>();
-	private KafkaServer api = null;
+	private KafkaProducer<byte[], byte[]> producer;
 
 	public ProducerSessionKafkaDirect(ProducerProperties properties, KafkaAPIdirect api) throws PropertiesException {
 		super(properties, api);
-		this.api = api.getKafkaServer();
-	}
-
-	public ProducerSessionKafkaDirect(ProducerProperties properties, KafkaServer api) throws PropertiesException {
-		super(properties, api);
-		this.api = api;
 	}
 
 	@Override
@@ -51,16 +51,27 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 
 	@Override
 	public void open() {
-		/*
-		 * Nothing to do as all share the Kafka API producer.
-		 */
+        Map<String, Object> producerprops = new HashMap<>();
+		producerprops.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, getPipelineAPI().getAPIProperties().getKafkaBootstrapServers());
+		producerprops.put(ProducerConfig.ACKS_CONFIG, "all");
+		producerprops.put(ProducerConfig.RETRIES_CONFIG, 0);
+		producerprops.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
+		producerprops.put(ProducerConfig.LINGER_MS_CONFIG, 1);
+		producerprops.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
+		producerprops.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
+		producerprops.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
+		getPipelineAPI().addSecurityProperties(producerprops);
+		producer = new KafkaProducer<byte[], byte[]>(producerprops);
+	}
+	
+	@Override
+	public KafkaAPIdirect getPipelineAPI() {
+		return (KafkaAPIdirect) super.getPipelineAPI();
 	}
 
 	@Override
 	public void close() {
-		/*
-		 * as the KafkaAPI is global, it is ignored 
-		 */
+		producer.close(Duration.ofSeconds(20));
 	}
 
 	@Override
@@ -71,7 +82,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 			throw new PipelineRuntimeException("Sending rows requires a key and value record");
 		}
 		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getName(), partition, keyrecord, valuerecord);
-		messagestatus.add(api.getProducer().send(record));
+		messagestatus.add(producer.send(record));
 
 		throttleReceiver(messagestatus);
 	}
@@ -87,7 +98,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 		
 		byte[] value = AvroSerializer.serialize(handler.getDetails().getValueSchemaID(), valuerecord);
 		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getName(), partition, key, value);
-		messagestatus.add(api.getProducer().send(record));
+		messagestatus.add(producer.send(record));
 
 		throttleReceiver(messagestatus);
 	}

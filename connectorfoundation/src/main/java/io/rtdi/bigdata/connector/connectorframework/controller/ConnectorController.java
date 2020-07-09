@@ -306,8 +306,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 
 	public boolean removeConnection(ConnectionController conn) throws IOException {
 		connections.remove(conn.getName());
-		conn.stopController(ControllerExitType.ABORT);
-		conn.joinAll(ControllerExitType.ABORT);
+		conn.disableController();
 		File connectiondir = new File(configdir.getAbsolutePath() + File.separatorChar + conn.getConnectionProperties().getName());
 		Files.walk(connectiondir.toPath()).sorted(Comparator.reverseOrder()).forEach(t -> {
 			try {
@@ -329,8 +328,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 
 	public boolean removeService(ServiceController service) throws IOException {
 		services.remove(service.getName());
-		service.stopController(ControllerExitType.ABORT);
-		service.joinAll(ControllerExitType.ABORT);
+		service.disableController();
 		File servicedir = new File(configdir.getAbsolutePath() + File.separatorChar + "services" + File.separatorChar + service.getServiceProperties().getName());
 		Files.walk(servicedir.toPath()).sorted(Comparator.reverseOrder()).forEach(t -> {
 			try {

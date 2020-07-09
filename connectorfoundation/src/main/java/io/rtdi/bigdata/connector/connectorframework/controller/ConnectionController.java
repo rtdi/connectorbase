@@ -131,21 +131,20 @@ public class ConnectionController extends Controller<Controller<?>> {
 
 	public boolean removeProducer(ProducerController producer) {
 		producers.remove(producer.getProducerProperties().getName());
-		producer.stopController(ControllerExitType.ABORT);
-		boolean ret = producer.joinAll(ControllerExitType.ABORT);
+		producer.disableController();
 		File producerfile = new File(connectiondir.getAbsolutePath() + File.separatorChar + DIR_PRODUCERS + File.separatorChar + producer.getProducerProperties().getName() + ".json");
-		return producerfile.delete() && ret;
+		return producerfile.delete();
 	}
 
 	public boolean removeConsumer(ConsumerController consumer) {
 		consumers.remove(consumer.getConsumerProperties().getName());
-		consumer.stopController(ControllerExitType.ABORT);
+		consumer.disableController();
 		return consumer.joinAll(ControllerExitType.ABORT);
 	}
 
 	@Override
 	protected void stopControllerImpl(ControllerExitType exittype) {
-		stopChildControllers(exittype);
+		super.stopChildControllers(exittype);
 		if (browser != null) {
 			browser.close();
 			browser = null;

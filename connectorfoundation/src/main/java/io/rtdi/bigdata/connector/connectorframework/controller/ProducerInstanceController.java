@@ -269,7 +269,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 
 	public void removeChildControllers() {
 		if (childcontrollers != null) {
-			joinChildControllers(ControllerExitType.ENDROW); // wait for the children to terminate properly
+			joinChildControllers(ControllerExitType.ABORT); // wait for the children to terminate properly
 			// Failsafe in case the children have not been terminated upfront
 			stopChildControllers(ControllerExitType.ABORT);
 			joinChildControllers(ControllerExitType.ABORT);

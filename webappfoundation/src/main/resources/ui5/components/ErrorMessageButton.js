@@ -2,7 +2,6 @@ sap.ui.define([ "jquery.sap.global", "com/rtdi/bigdata/connector/ui/components/E
 	return sap.ui.core.Control.extend("com.rtdi.bigdata.connector.ui.components.ErrorMessageButton", {
 		metadata : {
 			properties : {
-				messagecount: "int"
 			},
 			aggregations : {
 				_btn : {
@@ -31,24 +30,36 @@ sap.ui.define([ "jquery.sap.global", "com/rtdi/bigdata/connector/ui/components/E
 		init : function() {
 			var oBtn = new sap.m.Button( {
 		 		icon: "sap-icon://alert",
-		 		type: sap.m.ButtonType.Emphasized,
+		 		type: sap.m.ButtonType.Default,
+		 		text: "0",
 		 		press: this.onPopoverPress
 		 	});
 		 	this.setAggregation("_btn", oBtn );
 			var oPopover = new sap.m.MessagePopover();
-		 	this.setAggregation("_popover", oPopover, true);		 	
+		 	this.setAggregation("_popover", oPopover, true);	
 		},
 		_getPopover : function() {
 			return this.getAggregation("_popover");
 		},
-		setMessagecount : function(value) {
-			this.setProperty("messagecount", value);
+		addItem : function(oItem) {
+			this.addAggregation("items", oItem, true);
+			this._setMessagecount(this.getAggregation("items").length);
+		},
+		removeItem : function(oItem) {
+			this.removeAggregation("items", oItem, true);
+			this._setMessagecount(this.getAggregation("items").length);
+		},
+		removeItems : function() {
+			this.removeAllAggregation("items", true);
+			this._setMessagecount(0);
+		},
+		_setMessagecount : function(value) {
 			var oBtn = this.getAggregation("_btn");
 			oBtn.setText(value);
 			if (value === 0) {
-				oBtn.setVisible(false);
+				oBtn.setType(sap.m.ButtonType.Default);
 			} else {
-				oBtn.setVisible(true);
+				oBtn.setType(sap.m.ButtonType.Emphasized);
 			}
 		},
 		onPopoverPress : function(oEvent) {

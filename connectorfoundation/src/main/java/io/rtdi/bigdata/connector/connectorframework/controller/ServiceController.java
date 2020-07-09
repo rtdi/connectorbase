@@ -47,7 +47,7 @@ public class ServiceController extends Controller<Controller<?>> {
 			updateLandscape();
 		} else {
 			logger.info("Service not started as the properties are incomplete");
-			this.controllerDisable();
+			this.disableController();
 			throw new PropertiesException("Service is not configured completely");
 		}
 	}

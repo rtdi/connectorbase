@@ -74,8 +74,8 @@ public class ProducerControllerTests {
 			fail(e.getMessage());
 		} finally {
 			System.out.println("Stopping the Connector....");
-			connector.stopController(ControllerExitType.ENDBATCH);
-			if (connector.joinAll(ControllerExitType.ENDBATCH)) {
+			connector.stopController(ControllerExitType.ABORT);
+			if (connector.joinAll(ControllerExitType.ABORT)) {
 				System.out.println("Stopping the Connector...done");
 			} else {
 				fail("Not all controller threads have been shut down");

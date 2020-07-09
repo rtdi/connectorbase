@@ -27,7 +27,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
+import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaName;
 import io.rtdi.bigdata.connector.pipeline.foundation.ServiceSession;
@@ -61,7 +61,7 @@ import io.rtdi.bigdata.connector.properties.ProducerProperties;
 import io.rtdi.bigdata.connector.properties.ServiceProperties;
 
 
-public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, TopicHandlerHttp, ProducerSessionHttp, ConsumerSessionHttp> {
+public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, TopicHandlerHttp, ProducerSessionHttp, ConsumerSessionHttp> {
 	private WebTarget target;
 	private ConnectionPropertiesHttp properties;
 	protected URI transactionendpointsend;
@@ -73,8 +73,6 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	 * Regular consumers and producers want to have tighter control and cache the data themselves.
 	 */
 	private Cache<Integer, Schema> schemaidcache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(1000).build();
-	private String backingserver;
-	private boolean backingserverrequested = false;
 
 
 	public PipelineHttp(ConnectionPropertiesHttp props) throws PropertiesException {
@@ -84,7 +82,6 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 
 	public PipelineHttp() throws PropertiesException {
 		super();
-		this.properties = new ConnectionPropertiesHttp("PipelineHttp");
 	}
 	
 	@Override
@@ -205,11 +202,6 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 
 	
 	@Override
-	public TopicHandlerHttp getTopicOrCreate(String topicname, int partitioncount, short replicationfactor) throws PropertiesException {
-		return getTopicOrCreate(topicname, partitioncount, replicationfactor, null);
-	}
-
-	@Override
 	public TopicHandlerHttp getTopic(String topicname) throws PropertiesException {
 		Response entityresponse = callRestfulservice(getRestEndpoint("/topic/byname", topicname));
 		if (entityresponse == null) {
@@ -266,16 +258,6 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	@Override
 	public List<TopicPayload> getLastRecords(TopicName topicname, long timestamp) throws IOException {
 		return getLastRecords(topicname.getName(), timestamp);
-	}
-
-	@Override
-	public ProducerSessionHttp createNewProducerSession(ProducerProperties properties) throws PropertiesException {
-		return new ProducerSessionHttp(properties, this);
-	}
-
-	@Override
-	public ConsumerSessionHttp createNewConsumerSession(ConsumerProperties properties) throws PropertiesException {
-		return new ConsumerSessionHttp(properties, this);
 	}
 
 	@Override
@@ -492,27 +474,8 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	}
 
 	@Override
-	public String getBackingServerConnectionLabel() throws IOException {
-		if (!backingserverrequested) {
-			backingserverrequested = true;
-			Response entityresponse = callRestfulservice(getRestEndpoint("/meta", "apitarget"));
-			if (entityresponse == null) {
-				backingserver = null;
-			} else {
-				backingserver = entityresponse.readEntity(String.class);
-			}
-		}
-		return backingserver;
-	}
-
-	@Override
 	public String getHostName() {
 		return IOUtils.getHostname();
-	}
-
-	@Override
-	public boolean hasConnectionProperties() {
-		return properties.hasPropertiesFile(webinfdir);
 	}
 
 	@Override
@@ -528,5 +491,48 @@ public class PipelineHttp implements IPipelineAPI<ConnectionPropertiesHttp, Topi
 	@Override
 	public ServiceSession createNewServiceSession(ServiceProperties<?> properties) throws PropertiesException {
 		return null;
+	}
+
+	@Override
+	public void validate() throws IOException {
+	}
+
+	@Override
+	public boolean isAlive() {
+		return true;
+	}
+
+	@Override
+	public SchemaHandler getOrCreateSchema(SchemaName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
+		return registerSchema(name, description, keyschema, valueschema);
+	}
+
+	@Override
+	public void removeServiceMetadata(String consumername) throws IOException {
+	}
+
+	@Override
+	public String getBackingServerConnectionLabel() {
+		return null;
+	}
+
+	@Override
+	public void setConnectionProperties(ConnectionPropertiesHttp props) {
+		this.properties = props;
+	}
+
+	@Override
+	protected ProducerSessionHttp createProducerSession(ProducerProperties properties) throws PropertiesException {
+		return new ProducerSessionHttp(properties, this);
+	}
+
+	@Override
+	protected ConsumerSessionHttp createConsumerSession(ConsumerProperties properties) throws PropertiesException {
+		return new ConsumerSessionHttp(properties, this);
+	}
+
+	@Override
+	public String getAPIName() {
+		return ConnectionPropertiesHttp.APINAME;
 	}
 }

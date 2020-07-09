@@ -90,7 +90,7 @@ public class ServiceService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getServiceOrFail(servicename);
-			service.controllerDisable();
+			service.disableController();
 			boolean stopped = service.joinAll(ControllerExitType.ABORT);
 			return Response.ok(stopped).build();
 		} catch (Exception e) {

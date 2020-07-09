@@ -77,7 +77,7 @@ public class HomeService {
 				IPipelineAPI<?, ?, ?, ?> api = controller.getPipelineAPI();
 				if (api != null) {
 					pipelineAPIName = api.getClass().getSimpleName();
-					pipelineAPIConfigured = api.hasConnectionProperties();
+					pipelineAPIConfigured = api.getAPIProperties() != null;
 					if (pipelineAPIConfigured) {
 						if (!controller.isRunning()) {
 							api.reloadConnectionProperties();

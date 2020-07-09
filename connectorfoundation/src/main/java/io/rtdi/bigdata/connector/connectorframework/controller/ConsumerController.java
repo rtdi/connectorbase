@@ -29,7 +29,7 @@ public class ConsumerController extends Controller<ConsumerInstanceController> {
 
 	@Override
 	protected void stopControllerImpl(ControllerExitType exittype) {
-		stopChildControllers(exittype);
+		super.stopChildControllers(exittype);
 	}
 
 	@Override

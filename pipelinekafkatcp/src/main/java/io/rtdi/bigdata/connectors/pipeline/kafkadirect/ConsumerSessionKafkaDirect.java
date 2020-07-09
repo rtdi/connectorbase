@@ -20,7 +20,6 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.AvroDeserialize;
 import io.rtdi.bigdata.connector.pipeline.foundation.ConsumerSession;
-import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineBase;
 import io.rtdi.bigdata.connector.pipeline.foundation.IProcessFetchedRow;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
@@ -34,7 +33,7 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 
 	public ConsumerSessionKafkaDirect(
 			ConsumerProperties properties,
-			IPipelineBase<KafkaConnectionProperties, TopicHandler> api) throws PropertiesException {
+			KafkaAPIdirect api) throws PropertiesException {
 		super(properties, api);
 		try {
 	        Map<String, Object> consumerprops = new HashMap<>();
@@ -47,6 +46,8 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 			
 			consumerprops.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 			consumerprops.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
+
+			api.addSecurityProperties(consumerprops);
 			consumer = new KafkaConsumer<byte[], byte[]>(consumerprops);
 		} catch (IllegalArgumentException e) {
 			throw new PropertiesException("Illegal argument when calling the Kafka Consumer", e, null);

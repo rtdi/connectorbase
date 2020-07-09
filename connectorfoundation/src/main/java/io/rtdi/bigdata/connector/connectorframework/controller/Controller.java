@@ -72,9 +72,10 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	/**
 	 * Called to temporarily stop the Controller and prevent it from being recovered.
 	 */
-	public void controllerDisable() {
+	public void disableController() {
 		this.controllerdisabled = true;
-		this.stopController(ControllerExitType.ENDBATCH);
+		this.stopController(ControllerExitType.ABORT);
+		this.joinAll(ControllerExitType.ABORT);
 	}
 
 	protected abstract void updateLandscape();
@@ -94,14 +95,13 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	protected abstract String getControllerType();
 	
 	/**
-	 * Signal this controller to stop and hence does stop all child controllers
+	 * Signal this controller to stop and does stop all child controllers indirectly
 	 * 
 	 * @param exittype ControllerExitType to tell how forceful the exit should happen
 	 */
 	public void stopController(ControllerExitType exittype) {
 		state = ControllerState.STOPPING;
 		stopControllerImpl(exittype);
-		// stopChildControllers(exittype); // REmoved from here and moved into the individual implementations, as the thread based controller does that somewhere else
 		state = ControllerState.STOPPED;
 	}
 
@@ -165,21 +165,27 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	 * 
 	 * @param exittype ControllerExitType to tell how forceful the exit should happen
 	 */
-	protected abstract void stopControllerImpl(ControllerExitType exittype);
+	protected void stopControllerImpl(ControllerExitType exittype) {
+		stopChildControllers(exittype);
+	}
 
 	/**
-	 * All child controllers should be added here so the {@link #stopController(ControllerExitType)} can stop the children.
+	 * All child controllers are added so the {@link #stopController(ControllerExitType)} knows the children to stop.
 	 * 
 	 * @param name of the child
 	 * @param controller instance to add
 	 * @throws ConnectorRuntimeException if a child controller of same name exists 
 	 */
 	public void addChild(String name, C controller) throws ConnectorRuntimeException {
-		if (childcontrollers.containsKey(name)) {
-			throw new ConnectorRuntimeException("Trying to add the same child controller again", null, "This is an internal error, please create an issue", name);
-		} else {
-			childcontrollers.put(name, controller);
+		C currentcontroller = childcontrollers.get(name);
+		if (currentcontroller != null) {
+			/*
+			 * If the child of that name exists already, remove it.
+			 * Might happen if a parent reloads the configuration which does impact the children as well
+			 */
+			currentcontroller.disableController();
 		}
+		childcontrollers.put(name, controller);
 	}
 	
 	/**

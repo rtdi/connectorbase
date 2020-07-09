@@ -22,10 +22,8 @@ import io.rtdi.bigdata.connector.properties.ServiceProperties;
 
 /**
  * A Pipeline has to implement all of these methods. 
- * It has to test for permissions to use these methods, has to be tenant-aware.
+ * It has to test for permissions to use these methods.
  * 
- * @see IPipelineServer for the interface dealing with multiple tenants at once
- * @see PipelineAbstract for a class redirecting all calls to the IPipelineServer
  *
  * @param <S> PipelineConnectionProperties
  * @param <T> TopicHandler
@@ -43,6 +41,8 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @throws PropertiesException if something goes wrong
 	 */
 	SchemaHandler getSchema(String schemaname) throws PropertiesException;
+	
+	String getAPIName();
 
 	@Override
 	Schema getSchema(int schemaid) throws PropertiesException;
@@ -138,6 +138,8 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 */
 	T getTopicOrCreate(String topicname, int partitioncount, short replicationfactor) throws PropertiesException;
 
+	SchemaHandler getOrCreateSchema(SchemaName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException;
+
 	/**
 	 * Get the TopicHandler of an already existing topic.
 	 * 
@@ -217,6 +219,8 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	void removeProducerMetadata(String producername) throws IOException;
 
 	void removeConsumerMetadata(String consumername) throws IOException;
+	
+	void removeServiceMetadata(String consumername) throws IOException;
 
 	/**
 	 * Add the producer's information to the metadata directory
@@ -269,7 +273,7 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 */
 	public void loadConnectionProperties() throws PropertiesException;
 
-	public void reloadConnectionProperties() throws PropertiesException;
+	public void reloadConnectionProperties() throws IOException;
 
 	/**
 	 * Write the current connection properties into a file within the currently active root directory tree. <br>
@@ -295,6 +299,10 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 
 	void setWEBINFDir(File webinfdir);
 
-	String getBackingServerConnectionLabel() throws IOException;
+	void validate() throws IOException;
+
+	boolean isAlive();
+
+	String getBackingServerConnectionLabel();
 	
 }

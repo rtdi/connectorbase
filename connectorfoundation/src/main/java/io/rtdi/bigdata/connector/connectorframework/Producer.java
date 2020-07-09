@@ -130,9 +130,6 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	 */
 	public abstract void poll() throws IOException;
 	
-	public void commit(String sourcetransactionid, Object payload) throws ConnectorRuntimeException {
-	}
-
 	/**
 	 * The {@link #poll()} calls are either blocking, meaning they themselves wait for data or return asap.
 	 * The time the process waits between two poll calls is returned by this method here.

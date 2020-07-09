@@ -30,7 +30,7 @@ public class ProducerController extends Controller<ProducerInstanceController> {
 
 	@Override
 	protected void stopControllerImpl(ControllerExitType exittype) {
-		stopChildControllers(exittype);
+		super.stopChildControllers(exittype);
 	}
 
 	@Override

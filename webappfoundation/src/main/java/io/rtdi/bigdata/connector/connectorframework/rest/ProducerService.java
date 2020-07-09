@@ -92,9 +92,9 @@ public class ProducerService {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ConnectionController conn = connector.getConnectionOrFail(connectionname);
 			ProducerController producer = conn.getProducerOrFail(producername);
-			producer.controllerDisable();
-			boolean stopped = producer.joinAll(ControllerExitType.ABORT);
-			return Response.ok(stopped).build();
+			producer.disableController();
+			producer.joinAll(ControllerExitType.ABORT);
+			return JAXBSuccessResponseBuilder.getJAXBResponse("stopped");
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -114,7 +114,7 @@ public class ProducerService {
 			}
 			producer.startController();
 			//TODO: Return if the producer was started correctly.
-			return Response.ok().build();
+			return JAXBSuccessResponseBuilder.getJAXBResponse("started");
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -138,12 +138,13 @@ public class ProducerService {
 					dir.mkdirs();
 				}
 				props.write(dir);
-				ProducerController p = conn.addProducer(props);
-				p.startController();
+				producer = conn.addProducer(props);
 			} else {
+				producer.stopController(ControllerExitType.ABORT);
 				producer.getProducerProperties().setValue(data);
 				producer.getProducerProperties().write(dir);
 			}
+			producer.startController();
 			return JAXBSuccessResponseBuilder.getJAXBResponse("created");
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);

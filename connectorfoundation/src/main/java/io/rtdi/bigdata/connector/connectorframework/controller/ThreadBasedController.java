@@ -59,6 +59,9 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 
 	@Override
 	public boolean joinAllImpl(ControllerExitType exittype) {
+		if (exittype == null) {
+			exittype = ControllerExitType.ABORT;
+		}
 		if (thread == null) {
 			state = ControllerState.STOPPED;
 			return true;
@@ -67,12 +70,6 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 			switch (exittype) {
 			case ABORT:
 				join(10000);
-				break;
-			case ENDBATCH:
-				join(60000);
-				break;
-			case ENDROW:
-				join(30000);
 				break;
 			default:
 				join(30000);
@@ -101,9 +98,6 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 			state = ControllerState.STARTED;
 			startChildController();
 			runUntilError();
-			// In the normal shutdown case wait for the children to terminate and then end as well
-			stopChildControllers(ControllerExitType.ENDBATCH);
-			joinChildControllers(ControllerExitType.ENDBATCH);
 		} catch (PropertiesException e) {
 			errors.addError(e);
 			logger.error("Controller ran into a permanent error, stopping", e);

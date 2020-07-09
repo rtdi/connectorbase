@@ -64,6 +64,10 @@ public class UI5Controller extends HttpServlet {
 					out.println("    this.getView().byId('dynamicpageid').setShowFooter(this.showFooter() && editpermissions);");
 					out.println("    this.init();");
 					out.println("},");
+					out.println("readErrors : function() {");
+					out.println("    oStateModel.loadData(\"../rest/state\", null, false);");
+					out.println("    this.getView().setModel(oStateModel, \"state\");");
+					out.println("},");
 					out.println("enableControl : function(value) {");
 					out.println("    return !!value;");
 					out.println("},");
@@ -85,14 +89,17 @@ public class UI5Controller extends HttpServlet {
 					out.println("},");
 					out.println("displayError : function(mesg) {");
 					out.println("    var messages = oStateModel.getProperty(\"/messages\");"); 
-					out.println("    var e = {\"errortext\" : mesg.message + \" \" + mesg.statusCode, \"markup\" : mesg.responseText};");
-					out.println("    if (!!messages) {");
-					out.println("        messages.push(e);");
+					out.println("    if (messages) {");
+					out.println("        messages.push(mesg);");
 					out.println("    } else {");
-					out.println("        messages = [e];");
+					out.println("        messages = [mesg];");
 					out.println("    }");
 					out.println("    oStateModel.setProperty(\"/messages\", messages);");
-					out.println("    sap.m.MessageToast.show(mesg.message + \" \" + mesg.statusCode);");
+					out.println("    this.getView().setModel(oStateModel, \"state\");");
+					out.println("    sap.m.MessageToast.show(mesg.message);");
+					out.println("},");
+					out.println("displaySuccess : function(mesg) {");
+					out.println("    sap.m.MessageToast.show(mesg.text);");
 					out.println("},");
 
 					String line;

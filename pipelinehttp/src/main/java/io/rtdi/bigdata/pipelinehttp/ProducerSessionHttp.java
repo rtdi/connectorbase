@@ -41,6 +41,7 @@ public class ProducerSessionHttp extends ProducerSession<TopicHandlerHttp> {
 			http.getConnection().setUseCaches(false);
 			
 			out = http.getConnection().getOutputStream();
+			io.sendString(out, getProperties().getName());
 		} catch (IOException e) {
 			throw new PipelineRuntimeException("open of the http connection to the connection server failed", e, (url != null?url.toString():null));
 		}

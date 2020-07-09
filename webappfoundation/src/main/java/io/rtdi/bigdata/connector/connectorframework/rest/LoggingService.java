@@ -57,7 +57,7 @@ public class LoggingService {
 		try {
 			Level level = levelobj.value();
 			Configurator.setAllLevels(LogManager.getRootLogger().getName(), level);
-			return Response.ok(level.name()).build();
+			return JAXBSuccessResponseBuilder.getJAXBResponse(level.name());
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}

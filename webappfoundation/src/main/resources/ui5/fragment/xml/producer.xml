@@ -12,8 +12,7 @@
 			<Title text="{name} ({instancecount})" wrapping="true"/>
 			<Text text="{text}" wrapping="true"  class="sapUiTinyMarginTop" />
 			<component:ErrorMessageButton
-					items="{path: 'messages', templateShareable: true}"
-					messagecount="{= ${messages}.length }" >
+					items="{path: 'messages', templateShareable: true}" >
 				<component:items>
 					<component:ErrorMessageItem
 						timestamp="{timestamp}"

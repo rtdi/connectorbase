@@ -8,6 +8,7 @@ public class ConnectionPropertiesHttp extends PipelineConnectionProperties {
 	private static final String URL = "http.url";
 	private static final String USER = "http.user";
 	private static final String PASSWORD = "http.password";
+	public static final String APINAME = "PipelineHttp";
 
 	public ConnectionPropertiesHttp(String name) {
 		super(name);

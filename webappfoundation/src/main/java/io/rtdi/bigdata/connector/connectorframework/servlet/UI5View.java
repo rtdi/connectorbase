@@ -74,8 +74,7 @@ public class UI5View extends HttpServlet {
 				out.println("      </f:navigationActions>");
 				out.println("      <f:actions>");
 				out.println("          <components:ErrorMessageButton");
-				out.println("              items=\"{path: 'state>/messages', templateShareable: true}\"");
-				out.println("              messagecount=\"{= ${state>/messages}.length }\" >");
+				out.println("              items=\"{path: 'state>/messages', templateShareable: true}\" >");
 				out.println("              <components:items>");
 				out.println("                  <components:ErrorMessageItem");
 				out.println("                  timestamp=\"{state>timestamp}\"");
