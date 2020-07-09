@@ -3,7 +3,6 @@ package io.rtdi.bigdata.connector.pipeline.foundation;
 import java.io.IOException;
 
 import org.apache.avro.Schema.Field;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -195,7 +194,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 
 	/**
 	 * The actual internal implementation of how to add the record into the queue. 
-	 * It is protected as it should never be called directly but via this {@link #addRow(TopicHandler, Integer, SchemaHandler, GenericRecord, GenericRecord, RowType, String, String) addRow} version.
+	 * It is protected as it should never be called directly but via this {@link #addRow(TopicHandler, Integer, SchemaHandler, JexlRecord, JexlRecord, RowType, String, String) addRow} version.
 	 * 
 	 * @param topic this record should be put into
 	 * @param partition optional partition information
