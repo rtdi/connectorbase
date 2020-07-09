@@ -63,7 +63,7 @@ import io.rtdi.bigdata.connector.properties.ServiceProperties;
 
 public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, TopicHandlerHttp, ProducerSessionHttp, ConsumerSessionHttp> {
 	private WebTarget target;
-	private ConnectionPropertiesHttp properties;
+	private ConnectionPropertiesHttp properties = new ConnectionPropertiesHttp();
 	protected URI transactionendpointsend;
 	protected URI transactionendpointfetch;
 	private File webinfdir = null;

@@ -43,8 +43,8 @@ public class TopicPayload {
 		this.offset = r.getOffset();
 		this.partition = r.getPartition();
 		this.timestamp = r.getTimestamp();
-		this.keyrecord = AvroDeserialize.deserialize(r.getKeyRecord(), registry, schemacache, null);
-		this.valuerecord = AvroDeserialize.deserialize(r.getValueRecord(), registry, schemacache, null);
+		this.keyrecord = AvroDeserialize.deserialize(r.getKeyRecord(), registry, schemacache);
+		this.valuerecord = AvroDeserialize.deserialize(r.getValueRecord(), registry, schemacache);
 		this.topic = r.getTopic();
 		this.keyschemaid = r.getKeySchemaId();
 		this.valueschemaid = r.getValueSchemaId();

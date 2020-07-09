@@ -6,7 +6,7 @@
 	<artifactId>connectorbase</artifactId>
 	<name>${project.groupId}:${project.artifactId}</name>
 	<description>Parent POM.</description>
-	<version>0.9.19</version>
+	<version>0.9.20</version>
 	<packaging>pom</packaging>
 	<url>https://www.rtdi.io/</url>
 	<scm>

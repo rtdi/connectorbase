@@ -24,7 +24,7 @@ public class GenericAvroDeserializer implements Deserializer<JexlRecord> {
 	@Override
 	public JexlRecord deserialize(final String topic, final byte[] bytes) {
 		try {
-			return AvroDeserialize.deserialize(bytes, schemaprovider, schemaprovider.getSchemaIdCache(), null);
+			return AvroDeserialize.deserialize(bytes, schemaprovider, schemaprovider.getSchemaIdCache());
 		} catch (IOException e) {
 			throw new AvroRuntimeException(e);
 		}

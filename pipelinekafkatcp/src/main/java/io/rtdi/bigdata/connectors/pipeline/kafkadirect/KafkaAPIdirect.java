@@ -76,6 +76,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.ServiceSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
@@ -199,7 +200,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	
 	private TopicPartition schemaregistrypartition = new TopicPartition(SCHEMA_TOPIC_NAME, 0);
 	private Collection<TopicPartition> schemaregistrypartitions = Collections.singletonList(schemaregistrypartition);
-	private KafkaConnectionProperties connectionprops;
+	private KafkaConnectionProperties connectionprops = new KafkaConnectionProperties();
 	private TopicName producermetadatatopicname;
 	private TopicName consumermetadatatopicname;
 	private TopicName servicemetadatatopicname;
@@ -762,21 +763,20 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 							offsetstoreachtable.remove(record.partition());
 						}
 		
-						int[] keyschemaid = new int[1];
-						int[] valueschemaid = new int[1];
-						GenericRecord keyrecord = null;
-						GenericRecord valuerecord = null;
+						JexlRecord keyrecord = null;
+						JexlRecord valuerecord = null;
 						try {
-							keyrecord = AvroDeserialize.deserialize(record.key(), this, schemaidcache, keyschemaid);
+							keyrecord = AvroDeserialize.deserialize(record.key(), this, schemaidcache);
 						} catch (IOException e) {
 							throw new PipelineRuntimeException("Cannot deserialize the Avro key record");
 						}
 						try {
-							valuerecord = AvroDeserialize.deserialize(record.value(), this, schemaidcache, valueschemaid);
+							valuerecord = AvroDeserialize.deserialize(record.value(), this, schemaidcache);
 						} catch (IOException e) {
 							throw new PipelineRuntimeException("Cannot deserialize the Avro value record");
 						}
-						TopicPayload data = new TopicPayload(kafkatopicname, record.offset(), record.partition(), record.timestamp(), keyrecord, valuerecord, keyschemaid[0], valueschemaid[0]);
+						TopicPayload data = new TopicPayload(kafkatopicname, record.offset(), record.partition(), record.timestamp(),
+								keyrecord, valuerecord, keyrecord.getSchemaId(), valuerecord.getSchemaId());
 						ret.add(0, data);
 					}
 				} while (offsetstoreachtable.size() != 0 && maxtimeout > System.currentTimeMillis());

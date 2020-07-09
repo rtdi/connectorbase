@@ -113,7 +113,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 		}
 		api.setWEBINFDir(configdir);
 		if (!api.hasConnectionProperties()) {
-			// User does not want to see the low level error but the fact that the properties are not set yet. 
+			// User does not want to see the low level error but the fact that the properties are not set yet.
 			throw new PropertiesException("No Connection Properties defined yet", "Use the home page to get to the UI for setting them", null, null);
 		}
 		api.loadConnectionProperties();

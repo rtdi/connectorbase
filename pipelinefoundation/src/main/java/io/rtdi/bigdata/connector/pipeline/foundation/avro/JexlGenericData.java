@@ -28,6 +28,8 @@ public class JexlGenericData extends GenericData {
 
 	public static class JexlRecord extends Record implements IAvroNested, JexlContext {
 		private IAvroNested parent = null;
+		private int schemaid;
+		private String schemanamerequested;
 
 		public JexlRecord(Record other, boolean deepCopy) {
 			super(other, deepCopy);
@@ -125,6 +127,27 @@ public class JexlGenericData extends GenericData {
 		@Override
 		public boolean has(String name) {
 			return getSchema().getField(name) != null;
+		}
+
+		public int getSchemaId() {
+			return schemaid;
+		}
+
+		public void setSchemaId(int schemaid) {
+			this.schemaid = schemaid;
+		}
+
+		/**
+		 * The Avro Schema registry might return a schema with a different name than the subject.
+		 * This happens if multiple schemas have the same logical structure and just the name is different.
+		 * @return the requested schema name
+		 */
+		public String getSchemaNameRequested() {
+			return schemanamerequested;
+		}
+
+		public void setSchemaNameRequested(String schemaname) {
+			this.schemanamerequested = schemaname;
 		}
 
 	}

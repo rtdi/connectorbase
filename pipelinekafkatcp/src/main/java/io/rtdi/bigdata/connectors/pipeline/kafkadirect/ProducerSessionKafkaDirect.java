@@ -10,7 +10,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -21,6 +20,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.AvroSerializer;
 import io.rtdi.bigdata.connector.pipeline.foundation.ProducerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
@@ -88,7 +88,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 	}
 
 	@Override
-	protected void addRowImpl(TopicHandler topic, Integer partition, SchemaHandler handler, GenericRecord keyrecord, GenericRecord valuerecord) throws IOException {
+	protected void addRowImpl(TopicHandler topic, Integer partition, SchemaHandler handler, JexlRecord keyrecord, JexlRecord valuerecord) throws IOException {
 		if (topic == null) {
 			throw new PipelineRuntimeException("Sending rows requires a topic but it is null");
 		} else if (keyrecord == null || valuerecord == null) {

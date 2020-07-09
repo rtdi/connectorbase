@@ -155,7 +155,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * @throws IOException in case anything goes wrong
 	 */
 	@SuppressWarnings("unchecked")
-	public final void addRow(TopicHandler topic, Integer partition, SchemaHandler handler, GenericRecord keyrecord, GenericRecord valuerecord,
+	public final void addRow(TopicHandler topic, Integer partition, SchemaHandler handler, JexlRecord keyrecord, JexlRecord valuerecord,
 			RowType changetype, String sourceRowID, String sourceSystemID) throws IOException {
 		if (getSourceTransactionIdentifier() != null) {
 			valuerecord.put(SchemaConstants.SCHEMA_COLUMN_SOURCE_TRANSACTION, getSourceTransactionIdentifier());
@@ -171,7 +171,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	
 
 	/**
-	 * Same as {@link #addRow(TopicHandler, Integer, SchemaHandler, GenericRecord, GenericRecord, RowType, String, String)} but creates
+	 * Same as {@link #addRow(TopicHandler, Integer, SchemaHandler, JexlRecord, JexlRecord, RowType, String, String)} but creates
 	 * the keyrecord by copying the corresponding values from the valuerecord. 
 	 * 
 	 * @param topic this record should be put into
@@ -183,7 +183,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * @param sourceSystemID optional information about the source system this record is produced from
 	 * @throws IOException in case anything goes wrong
 	 */
-	public final void addRow(TopicHandler topic, Integer partition, SchemaHandler handler, GenericRecord valuerecord,
+	public final void addRow(TopicHandler topic, Integer partition, SchemaHandler handler, JexlRecord valuerecord,
 			RowType changetype, String sourceRowID, String sourceSystemID) throws IOException {
 		JexlRecord keyrecord = new JexlRecord(handler.getKeySchema());
 		for (Field f : keyrecord.getSchema().getFields()) {
@@ -204,7 +204,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * @param valuerecord Avro record of the value
 	 * @throws IOException in case anything goes wrong
 	 */
-	protected abstract void addRowImpl(T topic, Integer partition, SchemaHandler handler, GenericRecord keyrecord, GenericRecord valuerecord) throws IOException;
+	protected abstract void addRowImpl(T topic, Integer partition, SchemaHandler handler, JexlRecord keyrecord, JexlRecord valuerecord) throws IOException;
 
 	/**
 	 * Some implementations, the http-pipeline with the http-server, exchange the data in the serialized format already. Then this version comes in handy.

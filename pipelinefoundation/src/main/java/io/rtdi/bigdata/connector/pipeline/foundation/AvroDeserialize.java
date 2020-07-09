@@ -39,7 +39,7 @@ public class AvroDeserialize {
 	 * @throws IOException in case the byte array cannot be converted to a record
 	 */
 	public static JexlRecord deserialize(byte[] data, ISchemaRegistrySource registry) throws IOException {
-		return deserialize(data, registry, null, null);
+		return deserialize(data, registry, null);
 	}
 
 	/**
@@ -51,11 +51,10 @@ public class AvroDeserialize {
 	 * @param data with the binary Avro representation
 	 * @param registry is the provider of the schema
 	 * @param schemacache An optional map used as a cache between calls
-	 * @param lastid optionally provide an array of length one, the content will be overwritten with the schema id. Sorry, not very beautiful.
 	 * @return AvroRecord in Jexl abstraction
 	 * @throws IOException In case anything went wrong
 	 */
-	public static JexlRecord deserialize(byte[] data, ISchemaRegistrySource registry, Cache<Integer, Schema> schemacache, int[] lastid) throws IOException {
+	public static JexlRecord deserialize(byte[] data, ISchemaRegistrySource registry, Cache<Integer, Schema> schemacache) throws IOException {
 		if (data != null) {
 			ByteBuffer schemaidb = ByteBuffer.allocate(Integer.BYTES);
 			int schemaid = -1;
@@ -81,10 +80,9 @@ public class AvroDeserialize {
 					}
 					BinaryDecoder decoder = decoderFactory.directBinaryDecoder(in, null);
 					DatumReader<JexlRecord> reader = new JexlGenericDatumReader<>(schema);
-					if (lastid != null && lastid.length == 1) {
-						lastid[0] = schemaid;
-					}
-					return reader.read(null, decoder);
+					JexlRecord rec = reader.read(null, decoder);
+					rec.setSchemaId(schemaid);
+					return rec;
 				}
 			}
 		} else {

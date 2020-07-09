@@ -7,12 +7,11 @@ import java.net.URL;
 
 import javax.ws.rs.core.MediaType;
 
-import org.apache.avro.generic.GenericRecord;
-
 import io.rtdi.bigdata.connector.pipeline.foundation.AvroSerializer;
 import io.rtdi.bigdata.connector.pipeline.foundation.ProducerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -102,7 +101,7 @@ public class ProducerSessionHttp extends ProducerSession<TopicHandlerHttp> {
 	}
 
 	@Override
-	protected void addRowImpl(TopicHandlerHttp topic, Integer partition, SchemaHandler handler, GenericRecord keyrecord, GenericRecord valuerecord) throws IOException {
+	protected void addRowImpl(TopicHandlerHttp topic, Integer partition, SchemaHandler handler, JexlRecord keyrecord, JexlRecord valuerecord) throws IOException {
 		byte[] key = AvroSerializer.serialize(handler.getDetails().getKeySchemaID(), keyrecord);
 		byte[] value = AvroSerializer.serialize(handler.getDetails().getValueSchemaID(), valuerecord);
 		addRowBinary(topic, partition, key, value);

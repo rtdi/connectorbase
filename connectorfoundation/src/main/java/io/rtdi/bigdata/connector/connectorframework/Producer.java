@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,6 +22,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.ProducerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.RowType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -330,7 +330,7 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	}
 	
 	public void addRow(TopicHandler topic, Integer partition, SchemaHandler handler,
-			GenericRecord valuerecord, RowType changetype, String sourceRowID, String sourceSystemID) throws IOException {
+			JexlRecord valuerecord, RowType changetype, String sourceRowID, String sourceSystemID) throws IOException {
 		if (!instance.isRunning()) {
 			throw new ShutdownException("Controller is shutting down", instance.getName());
 		}

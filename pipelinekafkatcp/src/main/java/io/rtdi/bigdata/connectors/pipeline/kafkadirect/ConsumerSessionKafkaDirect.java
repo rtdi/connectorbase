@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -23,6 +22,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.ConsumerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.IProcessFetchedRow;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
@@ -79,23 +79,21 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 		Iterator<ConsumerRecord<byte[], byte[]>> recordsiterator = records.iterator();
 		while (recordsiterator.hasNext()) {
 			ConsumerRecord<byte[], byte[]> record = recordsiterator.next();
-			GenericRecord keyrecord = null;
-			int[] keyschemaid = new int[1];
+			JexlRecord keyrecord = null;
 			try {
-				keyrecord = AvroDeserialize.deserialize(record.key(), this, null, keyschemaid);
+				keyrecord = AvroDeserialize.deserialize(record.key(), this, null);
 			} catch (IOException e) {
 				logger.error("Cannot deserialize data Key with offset {}, row not processed", String.valueOf(record.offset()));
 			}
-			int[] valueschemaid = new int[1];
-			GenericRecord valuerecord = null;
+			JexlRecord valuerecord = null;
 			try {
-				valuerecord = AvroDeserialize.deserialize(record.value(), this, null, valueschemaid);
+				valuerecord = AvroDeserialize.deserialize(record.value(), this, null);
 			} catch (IOException e) {
 				logger.error("Cannot deserialize data Value with offset {}, row not processed", String.valueOf(record.offset()));
 			}
 			if (valuerecord != null) {
 				String topicname = record.topic();
-				processor.process(topicname, record.offset(), record.partition(), keyrecord, valuerecord, keyschemaid[0], valueschemaid[0]);
+				processor.process(topicname, record.offset(), record.partition(), keyrecord, valuerecord, keyrecord.getSchemaId(), valuerecord.getSchemaId());
 				rowcount++;
 
 				// Due to a rebalance a new topic might be subscribed to

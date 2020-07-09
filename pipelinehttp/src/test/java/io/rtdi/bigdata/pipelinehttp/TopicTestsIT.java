@@ -8,14 +8,13 @@ import static org.junit.Assert.fail;
 import java.util.List;
 
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecord;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.IProcessFetchedRow;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroInt;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroLong;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroString;
@@ -34,7 +33,7 @@ public class TopicTestsIT {
 
 	@Before
 	public void setUp() throws Exception {
-		ConnectionPropertiesHttp connprops = new ConnectionPropertiesHttp("localhost:8080");
+		ConnectionPropertiesHttp connprops = new ConnectionPropertiesHttp();
 		connprops.setAdapterServerURI("https://localhost/pipelinehttpserver");
 		connprops.setUser("pipeline1");
 		connprops.setPassword("pipeline1");
@@ -62,9 +61,9 @@ public class TopicTestsIT {
 			SchemaHandler schema = api.registerSchema("HWMonitor", null, getKeySchema(), getValueSchema());
 			assertNotNull(schema);
 			
-			GenericRecord keyrecord = new GenericData.Record(schema.getKeySchema());
+			JexlRecord keyrecord = new JexlRecord(schema.getKeySchema());
 			keyrecord.put("HOST", "localhost");
-			GenericRecord valuerecord = new GenericData.Record(schema.getValueSchema());
+			JexlRecord valuerecord = new JexlRecord(schema.getValueSchema());
 			valuerecord.put("HOST", "localhost");
 			valuerecord.put("DURATION", 50);
 

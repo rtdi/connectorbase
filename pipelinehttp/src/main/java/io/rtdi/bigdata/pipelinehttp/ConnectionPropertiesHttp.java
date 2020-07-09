@@ -10,8 +10,8 @@ public class ConnectionPropertiesHttp extends PipelineConnectionProperties {
 	private static final String PASSWORD = "http.password";
 	public static final String APINAME = "PipelineHttp";
 
-	public ConnectionPropertiesHttp(String name) {
-		super(name);
+	public ConnectionPropertiesHttp() {
+		super(APINAME);
 		properties.addStringProperty(URL, "Target URL", "The URL of the corresponding ConnectionServer", null, null, false);
 		properties.addStringProperty(USER, "ConnectionServer user name", "Username for the authentication", null, null, false);
 		properties.addPasswordProperty(PASSWORD, "ConnectionServer password", "Password for the authentication", null, null, false);
