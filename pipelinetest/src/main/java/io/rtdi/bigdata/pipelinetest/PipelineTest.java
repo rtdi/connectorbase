@@ -128,9 +128,10 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 	}
 
 	@Override
-	public List<TopicPayload> getLastRecords(TopicName topicname, long timestamp) throws PipelineRuntimeException {
+	public List<TopicPayload> getLastRecords(TopicName topicname, long timestamp, int count, SchemaName schema) throws PipelineRuntimeException {
 		TopicHandlerTest handler = getTopic(topicname);
 		if (handler != null) {
+			// TODO: Handle the count and schema parameters
 			List<TopicPayload> data = handler.getData();
 			List<TopicPayload> ret = new ArrayList<>();
 			for (int i=data.size()-1; i>0; i--) {
@@ -242,7 +243,7 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 	}
 
 	@Override
-	public ServiceSession createNewServiceSession(ServiceProperties<?> properties) throws PropertiesException {
+	public ServiceSession createNewServiceSession(ServiceProperties properties) throws PropertiesException {
 		return null;
 	}
 

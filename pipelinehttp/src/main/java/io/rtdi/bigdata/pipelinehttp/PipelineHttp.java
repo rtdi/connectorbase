@@ -240,7 +240,7 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	}
 
 	@Override
-	public List<TopicPayload> getLastRecords(String topicname, long timestamp) throws IOException {
+	public List<TopicPayload> getLastRecords(String topicname, long timestamp, int count, String schema) throws IOException {
 		Response entityresponse = callRestfulservice(getRestEndpoint("/data/preview/time", topicname, String.valueOf(timestamp)));
 		if (entityresponse == null) {
 			return null;
@@ -256,8 +256,8 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	}
 
 	@Override
-	public List<TopicPayload> getLastRecords(TopicName topicname, long timestamp) throws IOException {
-		return getLastRecords(topicname.getName(), timestamp);
+	public List<TopicPayload> getLastRecords(TopicName topicname, long timestamp, int count, SchemaName schema) throws IOException {
+		return getLastRecords(topicname, timestamp, count, schema);
 	}
 
 	@Override
@@ -489,7 +489,7 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	}
 
 	@Override
-	public ServiceSession createNewServiceSession(ServiceProperties<?> properties) throws PropertiesException {
+	public ServiceSession createNewServiceSession(ServiceProperties properties) throws PropertiesException {
 		return null;
 	}
 

@@ -5,6 +5,8 @@ import org.apache.avro.Schema;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Based on an Avro Type.INT holds 2-byte signed numbers.
  *
@@ -70,8 +72,31 @@ public class AvroShort extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public Short convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Short) {
+			return (Short) value;
+		} else if (value instanceof String) {
+			try {
+				return Short.valueOf((String) value);
+			} catch (NumberFormatException e) {
+				throw new PipelineCallerException("Cannot convert the string \"" + value + "\" into a Short");
+			}
+		} else if (value instanceof Number) {
+			return ((Number) value).shortValue();
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Short");
+	}
+
+	@Override
+	public Short convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Short) {
+			return (Short) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Short");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

@@ -244,7 +244,7 @@ public abstract class PropertyGroupAbstract {
 		PropertyGroupAbstract pg = (PropertyGroupAbstract) value;
 		for (IProperty v : pg.getValues()) {
 			if (v.getName() == null) {
-				throw new PropertiesException("The passed property element does not have a name", "Should actually be impossible", 10006, v.toString());
+				throw new PropertiesException("The passed property element does not have a name", "Should actually be impossible", v.toString());
 			}
 			IProperty e = nameindex.get(v.getName());
 			if (e == null) {
@@ -266,7 +266,7 @@ public abstract class PropertyGroupAbstract {
 				IPropertyValue valueproperty = (IPropertyValue) p;
 				if (valueproperty.getMandatory() != null && valueproperty.getMandatory().booleanValue() && !valueproperty.hasValue()) {
 					// Cannot throw exception here, what if nothing has been set yet?
-					// throw new PropertiesException("A mandatory parameter in the properties is not set", "Fix the properties settings", 10007, valueproperty.getName());
+					// throw new PropertiesException("A mandatory parameter in the properties is not set", "Fix the properties settings", valueproperty.getName());
 				}
 			}
 		}

@@ -77,4 +77,5 @@ public abstract class BrowsingService<S extends ConnectionProperties> implements
 	 */
 	public abstract Schema getRemoteSchemaOrFail(String remotename) throws IOException;
 	
+	public abstract void validate() throws IOException;
 }

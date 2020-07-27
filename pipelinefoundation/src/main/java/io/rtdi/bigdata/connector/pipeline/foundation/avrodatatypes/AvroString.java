@@ -5,6 +5,9 @@ import org.apache.avro.Schema;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.AvroUtils;
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Wrapper around the Avro Type.STRING data type
  *
@@ -63,8 +66,25 @@ public class AvroString extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public String convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof String) {
+			return (String) value;
+		} else {
+			return value.toString();
+		}
+	}
+
+	@Override
+	public String convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof String) {
+			return (String) value;
+		} else {
+			return value.toString();
+		}
 	}
 
 	public static class Factory implements LogicalTypeFactory {
@@ -83,7 +103,7 @@ public class AvroString extends LogicalType implements IAvroPrimitive {
 	public void toString(StringBuffer b, Object value) {
 		if (value != null) {
 			b.append('\"');
-			b.append(value.toString());
+			b.append(AvroUtils.encodeJson(value.toString()));
 			b.append('\"');
 		}
 	}

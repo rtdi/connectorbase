@@ -5,6 +5,8 @@ import org.apache.avro.Schema;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Wrapper of the Avro Type.INT
  *
@@ -63,8 +65,31 @@ public class AvroInt extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public Integer convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Integer) {
+			return (Integer) value;
+		} else if (value instanceof String) {
+			try {
+				return Integer.valueOf((String) value);
+			} catch (NumberFormatException e) {
+				throw new PipelineCallerException("Cannot convert the string \"" + value + "\" into a Integer");
+			}
+		} else if (value instanceof Number) {
+			return ((Number) value).intValue();
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Integer");
+	}
+
+	@Override
+	public Integer convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Integer) {
+			return (Integer) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Integer");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

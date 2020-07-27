@@ -22,5 +22,9 @@ public class SchemaConstants {
 	 * The producer source system name or the producer name.
 	 */
 	public static final String SCHEMA_COLUMN_SOURCE_SYSTEM = "__source_system";
+	/**
+	 * The extension placeholder.
+	 */
+	public static final String SCHEMA_COLUMN_EXTENSION = "__extension";
 
 }

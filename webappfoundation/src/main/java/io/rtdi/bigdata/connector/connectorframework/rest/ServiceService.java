@@ -19,17 +19,13 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ServiceController;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
-import io.rtdi.bigdata.connector.pipeline.foundation.MicroServiceTransformation;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceConfigEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ServiceProperties;
-import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
 
 
 @Path("/")
@@ -62,7 +58,7 @@ public class ServiceService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getServiceOrFail(servicename);
-			return Response.ok(new ServiceConfigEntity(service)).build();
+			return Response.ok(new ServiceConfigEntity(service.getServiceProperties(), service.getDirectory())).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -91,8 +87,8 @@ public class ServiceService {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getServiceOrFail(servicename);
 			service.disableController();
-			boolean stopped = service.joinAll(ControllerExitType.ABORT);
-			return Response.ok(stopped).build();
+			service.joinAll(ControllerExitType.ABORT);
+			return JAXBSuccessResponseBuilder.getJAXBResponse("stopped");
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -107,8 +103,7 @@ public class ServiceService {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getServiceOrFail(servicename);
 			service.startController();
-			//TODO: Return if the service was started correctly
-			return Response.ok().build();
+			return JAXBSuccessResponseBuilder.getJAXBResponse("started");
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -123,27 +118,20 @@ public class ServiceService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getService(servicename);
-			List<String> services = null;
-			if (data.getMicroservices() != null) {
-				services = new ArrayList<>();
-				for (MicroService s : data.getMicroservices()) {
-					services.add(s.getName());
-				}
-			}
 			if (service == null) {
-				ServiceProperties<?> props = connector.getConnectorFactory().createServiceProperties(servicename);
-				props.setValue(data.getServiceproperties(), services);
-				File dir = new File(connector.getConnectorDirectory().getAbsolutePath() + File.separatorChar + "services" + File.separatorChar + servicename);
+				ServiceProperties props = connector.getConnectorFactory().createServiceProperties(servicename);
+				props.setValue(data.getServiceproperties());
+				File dir = new File(connector.getConnectorDirectory(), "services" + File.separatorChar + servicename);
 				if (dir.exists() == false) {
 					dir.mkdirs();
 				}
-				props.write(dir);
+				props.write(dir, data);
 				connector.addService(props);
 			} else {
-				service.getServiceProperties().setValue(data.getServiceproperties(), services);
-				service.getServiceProperties().write(service.getDirectory());
+				service.getServiceProperties().setValue(data.getServiceproperties());
+				service.getServiceProperties().write(service.getDirectory(), data);
 			}
-			return JAXBSuccessResponseBuilder.getJAXBResponse("created");
+			return Response.ok(new ServiceConfigEntity(service.getServiceProperties(), service.getDirectory())).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -192,7 +180,7 @@ public class ServiceService {
 		private String state;
 
 		public ServiceEntity(ServiceController service) {
-			ServiceProperties<?> props = service.getServiceProperties();
+			ServiceProperties props = service.getServiceProperties();
 			this.name = props.getName();
 			this.text = props.getPropertyGroup().getText();
 			rowsprocessedcount = service.getRowsProcessed();
@@ -215,70 +203,5 @@ public class ServiceService {
 			return state;
 		}
 
-	}
-		
-	public static class ServiceConfigEntity {
-
-		private PropertyRoot serviceproperties;
-		private List<MicroService> microservices;
-		
-		public ServiceConfigEntity(ServiceController service) throws PropertiesException {
-			serviceproperties = service.getServiceProperties().getPropertyGroupNoPasswords();
-			if (service.getMicroservices() != null) {
-				microservices = new ArrayList<>();
-				for ( MicroServiceTransformation s : service.getMicroservices() ) {
-					microservices.add(new MicroService(s.getName()));
-				}
-			}
-		}
-
-		public ServiceConfigEntity() {
-			super();
-		}
-
-		public ServiceConfigEntity(PropertyRoot props) {
-			this();
-			serviceproperties = props;
-		}
-
-		public PropertyRoot getServiceproperties() {
-			return serviceproperties;
-		}
-
-		public void setServiceproperties(PropertyRoot serviceproperties) {
-			this.serviceproperties = serviceproperties;
-		}
-
-		public List<MicroService> getMicroservices() {
-			return microservices;
-		}
-
-		public void setMicroservices(List<MicroService> microservices) {
-			this.microservices = microservices;
-		}
-		
-	}
-	
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	public static class MicroService {
-
-		private String name;
-
-		public MicroService() {
-			super();
-		}
-
-		public MicroService(String name) {
-			this();
-			this.name = name;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
 	}
 }

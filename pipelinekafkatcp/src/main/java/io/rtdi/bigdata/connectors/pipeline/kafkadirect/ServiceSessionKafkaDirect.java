@@ -1,5 +1,6 @@
 package io.rtdi.bigdata.connectors.pipeline.kafkadirect;
 
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.kafka.common.config.SaslConfigs;
@@ -20,18 +21,18 @@ import io.rtdi.bigdata.connector.properties.ServiceProperties;
 public class ServiceSessionKafkaDirect extends ServiceSession {
 	private KafkaStreams stream;
 	private KafkaAPIdirect api;
-	private ServiceProperties<?> properties;
+	private ServiceProperties properties;
 
-	public ServiceSessionKafkaDirect(ServiceProperties<?> properties, KafkaAPIdirect api) {
+	public ServiceSessionKafkaDirect(ServiceProperties properties, KafkaAPIdirect api) {
 		this.api = api;
 		this.properties = properties;
 	}
 
 	@Override
 	public void start() throws PropertiesException {
-		if (properties.getMicroServices() != null && properties.getMicroServices().size() > 0) {
+		if (properties.getSchemaTransformations() != null && properties.getSchemaTransformations().size() > 0) {
 			Properties streamsConfiguration = new Properties();
-			streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "rtdi.io microservice");
+			streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "rtdi.io microservice." + properties.getName());
 		    streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, properties.getName());
 		    streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, api.getAPIProperties().getKafkaBootstrapServers());
 		    streamsConfiguration.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArray().getClass().getName());
@@ -60,11 +61,7 @@ public class ServiceSessionKafkaDirect extends ServiceSession {
 		    StreamsBuilder builder = new StreamsBuilder();
 		    KStream<byte[], JexlRecord> input = builder.stream(source.getName());
 	
-		    KStream<byte[], JexlRecord> microservice = input;
-		    
-		    for (MicroServiceTransformation m : properties.getMicroServices()) {
-				microservice = microservice.mapValues(new ValueMapperMicroService(m)); // chain the objects together starting with input
-		    }
+		    KStream<byte[], JexlRecord> microservice = input.transformValues(() -> new ValueMapperMicroService(properties.getSchemaTransformations()));
 	
 			microservice.to(target.getName());
 	
@@ -85,8 +82,14 @@ public class ServiceSessionKafkaDirect extends ServiceSession {
 
 	@Override
 	public long getRowsProcessed() {
-		if (properties.getMicroServices() != null && properties.getMicroServices().size() > 0) {
-			return properties.getMicroServices().get(0).getRowProcessed();
+		if (properties.getSchemaTransformations() != null) {
+			long rowcount = 0L;
+			for (List<? extends MicroServiceTransformation> transformations : properties.getSchemaTransformations().values()) {
+				if (transformations != null && transformations.size() > 0) {
+					rowcount += transformations.get(0).getRowProcessed();
+				}
+			}
+			return rowcount;
 		} else {
 			return 0;
 		}
@@ -94,8 +97,17 @@ public class ServiceSessionKafkaDirect extends ServiceSession {
 
 	@Override
 	public Long getLastRowProcessed() {
-		if (properties.getMicroServices() != null && properties.getMicroServices().size() > 0) {
-			return properties.getMicroServices().get(0).getLastRowProcessed();
+		if (properties.getSchemaTransformations() != null) {
+			long maxdate = 0L;
+			for (List<? extends MicroServiceTransformation> transformations : properties.getSchemaTransformations().values()) {
+				if (transformations != null && transformations.size() > 0) {
+					long d = transformations.get(0).getRowProcessed();
+					if (d > maxdate) {
+						maxdate = d;
+					}
+				}
+			}
+			return maxdate;
 		} else {
 			return null;
 		}

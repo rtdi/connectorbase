@@ -9,6 +9,8 @@ import org.apache.avro.LogicalTypes.TimestampMicros;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Wrapper of LogicalTypes.timestampMillis()
  *
@@ -61,16 +63,25 @@ public class AvroTimestampMicros extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
+	public Long convertToInternal(Object value) throws PipelineCallerException {
 		if (value == null) {
 			return null;
 		} else if (value instanceof Long) {
-			return value;
+			return (Long) value;
 		} else if (value instanceof Date) {
 			return ((Date) value).getTime();
-		} else {
-			return value;
 		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a TimestampMicros");
+	}
+
+	@Override
+	public Long convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Long) {
+			return (Long) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a TimestampMicros");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

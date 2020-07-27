@@ -12,6 +12,8 @@ import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.LogicalTypes.TimeMillis;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Wrapper of LogicalTypes.timeMillis()
  *
@@ -65,14 +67,23 @@ public class AvroTime extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
+	public Object convertToInternal(Object value) throws PipelineCallerException {
 		if (value == null) {
 			return null;
 		} else if (value instanceof Integer) {
 			return value;
-		} else {
-			return value;
 		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Time");
+	}
+
+	@Override
+	public Integer convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Integer) {
+			return (Integer) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Time");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

@@ -93,29 +93,6 @@ public class ConnectionController extends Controller<Controller<?>> {
 	    }
 	}
 	
-	public void writeConfigs() throws PropertiesException {
-		connectionprops.write(connectiondir);
-		if (producers.size() != 0) {
-			File producerdir = new File(connectiondir.getAbsolutePath() + File.separatorChar + DIR_PRODUCERS);
-			if (!producerdir.exists()) {
-				producerdir.mkdirs();
-			}
-			for (ProducerController producer : producers.values()) {
-				producer.getProducerProperties().write(producerdir);
-			}
-		}
-		if (consumers.size() != 0) {
-			File consumerdir = new File(connectiondir.getAbsolutePath() + File.separatorChar + DIR_CONSUMERS);
-			if (!consumerdir.exists()) {
-				consumerdir.mkdirs();
-			}
-			for (ConsumerController consumer : consumers.values()) {
-				consumer.getConsumerProperties().write(consumerdir);
-			}
-		}
-	}
-
-
 	public void addConsumer(ConsumerProperties consumerprops) throws PropertiesException {
 		ConsumerController consumer = new ConsumerController(consumerprops, this);
 		addChild(consumerprops.getName(), consumer);
@@ -308,5 +285,10 @@ public class ConnectionController extends Controller<Controller<?>> {
 			browser = connectorcontroller.getConnectorFactory().createBrowsingService(this);
 		}
 		return browser;
+	}
+
+	public void validate() throws IOException {
+		BrowsingService<?> b = connectorcontroller.getConnectorFactory().createBrowsingService(this);
+		b.validate();
 	}
 }

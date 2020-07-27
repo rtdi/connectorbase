@@ -8,6 +8,8 @@ import org.apache.avro.Schema.Type;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData.Record;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Wrapper around the Avro Type.MAP data type
  *
@@ -49,8 +51,23 @@ public class AvroArray extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public List<?> convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof List) {
+			return (List<?>) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a List");
+	}
+
+	@Override
+	public List<?> convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof List) {
+			return (List<?>) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a List");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

@@ -4,13 +4,20 @@ showFooter : function() {
 init : function() {
 	var sSchemaname = jQuery.sap.getUriParameters().get("name");
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	var that = this;
 	if (sSchemaname != null) {
 		var oSourceSchemaModel = new JSONModel();
+		oSourceSchemaModel.attachRequestFailed(function(oEvent) {
+				that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+		});
 		oSourceSchemaModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas/" + encodeURI(sSchemaname));
 		this.getView().setModel(oSourceSchemaModel, "source");
 	}
 	
 	var oTargetSchemasModel = new JSONModel();
+	oTargetSchemasModel.attachRequestFailed(function(oEvent) {
+			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+	});
 	oTargetSchemasModel.loadData("../rest/schemas");
 	this.getView().setModel(oTargetSchemasModel, "targetschemas");
 	
@@ -53,12 +60,7 @@ onTargetSchemaChange : function(oEvent) {
 		var oModel = new JSONModel();
 		var that = this;
 		oModel.attachRequestFailed(function(oEvent) {
-			that.displayError({
-				message: oEvent.getParameter("message"),
-				responseText:oEvent.getParameter("responseText"),
-				statusCode:oEvent.getParameter("statusCode"),
-				statusText:oEvent.getParameter("statusText")
-			});
+			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
 		});
 		oModel.loadData("../rest/mapping/" + encodeURI(sConnectionname) + "/" + encodeURI(sSchemaname) + "/" + encodeURI(sTargetSchemaname));
 		this.getView().setModel(oModel, "target");

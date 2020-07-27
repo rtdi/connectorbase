@@ -5,4 +5,6 @@ public interface IAvroNested {
 	public IAvroNested getParent();
 	
 	public void setParent(IAvroNested parent);
+	
+	String getPath();
 }

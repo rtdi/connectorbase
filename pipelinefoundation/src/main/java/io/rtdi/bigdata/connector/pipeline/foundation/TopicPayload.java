@@ -3,10 +3,10 @@ package io.rtdi.bigdata.connector.pipeline.foundation;
 import java.io.IOException;
 
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericRecord;
 
 import com.github.benmanes.caffeine.cache.Cache;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayloadBinary;
 
 /**
@@ -19,8 +19,8 @@ public class TopicPayload {
 	private long offset;
 	private Integer partition;
 	private long timestamp;
-	private GenericRecord valuerecord;
-	private GenericRecord keyrecord;
+	private JexlRecord valuerecord;
+	private JexlRecord keyrecord;
 	private int keyschemaid;
 	private int valueschemaid;
 	private String topic;
@@ -28,7 +28,7 @@ public class TopicPayload {
 	public TopicPayload() {
 	}
 
-	public TopicPayload(TopicName topic, long offset, Integer partition, long timestamp, GenericRecord keyrecord, GenericRecord valuerecord, int keyschemaid, int valueschemaid) {
+	public TopicPayload(TopicName topic, long offset, Integer partition, long timestamp, JexlRecord keyrecord, JexlRecord valuerecord, int keyschemaid, int valueschemaid) {
 		this.offset = offset;
 		this.partition = partition;
 		this.timestamp = timestamp;
@@ -74,19 +74,19 @@ public class TopicPayload {
 		this.timestamp = timestamp;
 	}
 
-	public GenericRecord getValueRecord() {
+	public JexlRecord getValueRecord() {
 		return valuerecord;
 	}
 
-	public void setValueRecord(GenericRecord valuerecord) {
+	public void setValueRecord(JexlRecord valuerecord) {
 		this.valuerecord = valuerecord;
 	}
 
-	public GenericRecord getKeyRecord() {
+	public JexlRecord getKeyRecord() {
 		return keyrecord;
 	}
 
-	public void setKeyRecord(GenericRecord keyrecord) {
+	public void setKeyRecord(JexlRecord keyrecord) {
 		this.keyrecord = keyrecord;
 	}
 

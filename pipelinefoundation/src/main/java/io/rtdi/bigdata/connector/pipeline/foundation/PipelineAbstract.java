@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.avro.Schema;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -35,6 +37,7 @@ public abstract class PipelineAbstract<
 				C extends ConsumerSession<T>> implements Closeable, IPipelineAPI<S, T, P, C> {
 
 	protected File webinfdir;
+	protected Logger logger = LogManager.getLogger(this.getClass().getName());
 
 	public PipelineAbstract() {
 		super();
@@ -174,8 +177,8 @@ public abstract class PipelineAbstract<
 	}
 
 	@Override
-	public List<TopicPayload> getLastRecords(String topicname, long timestamp) throws IOException {
-		return getLastRecords(new TopicName(topicname), timestamp);
+	public List<TopicPayload> getLastRecords(String topicname, long timestamp, int count, String schema) throws IOException {
+		return getLastRecords(new TopicName(topicname), timestamp, count, new SchemaName(schema));
 	}
 
 	@Override

@@ -145,6 +145,28 @@ public class SchemaBuilder {
 		return field;
 	}
 
+	/**
+	 * Add columns to the current schema before it is built.<br>
+	 * A typical call will look like 
+	 * <pre>add("col1", AvroNVarchar.getSchema(10), "first col", false);</pre>
+	 * 
+	 * @param columnname of the field to add
+	 * @param schema of the column; see io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes
+	 * @param description of the column or null
+	 * @param nullable is true if the column is optional
+	 * @param defaultval default value
+	 * @return AvroField to set other properties of the field (fluent syntax)
+	 * @throws SchemaException if the schema is invalid
+	 * 
+	 * @see AvroField#AvroField(String, Schema, String, boolean, Object)
+	 */
+	public AvroField add(String columnname, Schema schema, String description, boolean nullable, Object defaultval) throws SchemaException {
+		validate(columnname, schema);
+		AvroField field = new AvroField(columnname, schema, description, nullable, defaultval); // JsonProperties.NULL_VALUE
+		add(field);
+		return field;
+	}
+
 	public AvroField add(Field f) throws SchemaException {
 		validate(f.name(), schema);
 		AvroField field = new AvroField(f);

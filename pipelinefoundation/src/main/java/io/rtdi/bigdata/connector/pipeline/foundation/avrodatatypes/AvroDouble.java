@@ -5,6 +5,8 @@ import org.apache.avro.Schema;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Wrapper of the Avro Type.DOUBLE, a 64 bit IEEE 754 floating-point number.
  *
@@ -63,8 +65,31 @@ public class AvroDouble extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public Double convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Double) {
+			return (Double) value;
+		} else if (value instanceof String) {
+			try {
+				return Double.valueOf((String) value);
+			} catch (NumberFormatException e) {
+				throw new PipelineCallerException("Cannot convert the string \"" + value + "\" into a Double");
+			}
+		} else if (value instanceof Number) {
+			return ((Number) value).doubleValue();
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Double");
+	}
+
+	@Override
+	public Double convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Double) {
+			return (Double) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Double");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

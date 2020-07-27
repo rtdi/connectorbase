@@ -81,6 +81,7 @@ public class UI5View extends HttpServlet {
 				out.println("                  exception=\"{state>exception}\"");
 				out.println("                  message=\"{state>message}\"");
 				out.println("                  stacktrace=\"{state>stacktrace}\"");
+				out.println("                  stacktracerootcause=\"{state>stacktracerootcause}\"");
 				out.println("                  hint=\"{state>hint}\"");
 				out.println("                  causingobject=\"{state>causingobject}\"");
 				out.println("                  errorhelp=\"{state>errorhelp}\"");

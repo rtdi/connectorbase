@@ -6,6 +6,7 @@ import java.util.List;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.AvroUtils;
 
 public class DataPreview {
 
@@ -53,12 +54,12 @@ public class DataPreview {
 		public PreviewRow() {
 		}
 
-		public PreviewRow(TopicPayload d) {
+		public PreviewRow(TopicPayload d) throws IOException {
 			this.offset = d.getOffset();
 			this.partition = d.getPartition();
 			this.timestamp = d.getTimestamp();
-			this.keyrecordstring = d.getKeyRecord().toString();
-			this.valuerecordstring = d.getValueRecord().toString();
+			this.keyrecordstring = AvroUtils.convertRecordToJson(d.getKeyRecord());
+			this.valuerecordstring = AvroUtils.convertRecordToJson(d.getValueRecord());
 			this.topic = d.getTopic();
 			this.keyschemaid = d.getValueSchemaId();
 			this.valueschemaid = d.getValueSchemaId();

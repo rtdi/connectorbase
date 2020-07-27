@@ -4,8 +4,12 @@ import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericRecord;
+
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 
 public class AvroRecord implements IAvroDatatype {
+	public static final String NAME = "RECORD";
 	static AvroRecord element = new AvroRecord();
 
 	private AvroRecord() {
@@ -44,8 +48,23 @@ public class AvroRecord implements IAvroDatatype {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public GenericRecord convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof GenericRecord) {
+			return (GenericRecord) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a GenericRecord");
+	}
+
+	@Override
+	public GenericRecord convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof GenericRecord) {
+			return (GenericRecord) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a GenericRecord");
 	}
 
 	@Override
@@ -61,6 +80,11 @@ public class AvroRecord implements IAvroDatatype {
 	@Override
 	public AvroType getAvroType() {
 		return AvroType.AVRORECORD;
+	}
+
+	@Override
+	public String toString() {
+		return NAME;
 	}
 
 }

@@ -64,14 +64,11 @@ function(Control) {
 		} else if (json instanceof Array) {
 			if (json.length > 0) {
 				var placeholder = json.length + (json.length > 1 ? ' items' : ' item');
+				html += '<a class="json-toggle" href="#" id="' + controlid + '_' + counter + '"></a>';
 				html += '[<ol class="json-array" style="display: none;">';
+				counter++;
 				for (var i = 0; i < json.length; ++i) {
 					html += '<li>';
-					// Add toggle button if item is collapsable
-					if (isCollapsable(json[i])) {
-						html += '<a class="json-toggle" href="#" id="' + controlid + '_' + counter + '"></a>';
-						counter++;
-					}
 					html += json2html(json[i], controlid, false);
 					// Add comma if item is not last
 					if (i < json.length - 1) {
@@ -89,28 +86,12 @@ function(Control) {
 			var keyCount = Object.keys(json).length;
 			var placeholder = keyCount + (keyCount > 1 ? ' items' : ' item');
 			if (keyCount > 0) {
-				html += '{<ul class="json-dict"';
-				if (!isRoot) {
-					html += ' style="display: none;"';
-			 	}
-				html += '>';
+				html += '{<ul class="json-dict">';
 				for ( var key in json) {
-					if (Object.prototype.hasOwnProperty.call(
-							json, key)) {
+					if (Object.prototype.hasOwnProperty.call(json, key)) {
 						html += '<li>';
-						var keyRepr = '<span class="json-string">"'
-								+ key + '"</span>';
-						// Add toggle button if item is
-						// collapsable
-						if (isCollapsable(json[key])) {
-							html += '<a class="json-toggle" href="#" id="' + controlid + '_' + counter + '" >'
-									+ keyRepr + '</a>';
-							counter++;
-						} else {
-							html += keyRepr;
-						}
-						html += ': '
-								+ json2html(json[key], controlid, false);
+						html += '<span class="json-string">"' + key + '"</span>';
+						html += ': ' + json2html(json[key], controlid, false);
 						// Add comma if item is not last
 						if (--keyCount > 0) {
 							html += ',';
@@ -119,9 +100,6 @@ function(Control) {
 					}
 				}
 				html += '</ul>';
-				if (!isRoot) {
-					html += '<a class="json-placeholder" href="#" >' + placeholder + '</a>';
-				}
 				html += '}';
 			} else {
 				html += '{}';

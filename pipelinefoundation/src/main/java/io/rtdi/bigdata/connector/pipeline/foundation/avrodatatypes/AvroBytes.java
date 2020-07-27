@@ -5,6 +5,8 @@ import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Is the Avro Type.BYTES datatype, a binary store of any length. A BLOB column.
  *
@@ -63,8 +65,23 @@ public class AvroBytes extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public Object convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof byte[]) {
+			return (byte[]) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a byte[]");
+	}
+
+	@Override
+	public byte[] convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof byte[]) {
+			return (byte[]) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a byte[]");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

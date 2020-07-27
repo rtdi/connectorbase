@@ -40,31 +40,43 @@
 	</items>
 </Table>
 
-<Panel headerText="List all the steps to be executed one after the other"> 
-	<List
-		visible="{= ${state>/new} === false }"
-		headerText="Steps" items="{/microservices}" >
-		<headerToolbar>
-			<OverflowToolbar>
-	            <ToolbarSpacer/>
-	            <Button icon="sap-icon://add" type="Transparent" press="onAddMicroservice" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
-			</OverflowToolbar>
-		</headerToolbar>
-		<InputListItem label="Step:">
-			<HBox>
-				<Input value="{name}" enabled="{= (${state>/roles/config} &amp;&amp; !!${new}) }" />
-		        <Button
-					icon="sap-icon://edit"
-					type="Transparent"
-					press="onConfigureMicroservice"
-					visible="{= !${new} }"
-					enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
-		        <Button
-					icon="sap-icon://delete"
-					type="Transparent" press="onDeleteMicroservice"
-					visible="{= !${new} }"
-					enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
-	        </HBox>
-		</InputListItem>
-	</List>
-</Panel>
+<Table 
+	items="{/schemas}" 
+	visible="{= ${state>/new} === false }" 
+	mode="{= (${state>/roles/config} ? 'Delete' : 'None') }"
+	delete=".onDeleteSchema" >
+	<headerToolbar>
+		<OverflowToolbar>
+			<Label text="Transformation Network" />
+			<ToolbarSpacer/>
+			<ComboBox items="{schemas>/schemas}" enabled="{= ${state>/roles/config} }" id="schemaname">
+				<core:Item key="{schemas>schemaname}" text="{schemas>schemaname}" />
+			</ComboBox>
+            <Button icon="sap-icon://add" text="Add Schema" type="Transparent" press="onAddSchema" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
+		</OverflowToolbar>
+	</headerToolbar>
+	<columns>
+		<Column width="20%">
+            <Label text="Transformation for Schema"/>
+		</Column>
+		<Column>
+            <Label text="Transformation steps"/>
+		</Column>
+	</columns>
+	<items>
+		<ColumnListItem vAlign="Middle">
+			<cells>
+				<Text text="{schemaname}" />
+				<components:TransformationStepMultiInput
+					id="steps"
+					showValueHelp="false"
+					tokens="{path:'steps', sorter: { path: 'stepname' }, templateShareable:false}">
+					<components:tokens>
+						<Token key="{stepname}" text="{stepname}" press=".onStepPress" />
+					</components:tokens>
+				</components:TransformationStepMultiInput>
+			</cells>
+		</ColumnListItem>
+	</items>
+</Table>
+		

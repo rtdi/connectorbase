@@ -280,6 +280,9 @@ public enum AvroType {
 	}
 
 	public static IAvroDatatype getDataTypeFromString(String text) {
+		if (text == null) {
+			return null;
+		}
 		switch (text) {
 		case AvroBoolean.NAME: return AvroBoolean.create();
 		case AvroBytes.NAME: return AvroBytes.create();
@@ -307,6 +310,10 @@ public enum AvroType {
 			return AvroSTPoint.create();
 		case AvroUri.NAME:
 			return AvroUri.create();
+		case AvroRecord.NAME:
+			return AvroRecord.create();
+		case AvroArray.NAME:
+			return AvroArray.create();
 		}
 		if (text.startsWith(AvroDecimal.NAME)) {
 			return AvroDecimal.create(text);

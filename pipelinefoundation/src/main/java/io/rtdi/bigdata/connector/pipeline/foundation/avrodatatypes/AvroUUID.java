@@ -2,9 +2,11 @@ package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
-import org.apache.avro.Schema;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
+import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
+
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 
 /**
  * Wrapper for LogicalTypes.uuid()
@@ -75,8 +77,25 @@ public class AvroUUID extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public String convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof String) {
+			return (String) value;
+		} else {
+			return value.toString();
+		}
+	}
+
+	@Override
+	public String convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof String) {
+			return (String) value;
+		} else {
+			return value.toString();
+		}
 	}
 
 	public static class Factory implements LogicalTypeFactory {

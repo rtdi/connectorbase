@@ -1,10 +1,21 @@
 package io.rtdi.bigdata.connector.properties;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.MicroServiceTransformation;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceConfigEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceConfigEntity.ServiceSchema;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceConfigEntity.ServiceStep;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.atomic.IProperty;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyGroup;
@@ -12,15 +23,14 @@ import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
 
 /**
  * The ServiceProperties is the class holding all service specific settings.
- * @param <M> MicroServiceTransformation
  *
  */
-public abstract class ServiceProperties<M extends MicroServiceTransformation> {
+public abstract class ServiceProperties {
 
 	private static final String SOURCE = "service.source";
 	private static final String TARGET = "service.target";
 	protected PropertyRoot properties;
-	private List<M> microservices = new ArrayList<>();
+	private Map<String, List<? extends MicroServiceTransformation>> schematransformations = new HashMap<>();
 	private boolean isvalid = false;
 
 	public ServiceProperties(String name) throws PropertiesException {
@@ -35,8 +45,14 @@ public abstract class ServiceProperties<M extends MicroServiceTransformation> {
 		read(dir);
 	}
 
-	public void addMicroService(M microservice) {
-		microservices.add(microservice);
+	public void addMicroService(String schemaname, MicroServiceTransformation service) {
+		@SuppressWarnings("unchecked")
+		List<MicroServiceTransformation> l = (List<MicroServiceTransformation>) schematransformations.get(schemaname);
+		if (l == null) {
+			l = new ArrayList<>();
+			schematransformations.put(schemaname, l);
+		}
+		l.add(service);
 	}
 
 	/**
@@ -58,12 +74,11 @@ public abstract class ServiceProperties<M extends MicroServiceTransformation> {
 	 * Copy all values of the provided PropertyGroup into this object's values.
 	 * 
 	 * @param pg PropertyRoot to take the values from
-	 * @param services lists all microservices
 	 * @throws PropertiesException if one of the data types does not match
 	 * 
 	 * @see PropertyRoot#parseValue(PropertyRoot, boolean)
 	 */
-	public void setValue(PropertyRoot pg, List<String> services) throws PropertiesException {
+	public void setValue(PropertyRoot pg) throws PropertiesException {
 		properties.parseValue(pg, false);
 	}
 
@@ -97,38 +112,87 @@ public abstract class ServiceProperties<M extends MicroServiceTransformation> {
 	 */
 	public void read(File directory) throws PropertiesException {
 		properties.read(directory);
-		for (File step : directory.listFiles()) {
-			if (step.isDirectory()) {
-				M transformation = readMicroservice(step);
-				addMicroService(transformation);
-				isvalid = true;
+		for (File schema : directory.listFiles()) {
+			if (schema.isDirectory()) {
+				String schemaname = schema.getName();
+				for (File step : schema.listFiles()) {
+					if (step.isDirectory()) {
+						MicroServiceTransformation transformation = readMicroservice(step);
+						if (transformation != null) {
+							addMicroService(schemaname, transformation);
+							isvalid = true;
+						}
+					}
+				}
 			}
 		}
 	}
 	
-	protected abstract M readMicroservice(File dir) throws PropertiesException;
+	protected abstract MicroServiceTransformation readMicroservice(File dir) throws PropertiesException;
 
 	/**
 	 * Write the current properties into a directory. The file name is derived from the {@link #getName()}.
 	 *  
 	 * @param directory where to write the file to
-	 * @throws PropertiesException if the file is not write-able
+	 * @param data 
+	 * @throws IOException 
 	 */
-	public void write(File directory) throws PropertiesException {
+	public void write(File directory, ServiceConfigEntity data) throws IOException {
 		properties.write(directory);
-		if (microservices != null) {
-			for ( M m : microservices) {
-				File step = new File(directory.getAbsolutePath() + File.separatorChar + m.getName());
-				if (!step.exists()) {
-					step.mkdir();
+		if (data != null) {
+			Set<String> existingschemas = new HashSet<>();
+			for (File schemadir : directory.listFiles()) {
+				if (schemadir.isDirectory()) {
+					existingschemas.add(schemadir.getName());
 				}
-				writeMicroservice(m, step);
+			}
+			// data provides a list of elements that might have been added or removed
+			for (ServiceSchema s : data.getSchemas()) {
+				File schemadir = new File(directory, s.getSchemaname());
+				if (existingschemas.contains(s.getSchemaname())) {
+					// Schema dir exists and is contained in the data 
+					existingschemas.remove(s.getSchemaname());
+				} else {
+					// schema dir does not exist so must be a new one
+					schemadir.mkdir();
+				}
+				
+				// Check the transformation step sub directories
+				Set<String> existingsteps = new HashSet<>();
+				for (File stepdir : schemadir.listFiles()) {
+					if (stepdir.isDirectory()) {
+						existingsteps.add(stepdir.getName());
+					}
+				}
+				for (ServiceStep step : s.getSteps()) {
+					File stepdir = new File(schemadir, step.getStepname());
+					if (existingsteps.contains(step.getStepname())) {
+						// Step dir exists and is contained in the data 
+						existingsteps.remove(step.getStepname());
+					} else {
+						// step dir does not exist so must be a new one
+						stepdir.mkdir();
+					}
+				}
+				for (String delete : existingsteps) {
+					File stepdir = new File(schemadir, delete);
+					deleteDir(stepdir.toPath());
+				}					
+			}
+			for (String delete : existingschemas) {
+				File schemadir = new File(directory, delete);
+				deleteDir(schemadir.toPath());
 			}
 		}
 	}
 	
-	protected abstract void writeMicroservice(M m, File dir) throws PropertiesException;
-
+	private void deleteDir(Path path) throws IOException {
+		Files.walk(path)
+		.sorted(Comparator.reverseOrder())
+		.map(Path::toFile)
+		.forEach(File::delete);
+	}
+	
 	public String getSourceTopic() {
 		return properties.getStringPropertyValue(SOURCE);
 	}
@@ -145,12 +209,15 @@ public abstract class ServiceProperties<M extends MicroServiceTransformation> {
 		properties.setProperty(TARGET, value);
 	}
 
-	public List<M> getMicroServices() {
-		return microservices;
+	public List<? extends MicroServiceTransformation> getMicroServices(String schemaname) {
+		return schematransformations.get(schemaname);
 	}
 
 	public boolean isValid() {
 		return isvalid;
 	}
 
+	public Map<String, List<? extends MicroServiceTransformation>> getSchemaTransformations() {
+		return schematransformations;
+	}
 }

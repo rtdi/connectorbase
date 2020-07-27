@@ -17,7 +17,7 @@ public class PropertiesRuntimeException extends PropertiesException {
 	}
 
 	public PropertiesRuntimeException(String message, String hint, String causingobject) {
-		super(message, hint, null, causingobject);
+		super(message, hint, causingobject);
 	}
 
 	public PropertiesRuntimeException(Throwable cause) {

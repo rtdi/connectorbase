@@ -177,9 +177,9 @@ public class WebAppController implements ServletContextListener {
 			    count++;
 			}
 			if (count == 0) {
-				throw new PropertiesException("No class for an IConnectorFactory was found. Seems a jar file is missing?", 10003);
+				throw new PropertiesException("No class for an IConnectorFactory was found. Seems a jar file is missing?");
 			} else if (count != 1) {
-				throw new PropertiesException("More than one IConnectorFactory class was found, the build of the jar file is wrong", 10004);
+				throw new PropertiesException("More than one IConnectorFactory class was found, the build of the jar file is wrong");
 			}
 
 			sce.getServletContext().setAttribute(CONNECTORFACTORY, connectorfactory);

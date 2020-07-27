@@ -13,33 +13,23 @@ public class ErrorEntity {
 	private String sourcecodeline;
 	private String errorhelp;
 	private String threadname;
+	private String stacktracerootcause;
 	
 	public ErrorEntity() {
 		super();
 		timestamp = System.currentTimeMillis();
 	}
 	
-	public ErrorEntity(String message, String exception, String stacktrace, String hint, String causingobject, String sourcecodeline, String errorhelp) {
-		this();
-		this.message = message;
-		this.exception = exception;
-		this.stacktrace = stacktrace;
-		this.hint = hint;
-		this.causingobject = causingobject;
-		this.sourcecodeline = sourcecodeline;
-		this.errorhelp = errorhelp;
-		this.threadname = Thread.currentThread().getName();
-	}
-	
 	public ErrorEntity(Throwable e) {
 		this();
 		message = e.getMessage();
 		stacktrace = ErrorListEntity.getStackTrace(e);
+		stacktracerootcause = ErrorListEntity.getStackTraceRootCause(e);
 		exception = e.getClass().getSimpleName();
 		this.threadname = Thread.currentThread().getName();
 		if (e instanceof PropertiesException) {
 			PropertiesException pe = (PropertiesException) e;
-			errorhelp = pe.getErrorHelp();
+			errorhelp = null;
 			sourcecodeline = pe.getSourceCodeLink();
 			hint = pe.getHint();
 			causingobject = pe.getCausingObject();
@@ -81,6 +71,10 @@ public class ErrorEntity {
 	
 	public String getThreadname() {
 		return threadname;
+	}
+
+	public String getStacktracerootcause() {
+		return stacktracerootcause;
 	}
 
 }

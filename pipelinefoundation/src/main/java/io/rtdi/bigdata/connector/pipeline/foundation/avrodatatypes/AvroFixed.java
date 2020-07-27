@@ -3,6 +3,9 @@ package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema.Type;
+
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 import org.apache.avro.Schema;
 
 /**
@@ -55,8 +58,23 @@ public class AvroFixed extends LogicalTypeWithLength implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public Object convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof byte[]) {
+			return (byte[]) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Fixed");
+	}
+
+	@Override
+	public byte[] convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof byte[]) {
+			return (byte[]) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Fixed");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

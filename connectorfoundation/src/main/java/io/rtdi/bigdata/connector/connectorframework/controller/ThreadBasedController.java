@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerState;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 
 public abstract class ThreadBasedController<C extends Controller<?>> extends Controller<C> implements Runnable {
 
@@ -98,11 +97,8 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 			state = ControllerState.STARTED;
 			startChildController();
 			runUntilError();
-		} catch (PropertiesException e) {
-			errors.addError(e);
-			logger.error("Controller ran into a permanent error, stopping", e);
 		} catch (Exception e) {
-			errors.addError(e, "An error outside the Connector Framework happened", this.getName());
+			errors.addError(e);
 			logger.error("Controller ran into a permanent error, stopping", e);
 		} finally {
 			stopChildControllers(ControllerExitType.ABORT);

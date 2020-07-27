@@ -5,6 +5,8 @@ import org.apache.avro.Schema;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Wrapper of the Avro Type.LONG
  *
@@ -63,8 +65,31 @@ public class AvroLong extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public Long convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Long) {
+			return (Long) value;
+		} else if (value instanceof String) {
+			try {
+				return Long.valueOf((String) value);
+			} catch (NumberFormatException e) {
+				throw new PipelineCallerException("Cannot convert the string \"" + value + "\" into a Decimal");
+			}
+		} else if (value instanceof Number) {
+			return ((Number) value).longValue();
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Long");
+	}
+
+	@Override
+	public Long convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Long) {
+			return (Long) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Long");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

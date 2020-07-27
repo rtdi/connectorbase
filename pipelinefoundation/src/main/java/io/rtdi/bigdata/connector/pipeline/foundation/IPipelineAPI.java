@@ -169,11 +169,13 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 *  
 	 * @param topicname name of the topic within the tenant
 	 * @param timestamp starting point to read from
+	 * @param max count of records
+	 * @param optionally restrict on a certain schema only
 	 * @return List of AvroRecords and their metadata
 	 * @throws IOException if something goes wrong
 	 * 
 	 */
-	List<TopicPayload> getLastRecords(String topicname, long timestamp) throws IOException;
+	List<TopicPayload> getLastRecords(String topicname, long timestamp, int count, String schema) throws IOException;
 
 	/**
 	 * Read the most recent n records from a topic.
@@ -186,20 +188,23 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	List<TopicPayload> getLastRecords(TopicName topicname, int count) throws IOException;
 
 	/**
-	 * Read all records from a given timestamp onwards. Like {@link #getLastRecords(TopicName, int)} but based using a timestamp as starting point.
+	 * Read all records from a given timestamp onwards. Like {@link #getLastRecords(TopicName, int)} but based using a 
+	 * timestamp as starting point and with the option to limit on one schema.
 	 *  
 	 * @param topicname TopicName
 	 * @param timestamp starting point to read from
+	 * @param count stop reading after this many records
+	 * @param schema optional schema name to scan for
 	 * @return List of AvroRecords and their metadata
 	 * @throws IOException if something goes wrong
 	 */
-	List<TopicPayload> getLastRecords(TopicName topicname, long timestamp) throws IOException;
+	List<TopicPayload> getLastRecords(TopicName topicname, long timestamp, int count, SchemaName schema) throws IOException;
 
 	P createNewProducerSession(ProducerProperties properties) throws PropertiesException;
 
 	C createNewConsumerSession(ConsumerProperties properties) throws PropertiesException;
 
-	ServiceSession createNewServiceSession(ServiceProperties<?> properties) throws PropertiesException;
+	ServiceSession createNewServiceSession(ServiceProperties properties) throws PropertiesException;
 	
 	/**
 	 * This method should implement everything that is needed to open the connection to the topic server and thus enables all other api methods.<br>

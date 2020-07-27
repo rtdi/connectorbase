@@ -77,7 +77,7 @@ public interface IConnectorFactory<S extends ConnectionProperties, P extends Pro
 
 	Service createService(ServiceController instance) throws IOException;
 
-	ServiceProperties<?> createServiceProperties(String servicename) throws PropertiesException;
+	ServiceProperties createServiceProperties(String servicename) throws PropertiesException;
 	
 	boolean supportsConnections();
 	

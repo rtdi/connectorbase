@@ -14,7 +14,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.entity.ErrorEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ErrorListEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerState;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 
 
 /**
@@ -270,24 +269,8 @@ public abstract class Controller<C extends Controller<?>> implements IController
 		return childcontrollers.get(name);
 	}
 	
-	public void addError(ConnectorRuntimeException e) {
+	public void addError(Exception e) {
 		errors.addError(e);
-	}
-
-	public void addError(String message, String exception, String stacktrace, String hint, String causingobject, String sourcecodeline, String errorhelp) {
-		errors.addError(message, exception, stacktrace, hint, causingobject, sourcecodeline, errorhelp);
-	}
-	
-	public void addError(PropertiesException e) {
-		errors.addError(e);
-	}
-	
-	public void addError(Exception e, String hint, String causingobject, String sourcecodeline, String errorhelp) {
-		errors.addError(e, hint, causingobject, sourcecodeline, errorhelp);
-	}
-
-	public void addError(Exception e, String hint, String causingobject) {
-		errors.addError(e, hint, causingobject);
 	}
 
 }

@@ -2,8 +2,10 @@ package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
-import org.apache.avro.Schema.Type;
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Type;
+
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 
 /**
  * Wrapper around the Avro Type.ENUM data type
@@ -58,8 +60,23 @@ public class AvroEnum extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public Enum<?> convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Enum) {
+			return (Enum<?>) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Enum");
+	}
+
+	@Override
+	public Enum<?> convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Enum) {
+			return (Enum<?>) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Enum");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

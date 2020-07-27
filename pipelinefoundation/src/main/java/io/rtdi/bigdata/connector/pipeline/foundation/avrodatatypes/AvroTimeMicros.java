@@ -2,8 +2,10 @@ package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
@@ -11,6 +13,8 @@ import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.LogicalTypes.TimeMicros;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
+
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 
 /**
  * Wrapper of LogicalTypes.timeMillis()
@@ -24,7 +28,7 @@ public class AvroTimeMicros extends LogicalType implements IAvroPrimitive {
 	private TimeMicros time = LogicalTypes.timeMicros();
 
 	static {
-		schema = LogicalTypes.timeMicros().addToSchema(Schema.create(Type.INT));
+		schema = LogicalTypes.timeMicros().addToSchema(Schema.create(Type.LONG));
 	}
 
 	public static Schema getSchema() {
@@ -65,14 +69,26 @@ public class AvroTimeMicros extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
+	public Object convertToInternal(Object value) throws PipelineCallerException {
 		if (value == null) {
 			return null;
-		} else if (value instanceof Integer) {
+		} else if (value instanceof Long) {
 			return value;
-		} else {
-			return value;
+		} else if (value instanceof LocalTime) {
+			LocalTime t = (LocalTime) value;
+			return t.getLong(ChronoField.MICRO_OF_DAY);
 		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a TimeMicros");
+	}
+
+	@Override
+	public LocalTime convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Long) {
+			return LocalTime.ofNanoOfDay(((Long)value)*1000000L);
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a TimeMicros");
 	}
 
 	public static class Factory implements LogicalTypeFactory {
@@ -101,7 +117,7 @@ public class AvroTimeMicros extends LogicalType implements IAvroPrimitive {
 
 	@Override
 	public Type getBackingType() {
-		return Type.INT;
+		return Type.LONG;
 	}
 
 	@Override

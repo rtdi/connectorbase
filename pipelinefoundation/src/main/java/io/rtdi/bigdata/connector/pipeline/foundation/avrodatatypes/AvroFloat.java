@@ -5,6 +5,8 @@ import org.apache.avro.Schema;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Wrapper of the Avro Type.FLOAT, a 32 bit IEEE 754 floating-point number.
  *
@@ -63,8 +65,31 @@ public class AvroFloat extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public Float convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Float) {
+			return (Float) value;
+		} else if (value instanceof String) {
+			try {
+				return Float.valueOf((String) value);
+			} catch (NumberFormatException e) {
+				throw new PipelineCallerException("Cannot convert the string \"" + value + "\" into a Float");
+			}
+		} else if (value instanceof Number) {
+			return ((Number) value).floatValue();
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Float");
+	}
+
+	@Override
+	public Float convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Float) {
+			return (Float) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Float");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

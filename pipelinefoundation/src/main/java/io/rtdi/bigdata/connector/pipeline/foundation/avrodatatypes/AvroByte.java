@@ -5,6 +5,8 @@ import org.apache.avro.Schema;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Based on an INT but is supposed to hold data from -127 to +128 only. A single signed byte.
  *
@@ -70,8 +72,18 @@ public class AvroByte extends LogicalType implements IAvroPrimitive {
 	}
 	
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public Object convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Byte) {
+			return value;
+		} else if (value instanceof Number) {
+			int n = ((Number) value).intValue();
+			if (n <= 128 && n >= -127) {
+				return value;
+			}
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Byte");
 	}
 
 	public static class Factory implements LogicalTypeFactory {
@@ -99,6 +111,16 @@ public class AvroByte extends LogicalType implements IAvroPrimitive {
 	@Override
 	public AvroType getAvroType() {
 		return AvroType.AVROBYTE;
+	}
+
+	@Override
+	public Byte convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Byte) {
+			return (Byte) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Byte");
 	}
 
 }

@@ -5,12 +5,7 @@ init : function() {
 	var oModel = new JSONModel();
 	var that = this;
 	oModel.attachRequestFailed(function(oEvent) {
-		that.displayError({
-			message: oEvent.getParameter("message"),
-			responseText:oEvent.getParameter("responseText"),
-			statusCode:oEvent.getParameter("statusCode"),
-			statusText:oEvent.getParameter("statusText")
-		});
+			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
 	});
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	if (!!sConnectionname) {
@@ -32,11 +27,17 @@ init : function() {
 		] );
 		
 		var oModelSchemas = new JSONModel();
+		oModelSchemas.attachRequestFailed(function(oEvent) {
+				that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+		});
 		oModelSchemas.setSizeLimit(1000);
 		oModelSchemas.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas");
 		this.getView().setModel(oModelSchemas, "schemas");
 
 		var oModelTopics = new JSONModel();
+		oModelTopics.attachRequestFailed(function(oEvent) {
+				that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+		});
 		oModelTopics.setSizeLimit(1000);
 		oModelTopics.loadData("../rest/topics");
 		this.getView().setModel(oModelTopics, "topics");

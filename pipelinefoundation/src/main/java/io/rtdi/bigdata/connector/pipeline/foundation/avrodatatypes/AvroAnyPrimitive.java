@@ -3,6 +3,8 @@ package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * A union of all primitive datatypes, mostly used for extensions.
  *
@@ -53,11 +55,12 @@ public class AvroAnyPrimitive implements IAvroPrimitive {
 
 	@Override
 	public Object convertToInternal(Object value) {
-		if (value == null) {
-			return null;
-		} else {
-			return value;
-		}
+		return value;
+	}
+
+	@Override
+	public Object convertToJava(Object value) throws PipelineCallerException {
+		return value;
 	}
 
 	@Override

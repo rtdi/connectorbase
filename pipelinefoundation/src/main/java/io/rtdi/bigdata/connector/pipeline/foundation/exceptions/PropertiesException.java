@@ -11,7 +11,6 @@ public class PropertiesException extends IOException {
 	private static final long serialVersionUID = 116063643000518740L;
 	private String hint = null;
 	private String causingobject = null;
-	private Integer errorcode = null;
 
 	public PropertiesException() {
 		super();
@@ -21,17 +20,12 @@ public class PropertiesException extends IOException {
 		super(message);
 	}
 
-	public PropertiesException(String message, Integer errorcode) {
-		super(message);
-		this.errorcode = errorcode;
-	}
-
 	public PropertiesException(Throwable cause) {
 		super(cause);
 	}
 
-	public PropertiesException(String message, String hint, Integer errorcode, String causingobject) {
-		this(message, errorcode);
+	public PropertiesException(String message, String hint, String causingobject) {
+		this(message);
 		this.hint = hint;
 		this.causingobject = causingobject;
 	}
@@ -64,14 +58,6 @@ public class PropertiesException extends IOException {
 
 	public String getCausingObject() {
 		return causingobject;
-	}
-
-	public String getErrorHelp() {
-		if (errorcode == null) {
-			return null;
-		} else {
-			return "https://github.com/rtdi/connectorbase/blob/master/docs/errors/" + String.valueOf(errorcode) + ".md";
-		}
 	}
 
 	public String getSourceCodeLink() {

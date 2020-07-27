@@ -19,12 +19,7 @@ onPressRefresh : function(oEvent) {
 		var oModel = new JSONModel();
 		var that = this;
 		oModel.attachRequestFailed(function(oEvent) {
-			that.displayError({
-				message: oEvent.getParameter("message"),
-				responseText:oEvent.getParameter("responseText"),
-				statusCode:oEvent.getParameter("statusCode"),
-				statusText:oEvent.getParameter("statusText")
-			});
+			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
 		});
 	}
 	oModel.loadData("../rest/connections");

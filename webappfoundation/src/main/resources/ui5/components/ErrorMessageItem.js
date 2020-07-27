@@ -6,6 +6,7 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 				message: "string",
 				exception: "string",
 				stacktrace: "string",
+				stacktracerootcause: "string",
 				hint: "string",
 				causingobject: "string",
 				sourcecodeline: "string",
@@ -22,6 +23,12 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 		},
 		getStacktrace : function() {
 			return this.getProperty("stacktrace");
+		},
+		setStacktracerootcause : function(value) {
+			this.setProperty("stacktracerootcause", value, true);
+		},
+		getStacktracerootcause : function() {
+			return this.getProperty("stacktracerootcause");
 		},
 		setException : function(value) {
 			this.setProperty("exception", value, true);
@@ -87,7 +94,15 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 						new sap.m.Title( { text: "Stack trace" } ), 
 						new sap.m.Label( { text: "Trace" } ), 
 						new sap.m.Text( { text: oItem.getStacktrace() } )
+					] } ),
+					
+					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [
+						
+						new sap.m.Title( { text: "Stack trace Cause" } ), 
+						new sap.m.Label( { text: "Trace" } ), 
+						new sap.m.Text( { text: oItem.getStacktracerootcause() } )
 					] } )
+
 				],
 				endButton: new sap.m.Button({
 					text: "Close",

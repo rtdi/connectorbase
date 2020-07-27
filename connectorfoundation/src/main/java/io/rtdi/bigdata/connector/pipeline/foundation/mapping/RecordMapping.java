@@ -54,7 +54,7 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 		}
 	}
 
-	public RecordMapping(String expression, Schema outputschema) {
+	public RecordMapping(String expression, Schema outputschema) throws IOException {
 		super(expression);
 		this.outputschema = outputschema;
 	}
@@ -70,7 +70,7 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 		}
 	}
 	
-	public static void addRecordFields(RecordMapping rec, List<SchemaElement> elements) {
+	public static void addRecordFields(RecordMapping rec, List<SchemaElement> elements) throws IOException {
 		for (SchemaElement element : elements) {
 			String expression = element.getExpression();
 			if (expression != null) {
@@ -99,7 +99,7 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 		}
 	}
 
-	public void addPrimitiveMapping(String fieldname, String expression) {
+	public void addPrimitiveMapping(String fieldname, String expression) throws IOException {
 		Field f = outputschema.getField(fieldname);
 		Schema baseschema = IOUtils.getBaseSchema(f.schema());
 		Type t = baseschema.getType();
@@ -108,7 +108,7 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 		}
 	}
 	
-	public RecordMapping addRecordMapping(String fieldname, String expression) {
+	public RecordMapping addRecordMapping(String fieldname, String expression) throws IOException {
 		Field f = outputschema.getField(fieldname);
 		Schema baseschema = IOUtils.getBaseSchema(f.schema());
 		Type t = baseschema.getType();
@@ -121,7 +121,7 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 		}
 	}
 	
-	public ArrayMapping addArrayMapping(String fieldname, String expression) {
+	public ArrayMapping addArrayMapping(String fieldname, String expression) throws IOException {
 		Field f = outputschema.getField(fieldname);
 		Schema baseschema = IOUtils.getBaseSchema(f.schema());
 		Type t = baseschema.getType();
@@ -134,7 +134,7 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 		}
 	}
 
-	public ArrayPrimitiveMapping addArrayPrimitiveMapping(String fieldname, String expressionarray, String expressionfield) {
+	public ArrayPrimitiveMapping addArrayPrimitiveMapping(String fieldname, String expressionarray, String expressionfield) throws IOException {
 		Field f = outputschema.getField(fieldname);
 		Schema baseschema = IOUtils.getBaseSchema(f.schema());
 		Type t = baseschema.getType();
@@ -148,7 +148,7 @@ public class RecordMapping extends Mapping implements IRecordMapping {
 	}
 
 	@Override
-	public JexlRecord apply(JexlRecord input) {
+	public JexlRecord apply(JexlRecord input) throws IOException {
 		JexlRecord out = new JexlRecord(outputschema);
 		for (String field : mapping.keySet()) {
 			Mapping m = mapping.get(field);

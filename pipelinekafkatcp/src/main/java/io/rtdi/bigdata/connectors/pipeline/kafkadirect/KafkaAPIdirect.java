@@ -31,8 +31,8 @@ import javax.ws.rs.core.Response;
 
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
@@ -45,6 +45,8 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -243,7 +245,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	}
 
 	@Override
-	public ServiceSession createNewServiceSession(ServiceProperties<?> properties) throws PropertiesException {
+	public ServiceSession createNewServiceSession(ServiceProperties properties) throws PropertiesException {
 		return new ServiceSessionKafkaDirect(properties, this);
 	}
 
@@ -695,8 +697,87 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
     }
     
     @Override
-	public List<TopicPayload> getLastRecords(TopicName kafkatopicname, long timestamp) throws PipelineRuntimeException {
-		// TODO: Implementation missing
+	public List<TopicPayload> getLastRecords(TopicName kafkatopicname, long timestamp, int count, SchemaName schema) throws PipelineRuntimeException {
+		if (kafkatopicname == null) {
+			throw new PipelineRuntimeException("No topicname passed into into the preview method");
+		} else {
+			if (count <= 0 || count > 1000) {
+				count = 10;
+			}
+			Map<String, Object> consumerprops = new HashMap<>();
+			consumerprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, connectionprops.getKafkaBootstrapServers());
+			consumerprops.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+			consumerprops.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, count);
+			consumerprops.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
+			consumerprops.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+			addSecurityProperties(consumerprops);
+	
+			consumerprops.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
+			consumerprops.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
+			try (KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<byte[], byte[]>(consumerprops);) {
+				List<PartitionInfo> partitioninfos = consumer.partitionsFor(kafkatopicname.toString());
+				Map<TopicPartition, Long> timestamplist = new HashMap<>();
+				Collection<TopicPartition> partitions = new ArrayList<TopicPartition>(partitioninfos.size());
+				for (PartitionInfo p : partitioninfos) {
+					TopicPartition t = new TopicPartition(kafkatopicname.toString(), p.partition());
+					partitions.add(t);
+					timestamplist.put(t, timestamp);
+				}
+				consumer.assign(partitions);
+				Map<TopicPartition, OffsetAndTimestamp> startoffsets = consumer.offsetsForTimes(timestamplist, Duration.ofSeconds(20));
+				Map<TopicPartition, Long> endoffsetmap = consumer.endOffsets(partitions);
+				if (startoffsets != null) { // if null, then no recent data is available
+					HashMap<Integer, Long> offsetstoreachtable = new HashMap<Integer, Long>();
+					for (TopicPartition partition : partitions) {
+						long endoffset = endoffsetmap.get(partition);
+						if (endoffset > 0) { // if the offset == 0 then there is no data. Skip reading that partition then
+							OffsetAndTimestamp startoffset = startoffsets.get(partition);
+							if (startoffset != null) {
+								offsetstoreachtable.put(partition.partition(), endoffset-1); // The end offset is the offset of the next one to be produced, hence offset-1
+								consumer.seek(partition, new OffsetAndMetadata(startoffset.offset()));
+							}
+						}
+					}
+					long maxtimeout = System.currentTimeMillis() + 30000;
+					
+					ArrayList<TopicPayload> ret = new ArrayList<TopicPayload>();
+		
+					do {
+						ConsumerRecords<byte[], byte[]> records = consumer.poll(Duration.ofMillis(100));
+						Iterator<ConsumerRecord<byte[], byte[]>> recordsiterator = records.iterator();
+						while (recordsiterator.hasNext()) {
+							ConsumerRecord<byte[], byte[]> record = recordsiterator.next();
+							
+							long offsettoreach = offsetstoreachtable.get(record.partition());
+							if (record.offset() >= offsettoreach) {
+								// remove the entry from the offsetstoreachtable when offset was reached
+								offsetstoreachtable.remove(record.partition());
+							}
+			
+							JexlRecord keyrecord = null;
+							JexlRecord valuerecord = null;
+							try {
+								keyrecord = AvroDeserialize.deserialize(record.key(), this, schemaidcache);
+							} catch (IOException e) {
+								throw new PipelineRuntimeException("Cannot deserialize the Avro key record");
+							}
+							try {
+								valuerecord = AvroDeserialize.deserialize(record.value(), this, schemaidcache);
+							} catch (IOException e) {
+								throw new PipelineRuntimeException("Cannot deserialize the Avro value record");
+							}
+							if (schema == null || valuerecord.getSchema().getFullName().equals(schema.toString())) {
+								TopicPayload data = new TopicPayload(kafkatopicname, record.offset(), record.partition(), record.timestamp(),
+										keyrecord, valuerecord, keyrecord.getSchemaId(), valuerecord.getSchemaId());
+								ret.add(0, data);
+								count--;
+							}
+						}
+					} while (offsetstoreachtable.size() != 0 && maxtimeout > System.currentTimeMillis() && count > 0);
+					return ret;
+				}
+			}
+		}
 		return null;
 	}
 	

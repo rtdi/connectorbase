@@ -41,7 +41,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 
 	@Override
 	public void commitImpl() throws PipelineRuntimeException {
-		checkMessageStatus(messagestatus);
+		checkMessageStatus();
 		messagestatus.clear();
 	}
 
@@ -62,6 +62,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 		producerprops.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
 		getPipelineAPI().addSecurityProperties(producerprops);
 		producer = new KafkaProducer<byte[], byte[]>(producerprops);
+		logger.debug("Open Producer");
 	}
 	
 	@Override
@@ -71,6 +72,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 
 	@Override
 	public void close() {
+		logger.debug("Close Producer");
 		producer.close(Duration.ofSeconds(20));
 	}
 
@@ -83,8 +85,9 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 		}
 		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getName(), partition, keyrecord, valuerecord);
 		messagestatus.add(producer.send(record));
+		logger.debug("Added data to the producer queue \"{}\"", topic.getTopicName().getName());
 
-		throttleReceiver(messagestatus);
+		checkSentStatus();
 	}
 
 	@Override
@@ -99,8 +102,9 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 		byte[] value = AvroSerializer.serialize(handler.getDetails().getValueSchemaID(), valuerecord);
 		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getName(), partition, key, value);
 		messagestatus.add(producer.send(record));
+		logger.debug("Added data to the producer queue \"{}\"", topic.getTopicName().getName());
 
-		throttleReceiver(messagestatus);
+		checkSentStatus();
 	}
 
 	
@@ -110,7 +114,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 	 * In case the source sends data too fast, we need to throttle it.
 	 * Maximum queue size shall be 10'000 elements
 	 */
-	public static void throttleReceiver(ArrayDeque<Future<RecordMetadata>> messagestatus) throws PipelineRuntimeException {
+	private void checkSentStatus() throws PipelineRuntimeException {
 		if (messagestatus.size() > 10000) {
 			/*
 			 * The queue is larger, so we remove all leading elements that have been sent to Kafka successfully.
@@ -125,6 +129,8 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 			Future<RecordMetadata> firstfuture = messagestatus.getFirst(); // firstfuture cannot be null
 			if (firstfuture.isDone() == false) {
 				try {
+					logger.debug("More than 10'000 rows in the queue and the oldest one is still "
+							+ "in flight -> Waiting up to 20 seconds for it to be sent before throwing an exception");
 					firstfuture.get(20, TimeUnit.SECONDS);
 				} catch (InterruptedException | ExecutionException | TimeoutException e) {
 					throw new PipelineRuntimeException("ExecutionExcpetion", e, null);
@@ -154,10 +160,9 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 	 * sent within that time, it is tried again. This way the overall runtime of this method is between zero seconds - all messages have been 
 	 * sent already - and 20+1 seconds.
 	 * 
-	 * @param messagestatus ArrayDeque from the Future
 	 * @throws PipelineRuntimeException if error
 	 */
-	public static void checkMessageStatus(ArrayDeque<Future<RecordMetadata>> messagestatus) throws PipelineRuntimeException {
+	private void checkMessageStatus() throws PipelineRuntimeException {
 		if (messagestatus.size() > 0) {
 			Future<RecordMetadata> firstfuture = messagestatus.getFirst();
 			long endtime = System.currentTimeMillis() + COMMIT_TIMEOUT;
@@ -186,6 +191,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 				}
 			}
 			if (firstfuture != null) {
+				logger.debug("After {} milliseconds there are still {} messages in flight, need to raise an exception", COMMIT_TIMEOUT, messagestatus.size());
 				throw new PipelineRuntimeException("Commit did not succeed within a reasonable amount of time (\"" + String.valueOf(COMMIT_TIMEOUT) + "\")");
 			}
 		}

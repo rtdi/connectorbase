@@ -11,6 +11,7 @@ import org.apache.commons.jexl3.JexlContext;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroType;
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 public class JexlGenericData extends GenericData {
@@ -29,7 +30,9 @@ public class JexlGenericData extends GenericData {
 	public static class JexlRecord extends Record implements IAvroNested, JexlContext {
 		private IAvroNested parent = null;
 		private int schemaid;
-		private String schemanamerequested;
+		private Field parentfield;
+		private int parentarrayindex = -1;
+		private String path = null;
 
 		public JexlRecord(Record other, boolean deepCopy) {
 			super(other, deepCopy);
@@ -54,24 +57,40 @@ public class JexlGenericData extends GenericData {
 	            throw new AvroRuntimeException("Not a valid schema field: " + key);
 	        }
 	    	if (value instanceof JexlRecord) {
-	    		((JexlRecord) value).setParent(this);
+	    		JexlRecord r = (JexlRecord) value;
+	    		r.setParent(this);
+	    		r.parentfield = field;
 	    	} else if (value instanceof JexlArray) {
-	    		((JexlArray<?>) value).setParent(this);
+	    		JexlArray<?> a = (JexlArray<?>) value;
+	    		a.setParent(this);
+	    		a.parentfield = field;
 	    	} else {
-	    		value = AvroType.getAvroDataType(field.schema()).convertToInternal(value);
+	    		try {
+					value = AvroType.getAvroDataType(field.schema()).convertToInternal(value);
+				} catch (PipelineCallerException e) {
+		            throw new AvroRuntimeException("Not a convertable value \"" + value + "\"", e);
+				}
 	    	}
 	    	super.put(field.pos(), value);
 	    }
 
 	    @Override
 	    public void put(int i, Object v) {
+	        Field field = getSchema().getFields().get(i);
 	    	if (v instanceof JexlRecord) {
-	    		((JexlRecord) v).setParent(this);
+	    		JexlRecord r = (JexlRecord) v;
+	    		r.setParent(this);
+	    		r.parentfield = field;
 	    	} else if (v instanceof JexlArray) {
-	    		((JexlArray<?>) v).setParent(this);
+	    		JexlArray<?> a = (JexlArray<?>) v;
+	    		a.setParent(this);
+	    		a.parentfield = field;
 	    	} else {
-		        Field field = getSchema().getFields().get(i);
-	    		v = AvroType.getAvroDataType(field.schema()).convertToInternal(v);
+	    		try {
+					v = AvroType.getAvroDataType(field.schema()).convertToInternal(v);
+				} catch (PipelineCallerException e) {
+		            throw new AvroRuntimeException("Not a convertable value \"" + v + "\"", e);
+				}
 	    	}
 	    	super.put(i, v);
 	    }
@@ -126,7 +145,22 @@ public class JexlGenericData extends GenericData {
 
 		@Override
 		public boolean has(String name) {
-			return getSchema().getField(name) != null;
+			if (name == null) {
+				return false;
+			} else if (name.equals("parent")) {
+				return true;
+			} else {
+				return getSchema().getField(name) != null;
+			}
+		}
+		
+		@Override
+		public Object get(String key) {
+			if (key.equals("parent")) {
+				return getParent();
+			} else {
+				return super.get(key);
+			}
 		}
 
 		public int getSchemaId() {
@@ -137,17 +171,22 @@ public class JexlGenericData extends GenericData {
 			this.schemaid = schemaid;
 		}
 
-		/**
-		 * The Avro Schema registry might return a schema with a different name than the subject.
-		 * This happens if multiple schemas have the same logical structure and just the name is different.
-		 * @return the requested schema name
-		 */
-		public String getSchemaNameRequested() {
-			return schemanamerequested;
-		}
-
-		public void setSchemaNameRequested(String schemaname) {
-			this.schemanamerequested = schemaname;
+		public String getPath() {
+			if (path == null) {
+				if (parent == null) {
+					path = null;
+				} else if (parentfield != null) {
+					String p = parent.getPath();
+					if (p != null) {
+						path = p + "." + parentfield.name();
+					} else {
+						path = parentfield.name();
+					}
+				} else {
+					path = parent.getPath() + "[" + parentarrayindex + "]";
+				}
+			}
+			return path;
 		}
 
 	}
@@ -155,6 +194,9 @@ public class JexlGenericData extends GenericData {
 	public static class JexlArray<T> extends Array<T> implements IAvroNested {
 
 		private IAvroNested parent = null;
+		private Field parentfield;
+		private int parentarrayindex = -1;
+		private String path;
 
 		public JexlArray(Schema schema, Collection<T> c) {
 			super(schema, c);
@@ -175,7 +217,9 @@ public class JexlGenericData extends GenericData {
 		@Override
 		public boolean add(T o) {
 			if (o instanceof JexlRecord) {
-				((JexlRecord) o).setParent(this);
+				JexlRecord r = ((JexlRecord) o); 
+				r.setParent(this);
+	    		r.parentarrayindex = super.size();
 			}
 			return super.add(o);
 		}
@@ -183,7 +227,9 @@ public class JexlGenericData extends GenericData {
 		@Override
 		public void add(int location, T o) {
 			if (o instanceof JexlRecord) {
-				((JexlRecord) o).setParent(this);
+				JexlRecord r = ((JexlRecord) o);
+				r.setParent(this);
+				r.parentarrayindex = location;
 			}
 			super.add(location, o);
 		}
@@ -191,9 +237,30 @@ public class JexlGenericData extends GenericData {
 		@Override
 		public T set(int i, T o) {
 			if (o instanceof JexlRecord) {
-				((JexlRecord) o).setParent(this);
+				JexlRecord r = ((JexlRecord) o);
+				r.setParent(this);
+				r.parentarrayindex = i;
 			}
 			return super.set(i, o);
+		}
+
+		@Override
+		public String getPath() {
+			if (path == null) {
+				if (parent == null) {
+					path = null;
+				} else if (parentfield != null) {
+					String p = parent.getPath();
+					if (p != null) {
+						path = p + "." + parentfield.name();
+					} else {
+						path = parentfield.name();
+					}
+				} else {
+					path = parent.getPath() + "[" + parentarrayindex + "]";
+				}
+			}
+			return path;
 		}
 	}
 

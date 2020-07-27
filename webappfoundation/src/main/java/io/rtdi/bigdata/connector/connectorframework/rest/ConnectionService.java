@@ -133,6 +133,9 @@ public class ConnectionService {
 				conn.getConnectionProperties().setValue(data);
 				conn.getConnectionProperties().write(conn.getDirectory());
 			}
+			conn.stopController(ControllerExitType.ABORT);
+			conn.validate();
+			conn.startController();
 			return JAXBSuccessResponseBuilder.getJAXBResponse("created");
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);

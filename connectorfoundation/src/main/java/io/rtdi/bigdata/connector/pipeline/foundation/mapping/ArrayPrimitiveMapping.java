@@ -1,5 +1,6 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.mapping;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,13 +14,13 @@ public class ArrayPrimitiveMapping extends Mapping {
 	private Schema arrayschema;
 	private PrimitiveMapping recordmapping;
 
-	public ArrayPrimitiveMapping(String expressionarray, Schema arrayschema, String expressionfield) {
+	public ArrayPrimitiveMapping(String expressionarray, Schema arrayschema, String expressionfield) throws IOException {
 		super(expressionarray);
 		this.arrayschema = arrayschema;
 		recordmapping = new PrimitiveMapping(expressionfield);
 	}
 
-	public List<Object> apply(List<?> items, JexlRecord context) {
+	public List<Object> apply(List<?> items, JexlRecord context) throws IOException {
 		if (items.size() != 0) {
 			List<Object> list = new ArrayList<>();
 			for (Object item : items) {
@@ -33,7 +34,7 @@ public class ArrayPrimitiveMapping extends Mapping {
 		}
 	}
 
-	public List<Object> apply(int n, JexlRecord context) {
+	public List<Object> apply(int n, JexlRecord context) throws IOException {
 		List<Object> list = new ArrayList<>();
 		for (int i=0; i<n; i++) {
 			list.add(recordmapping.evaluate(context));

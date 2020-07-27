@@ -5,14 +5,8 @@ init : function() {
 	var oModel = new JSONModel();
 	var that = this;
 	oModel.attachRequestFailed(function(oEvent) {
-		that.displayError({
-			message: oEvent.getParameter("message"),
-			responseText:oEvent.getParameter("responseText"),
-			statusCode:oEvent.getParameter("statusCode"),
-			statusText:oEvent.getParameter("statusText")
-		});
+			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
 	});
-	var oComponentsModel = new JSONModel();
 	var sServicename = jQuery.sap.getUriParameters().get("servicename");
 	if (!!sServicename) {
 		oModel.loadData("../rest/services/" + encodeURI(sServicename));
@@ -27,9 +21,20 @@ init : function() {
 	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"}, {"text" : "Services", "link" : "./Services"} ] );
 	
 	var oModelTopics = new JSONModel();
+	oModelTopics.attachRequestFailed(function(oEvent) {
+			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+	});
 	oModelTopics.setSizeLimit(1000);
 	oModelTopics.loadData("../rest/topics");
 	this.getView().setModel(oModelTopics, "topics");
+
+	var oModelSchemas = new JSONModel();
+	oModelSchemas.attachRequestFailed(function(oEvent) {
+			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+	});
+	oModelSchemas.setSizeLimit(100000);
+	oModelSchemas.loadData("../rest/schemas");
+	this.getView().setModel(oModelSchemas, "schemas");
 
 },
 save : function(oEvent) {
@@ -42,13 +47,8 @@ save : function(oEvent) {
 	xmlhttp.onreadystatechange = function() {
 	    if (xmlhttp.readyState == 4) {
 	    	if (xmlhttp.status == 200) {
-		        that.displaySuccess(JSON.parse(xmlhttp.responseText));
+		        oModel.setJSON(xmlhttp.responseText);
 		        oStateModel.setProperty("/new", false);
-		        var aMS = oModel.getProperty("/microservices");
-		        aMS.forEach(function(oItem) {
-		        	oItem.new = false;
-		        });
-		        oModel.setProperty("/microservices", aMS);
 		    } else {
 		        that.displayError(JSON.parse(xmlhttp.responseText));
 		    }
@@ -57,21 +57,52 @@ save : function(oEvent) {
 	xmlhttp.send(oModel.getJSON());
 },
 cancel : function(oEvent) {
-},
-onAddMicroservice : function(oEvent) {
 	var oModel = this.getView().getModel();
-	var aMicroservices = oModel.getProperty("/microservices");
-	if (!!!aMicroservices) {
-		aMicroservices = [ { "name" : "", new: true } ];
+	var sServicename = jQuery.sap.getUriParameters().get("servicename");
+	if (!!sServicename) {
+		oModel.loadData("../rest/services/" + encodeURI(sServicename));
 	} else {
-		aMicroservices.push({ "name" : "", new: true });
+		oModel.loadData("../rest/service/template");
 	}
-	oModel.setProperty("/microservices", aMicroservices);
+	oModel.refresh();
 },
-onConfigureMicroservice : function(oEvent) {
-	var path = oEvent.getSource().getBindingContext().getPath();
+onAddSchema : function(oEvent) {
+	var oSchemaNameControl = this.getView().byId("schemaname");
+	var sVal = oSchemaNameControl.getSelectedKey();
 	var oModel = this.getView().getModel();
-	var obj = oModel.getProperty(path);
-	var sServicename = oModel.getProperty("/serviceproperties/name");
-	window.location.href = './Microservice?servicename=' + encodeURI(sServicename) + '&microservice=' + encodeURI(obj.name);
+	var oData = oModel.getData();
+	if (oData.schemas.find( el => el.schemaname === sVal )) {
+		sap.m.MessageToast.show("Schema " + sVal + " already added");
+	} else {
+		oModel.setProperty("/schemas/" + oData.schemas.length, { schemaname: sVal } );
+	}
+},
+onStepPress : function(oEvent) {
+	var oModel = this.getView().getModel();
+	var oToken = oEvent.getSource();
+	var oContext = oToken.getBindingContext();
+	if (oContext.getObject().path) {
+		var sServicename = oModel.getProperty("/serviceproperties/name");
+		var sStepName = oToken.getKey();
+		var sSchemaPath = oContext.getPath(); // e.g. /schemas/0/steps/0
+		sSchemaPath = sSchemaPath.substring(0, sSchemaPath.lastIndexOf('/')); // e.g. /schemas/0/steps
+		sSchemaPath = sSchemaPath.substring(0, sSchemaPath.lastIndexOf('/')); // e.g. /schemas/0
+		var sSchema = oModel.getProperty(sSchemaPath).schemaname;
+		var win = window.open('./ServiceDetails?servicename=' + encodeURI(sServicename) +
+			"&schema=" + encodeURI(sSchema) +
+			"&microservice=" + encodeURI(sStepName),
+			 '_blank');
+		win.focus();
+	} else {
+		sap.m.MessageToast.show("New Step, save first");
+	}
+},
+onDeleteSchema : function(oEvent) {
+	var oSchema = oEvent.getParameter("listItem");
+	var oContext = oSchema.getBindingContext();
+	var oModel = this.getView().getModel();
+	var index = oContext.getPath().substring(oContext.getPath().lastIndexOf('/')+1);
+	var aSchemas = oModel.getProperty("/schemas");
+	aSchemas.splice(index, 1);
+	oModel.setProperty("/schemas", aSchemas);
 }

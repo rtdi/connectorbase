@@ -185,6 +185,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	public final void addRow(TopicHandler topic, Integer partition, SchemaHandler handler, JexlRecord valuerecord,
 			RowType changetype, String sourceRowID, String sourceSystemID) throws IOException {
 		JexlRecord keyrecord = new JexlRecord(handler.getKeySchema());
+		keyrecord.setSchemaId(handler.getKeySchemaId());
 		for (Field f : keyrecord.getSchema().getFields()) {
 			keyrecord.put(f.name(), valuerecord.get(f.name()));
 		}

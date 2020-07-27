@@ -26,6 +26,7 @@ public class JerseyApplication extends ResourceConfig {
 			packages(p);
 		}
 		register(JacksonFeature.class);
+		register(ObjectMapperContextResolver.class);
 		register(RolesAllowedDynamicFeature2.class);
 	}
 

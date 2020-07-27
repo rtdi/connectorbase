@@ -5,6 +5,8 @@ import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Is the Avro Type.BOOLEAN native type.
  *
@@ -63,8 +65,36 @@ public class AvroBoolean extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public Boolean convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Boolean) {
+			return (Boolean) value;
+		} else if (value instanceof String) {
+			if ("TRUE".equalsIgnoreCase((String) value)) {
+				return Boolean.TRUE;
+			} else if ("FALSE".equalsIgnoreCase((String) value)) {
+				return Boolean.FALSE;
+			}
+		} else if (value instanceof Number) {
+			int v = ((Number) value).intValue();
+			if (v == 1) {
+				return Boolean.TRUE;
+			} else if (v == 0) {
+				return Boolean.FALSE;
+			}
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Boolean");
+	}
+
+	@Override
+	public Boolean convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Boolean) {
+			return (Boolean) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Boolean");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

@@ -4,11 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.apache.avro.generic.GenericRecord;
-
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.TopicMetadata;
 
@@ -28,7 +27,7 @@ public class TopicHandlerTest extends TopicHandler {
 		super(topicname, partitions, replicationfactor);
 	}
 
-	public void addData(GenericRecord keyrecord, GenericRecord valuerecord, int keyschemaid, int valueschemaid) {
+	public void addData(JexlRecord keyrecord, JexlRecord valuerecord, int keyschemaid, int valueschemaid) {
 		TopicPayload p = new TopicPayload(super.getTopicName(), offest++, 0, System.currentTimeMillis(), keyrecord, valuerecord, keyschemaid, valueschemaid);
 		data.add(p);
 		while (data.size() > 1000) {

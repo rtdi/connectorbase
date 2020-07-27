@@ -109,12 +109,12 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 		}
 		
 		if (count == 0) {
-			throw new PropertiesException("No class for a pipeline was found. Seems a jar file is missing in the web application?", 10001);
+			throw new PropertiesException("No class for a pipeline was found. Seems a jar file is missing in the web application?");
 		}
 		api.setWEBINFDir(configdir);
 		if (!api.hasConnectionProperties()) {
 			// User does not want to see the low level error but the fact that the properties are not set yet.
-			throw new PropertiesException("No Connection Properties defined yet", "Use the home page to get to the UI for setting them", null, null);
+			throw new PropertiesException("No Connection Properties defined yet", "Use the home page to get to the UI for setting them", null);
 		}
 		api.loadConnectionProperties();
 	}
@@ -146,20 +146,6 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 		}
 	}
 	
-	/**
-	 * Write the entire tree's configuration to the connectordirpath (see constructor)
-	 * @throws PropertiesException if properties are invalid
-	 */
-	public void writeConfigs() throws PropertiesException {
-		if (connectiondir.isDirectory()) {
-			for (ConnectionController conn : connections.values()) {
-				File conndir = new File(connectiondir.getAbsolutePath(), conn.getName());
-				conndir.mkdir();
-				conn.writeConfigs();
-			}
-		}
-	}
-
 	/**
 	 * @return connector factory as provided to the constructor
 	 */
@@ -317,7 +303,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 		return connectiondir.exists() == false;
 	}
 	
-	public ServiceController addService(ServiceProperties<?> props) throws ConnectorRuntimeException {
+	public ServiceController addService(ServiceProperties props) throws ConnectorRuntimeException {
 		File servicedir = new File(configdir.getAbsolutePath() + File.separatorChar + "services" + File.separatorChar + props.getName());
 		ServiceController servicecontroller = new ServiceController(servicedir, this);
 		servicecontroller.setServiceProperties(props);
@@ -329,7 +315,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	public boolean removeService(ServiceController service) throws IOException {
 		services.remove(service.getName());
 		service.disableController();
-		File servicedir = new File(configdir.getAbsolutePath() + File.separatorChar + "services" + File.separatorChar + service.getServiceProperties().getName());
+		File servicedir = new File(configdir, File.separatorChar + "services" + File.separatorChar + service.getServiceProperties().getName());
 		Files.walk(servicedir.toPath()).sorted(Comparator.reverseOrder()).forEach(t -> {
 			try {
 				Files.delete(t);

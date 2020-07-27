@@ -12,8 +12,10 @@ import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroByte;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroString;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroTimestamp;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroVarchar;
+import io.rtdi.bigdata.connector.pipeline.foundation.enums.RowType;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.RuleResult;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
@@ -107,6 +109,19 @@ public class ValueSchema extends SchemaBuilder {
 		return new JexlRecord(auditdetails_records);
 	}
 	
+	public static RowType getChangeType(JexlRecord valuerecord) {
+		Object changetype = valuerecord.get(SchemaConstants.SCHEMA_COLUMN_CHANGE_TYPE);
+		if (changetype != null) {
+			try {
+				return RowType.getByIdentifier(changetype.toString());
+			} catch (PropertiesRuntimeException e) {
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+	
 	public static RuleResult getRuleResult(JexlRecord record) {
 		Object g = record.get(TRANSFORMRESULT);
 		RuleResult ruleresult;
@@ -133,11 +148,11 @@ public class ValueSchema extends SchemaBuilder {
 		add(SchemaConstants.SCHEMA_COLUMN_CHANGE_TYPE, 
 				AvroVarchar.getSchema(1),
 				"Indicates how the row is to be processed: Insert, Update, Delete, upsert/Autocorrect, eXterminate, Truncate", 
-				false).setInternal().setTechnical();
+				false, RowType.UPSERT.name()).setInternal().setTechnical();
 		add(SchemaConstants.SCHEMA_COLUMN_CHANGE_TIME, 
 				AvroTimestamp.getSchema(),
 				"Timestamp of the transaction. All rows of the transaction have the same value.", 
-				false).setInternal().setTechnical();
+				false, 0L).setInternal().setTechnical();
 		add(SchemaConstants.SCHEMA_COLUMN_SOURCE_ROWID, 
 				AvroVarchar.getSchema(30),
 				"Optional unqiue and static pointer to the row, e.g. Oracle rowid", 
@@ -150,7 +165,7 @@ public class ValueSchema extends SchemaBuilder {
 				AvroVarchar.getSchema(30),
 				"Optional source system information for auditing", 
 				true).setInternal().setTechnical().setPrimaryKey();
-		addColumnArray("__extension", extension.getSchema(), "Add more columns beyond the official logical data model").setInternal();
+		addColumnArray(SchemaConstants.SCHEMA_COLUMN_EXTENSION, extension.getSchema(), "Add more columns beyond the official logical data model").setInternal();
 		addColumnRecord(AUDIT, audit, "If data is transformed this information is recorded here", true).setInternal();
 	}
 
@@ -172,7 +187,7 @@ public class ValueSchema extends SchemaBuilder {
 	@Override
 	protected SchemaBuilder createNewSchema(String name, String schemadescription) throws SchemaException {
 		SchemaBuilder child = super.createNewSchema(name, schemadescription);
-		child.addColumnArray("__extension", extension.getSchema(), "Add more columns beyond the official logical data model");
+		child.addColumnArray(SchemaConstants.SCHEMA_COLUMN_EXTENSION, extension.getSchema(), "Add more columns beyond the official logical data model");
 		return child;
 	}
 

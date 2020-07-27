@@ -35,12 +35,10 @@ a.json-toggle:before {
 	font-size: 1.1em;
 	color: #c0c0c0;
 	content: "\25BC"; /* down arrow */
-	position: absolute;
 	display: inline-block;
 	width: 1em;
 	text-align: center;
 	line-height: 1em;
-	left: -1.2em;
 }
 
 a.json-toggle:hover:before {

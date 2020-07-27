@@ -14,6 +14,8 @@ import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Based on a Avro Type.INT holds the date portion without time.
  * Wraps the Avro LogicalTypes.date().
@@ -67,7 +69,7 @@ public class AvroDate extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
+	public Object convertToInternal(Object value) throws PipelineCallerException {
 		if (value == null) {
 			return null;
 		} else if (value instanceof Integer) {
@@ -85,9 +87,19 @@ public class AvroDate extends LogicalType implements IAvroPrimitive {
 		} else if (value instanceof Instant) {
 			Instant d = (Instant) value;
 			return (int) LocalDateTime.ofEpochSecond(d.getEpochSecond(), 0, ZoneOffset.UTC).getLong(ChronoField.EPOCH_DAY);
-		} else {
-			return value;
 		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Date");
+	}
+
+	@Override
+	public LocalDateTime convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Integer) {
+			long v = ((Integer) value).longValue();
+			return LocalDateTime.ofEpochSecond(v*24L*3600L, 0, ZoneOffset.UTC);
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Date");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

@@ -12,6 +12,8 @@ import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 /**
  * Based on the Avro Type.BYTES data type and wraps the LogicalTypes.decimal(precision, scale).
  *
@@ -109,7 +111,7 @@ public class AvroDecimal extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
+	public Object convertToInternal(Object value) throws PipelineCallerException {
 		BigDecimal v = null;
 		if (value == null) {
 			return null;
@@ -122,15 +124,24 @@ public class AvroDecimal extends LogicalType implements IAvroPrimitive {
 				} else {
 					v = (BigDecimal) value;
 				}
+				ByteBuffer buffer = DECIMAL_CONVERTER.toBytes(v, null, decimal);
+				return buffer;
 			} else if (value instanceof Number) {
 				Number n = (Number) value;
 				v = BigDecimal.valueOf(Double.valueOf( n.doubleValue() )).setScale(decimal.getScale());
-			} else {
-				return value;
+				ByteBuffer buffer = DECIMAL_CONVERTER.toBytes(v, null, decimal);
+				return buffer;
+			} else if (value instanceof String) {
+				try {
+					v = new BigDecimal((String) value);
+					ByteBuffer buffer = DECIMAL_CONVERTER.toBytes(v, null, decimal);
+					return buffer;
+				} catch (NumberFormatException e) {
+					throw new PipelineCallerException("Cannot convert the string \"" + value + "\" into a Decimal");
+				}
 			}
-			ByteBuffer buffer = DECIMAL_CONVERTER.toBytes(v, null, decimal);
-			return buffer;
 		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Decimal");
 	}
 
 	public static class Factory implements LogicalTypeFactory {
@@ -173,6 +184,16 @@ public class AvroDecimal extends LogicalType implements IAvroPrimitive {
 	@Override
 	public AvroType getAvroType() {
 		return AvroType.AVRODECIMAL;
+	}
+
+	@Override
+	public BigDecimal convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof ByteBuffer) {
+			return DECIMAL_CONVERTER.fromBytes((ByteBuffer) value, null, decimal);
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Decimal");
 	}
 
 }

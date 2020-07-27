@@ -1,8 +1,13 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 
+import java.util.Map;
+
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema.Type;
+
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
+
 import org.apache.avro.Schema;
 
 /**
@@ -58,8 +63,23 @@ public class AvroMap extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
-		return value;
+	public Map<?,?> convertToInternal(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Map) {
+			return (Map<?,?>) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Map");
+	}
+
+	@Override
+	public Map<?,?> convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Map) {
+			return (Map<?,?>) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Map");
 	}
 
 	public static class Factory implements LogicalTypeFactory {

@@ -1,5 +1,6 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 
+import java.time.Instant;
 import java.util.Date;
 
 import org.apache.avro.LogicalType;
@@ -8,6 +9,8 @@ import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.LogicalTypes.TimestampMillis;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
+
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 
 /**
  * Wrapper of LogicalTypes.timestampMillis()
@@ -61,16 +64,27 @@ public class AvroTimestamp extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) {
+	public Object convertToInternal(Object value) throws PipelineCallerException {
 		if (value == null) {
 			return null;
 		} else if (value instanceof Long) {
 			return value;
 		} else if (value instanceof Date) {
 			return ((Date) value).getTime();
-		} else {
-			return value;
 		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Timestamp");
+	}
+
+	@Override
+	public Instant convertToJava(Object value) throws PipelineCallerException {
+		if (value == null) {
+			return null;
+		} else if (value instanceof Long) {
+			return Instant.ofEpochMilli((long) value);
+		} else if (value instanceof Instant) {
+			return (Instant) value;
+		}
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Timestamp");
 	}
 
 	public static class Factory implements LogicalTypeFactory {
