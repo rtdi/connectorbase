@@ -135,7 +135,7 @@ public abstract class ServiceProperties {
 	 *  
 	 * @param directory where to write the file to
 	 * @param data The requested directory structure
-	 * @throws IOException 
+	 * @throws IOException In case the file tree cannot be built
 	 */
 	public void write(File directory, ServiceConfigEntity data) throws IOException {
 		properties.write(directory);
