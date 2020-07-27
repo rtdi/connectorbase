@@ -134,7 +134,7 @@ public abstract class ServiceProperties {
 	 * Write the current properties into a directory. The file name is derived from the {@link #getName()}.
 	 *  
 	 * @param directory where to write the file to
-	 * @param data 
+	 * @param data The requested directory structure
 	 * @throws IOException 
 	 */
 	public void write(File directory, ServiceConfigEntity data) throws IOException {

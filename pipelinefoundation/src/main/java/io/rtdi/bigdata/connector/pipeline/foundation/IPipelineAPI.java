@@ -169,8 +169,8 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 *  
 	 * @param topicname name of the topic within the tenant
 	 * @param timestamp starting point to read from
-	 * @param max count of records
-	 * @param optionally restrict on a certain schema only
+	 * @param count max count of records
+	 * @param schema optionally restrict on a certain schema only
 	 * @return List of AvroRecords and their metadata
 	 * @throws IOException if something goes wrong
 	 * 
