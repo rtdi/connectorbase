@@ -53,6 +53,7 @@ public abstract class ServiceProperties {
 			schematransformations.put(schemaname, l);
 		}
 		l.add(service);
+		l.sort((o1, o2)->o1.getName().compareTo(o2.getName()));
 	}
 
 	/**
