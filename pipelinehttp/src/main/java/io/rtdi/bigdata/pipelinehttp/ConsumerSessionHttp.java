@@ -6,8 +6,10 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.AvroDeserialize;
 import io.rtdi.bigdata.connector.pipeline.foundation.ConsumerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.IProcessFetchedRow;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.OperationState;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporaryException;
@@ -55,7 +57,20 @@ public class ConsumerSessionHttp extends ConsumerSession<TopicHandlerHttp> {
 					}
 					byte[] key = io.readBytes(in);
 					byte[] value = io.readBytes(in);
-					processor.process(lasttopic, lastoffset, partition, key, value);
+					JexlRecord keyrecord = null;
+					try {
+						keyrecord = AvroDeserialize.deserialize(key, this, null);
+					} catch (IOException e) {
+						logger.error("Cannot deserialize data Key with offset {}, row not processed", String.valueOf(lastoffset));
+					}
+					JexlRecord valuerecord = null;
+					try {
+						valuerecord = AvroDeserialize.deserialize(value, this, null);
+					} catch (IOException e) {
+						logger.error("Cannot deserialize data Value with offset {}, row not processed", String.valueOf(lastoffset));
+					}
+
+					processor.process(lasttopic, lastoffset, partition, keyrecord, valuerecord);
 					rowsfetched++;
 					break;
 				case 0: 

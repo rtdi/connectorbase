@@ -40,7 +40,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 		} else if (!directory.isDirectory()) {
 			throw new PropertiesException("Specified location exists and is no directory", (String) null, directory.getAbsolutePath());
 		} else { 
-			File file = new File(directory.getAbsolutePath() + File.separatorChar + getName() + ".json");
+			File file = new File(directory, getName() + ".json");
 			if (!file.canRead()) {
 				throw new PropertiesException("Properties file is not read-able", "Check file permissions and users", file.getAbsolutePath());
 			} else {
@@ -57,7 +57,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 	}
 	
 	public boolean hasPropertiesFile(File webinfdir) {
-		File f = new File(webinfdir.getAbsolutePath() + File.separatorChar + getName() + ".json");
+		File f = new File(webinfdir, getName() + ".json");
 		return f.exists();
 	}
 
@@ -89,7 +89,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 		} else if (!directory.isDirectory()) {
 			throw new PropertiesException("Specified location exists and is no directory", (String) null, directory.getAbsolutePath());
 		} else {
-			File file = new File(directory.getAbsolutePath() + File.separatorChar + getName() + ".json");
+			File file = new File(directory, getName() + ".json");
 			if (file.exists() && !file.canWrite()) { // Either the file does not exist or it exists and is write-able
 				throw new PropertiesException("Properties file is not write-able", "Check file permissions and users", file.getAbsolutePath());
 			} else {

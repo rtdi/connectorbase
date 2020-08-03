@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryProducer;
 import io.rtdi.bigdata.connector.connectorframework.Producer;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ShutdownException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
@@ -238,8 +238,8 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 		return producercontroller.getPipelineAPI();
 	}
 
-	public IConnectorFactory<?, ?, ?> getConnectorFactory() {
-		return producercontroller.getConnectorFactory();
+	public IConnectorFactoryProducer<?, ?> getConnectorFactory() {
+		return (IConnectorFactoryProducer<?, ?>) producercontroller.getConnectorFactory();
 	}
 
 	public long getRowsProduced() {

@@ -19,6 +19,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryProducer;
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectionController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
@@ -39,7 +40,11 @@ public class ProducerService {
 
 	@Context 
 	private ServletContext servletContext;
-		
+	
+	private static IConnectorFactoryProducer<?,?> getConnectorFactory(ConnectorController connector) {
+		return (IConnectorFactoryProducer<?, ?>) connector.getConnectorFactory();
+	}
+
 	@GET
 	@Path("/connections/{connectionname}/producers")
     @Produces(MediaType.APPLICATION_JSON)
@@ -77,7 +82,7 @@ public class ProducerService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			// Create an empty properties structure so the UI can show all properties needed
-			return Response.ok(connector.getConnectorFactory().createProducerProperties(null).getPropertyGroup()).build();
+			return Response.ok(getConnectorFactory(connector).createProducerProperties(null).getPropertyGroup()).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -130,9 +135,9 @@ public class ProducerService {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ConnectionController conn = connector.getConnectionOrFail(connectionname);
 			ProducerController producer = conn.getProducer(producername);
-			File dir = new File(conn.getDirectory().getAbsolutePath() + File.separatorChar + ConnectionController.DIR_PRODUCERS);
+			File dir = new File(conn.getDirectory(), ConnectionController.DIR_PRODUCERS);
 			if (producer == null) {
-				ProducerProperties props = connector.getConnectorFactory().createProducerProperties(producername);
+				ProducerProperties props = getConnectorFactory(connector).createProducerProperties(producername);
 				props.setValue(data);
 				if (dir.exists() == false) {
 					dir.mkdirs();

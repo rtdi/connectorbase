@@ -53,8 +53,8 @@ public class WebAppController implements ServletContextListener {
 	 * @param servletContext ServletContext
 	 * @return The ConnectorFactory to check if the Connector's class was found
 	 */
-	public static IConnectorFactory<?, ?, ?> getConnectorFactory(ServletContext servletContext) {
-		return (IConnectorFactory<?, ?, ?>) servletContext.getAttribute(CONNECTORFACTORY);
+	public static IConnectorFactory<?> getConnectorFactory(ServletContext servletContext) {
+		return (IConnectorFactory<?>) servletContext.getAttribute(CONNECTORFACTORY);
 	}
 
 	/**
@@ -168,11 +168,11 @@ public class WebAppController implements ServletContextListener {
 			}
 			
 			// Third load the connector
-			IConnectorFactory<?, ?, ?> connectorfactory = null;
+			IConnectorFactory<?> connectorfactory = null;
 			@SuppressWarnings("rawtypes")
 			ServiceLoader<IConnectorFactory> connectorloader = ServiceLoader.load(IConnectorFactory.class);
 			int count = 0;
-			for (IConnectorFactory<?,?,?> serv : connectorloader) {
+			for (IConnectorFactory<?> serv : connectorloader) {
 				connectorfactory = serv;
 			    count++;
 			}

@@ -19,6 +19,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryService;
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ServiceController;
@@ -36,7 +37,11 @@ public class ServiceService {
 
 	@Context 
 	private ServletContext servletContext;
-		
+	
+	private static IConnectorFactoryService getConnectorFactory(ConnectorController connector) {
+		return (IConnectorFactoryService) connector.getConnectorFactory();
+	}
+
 	@GET
 	@Path("/services")
     @Produces(MediaType.APPLICATION_JSON)
@@ -72,7 +77,7 @@ public class ServiceService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			// Create an empty properties structure so the UI can show all properties needed
-			return Response.ok(new ServiceConfigEntity(connector.getConnectorFactory().createServiceProperties(null).getPropertyGroup())).build();
+			return Response.ok(new ServiceConfigEntity(getConnectorFactory(connector).createServiceProperties(null).getPropertyGroup())).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -119,7 +124,7 @@ public class ServiceService {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getService(servicename);
 			if (service == null) {
-				ServiceProperties props = connector.getConnectorFactory().createServiceProperties(servicename);
+				ServiceProperties props = getConnectorFactory(connector).createServiceProperties(servicename);
 				props.setValue(data.getServiceproperties());
 				File dir = new File(connector.getConnectorDirectory(), "services" + File.separatorChar + servicename);
 				if (dir.exists() == false) {

@@ -42,7 +42,7 @@
 		<OverflowToolbar design="Transparent">
 			<ToolbarSpacer/>
 			<Button icon="sap-icon://edit" type="Transparent" press="onPressConnection" />
-			<Button icon="sap-icon://delete" type="Transparent" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
+			<Button icon="sap-icon://delete" type="Transparent" press="onPressConnectionDelete" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
 			<Button icon="sap-icon://restart" type="Transparent" press="onPressStart" enabled="{path: 'state>/roles/operator', formatter: '.enableControl'}" />
 			<Button icon="sap-icon://stop" type="Transparent" press="onPressStop" enabled="{path: 'state>/roles/operator', formatter: '.enableControl'}" />
 		</OverflowToolbar>

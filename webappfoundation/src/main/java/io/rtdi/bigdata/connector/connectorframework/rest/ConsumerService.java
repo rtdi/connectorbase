@@ -19,6 +19,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryConsumer;
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectionController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
@@ -38,7 +39,11 @@ public class ConsumerService {
 
 	@Context 
 	private ServletContext servletContext;
-		
+	
+	private static IConnectorFactoryConsumer<?,?> getConnectorFactory(ConnectorController connector) {
+		return (IConnectorFactoryConsumer<?, ?>) connector.getConnectorFactory();
+	}
+	
 	@GET
 	@Path("/connections/{connectionname}/consumers")
     @Produces(MediaType.APPLICATION_JSON)
@@ -76,7 +81,7 @@ public class ConsumerService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			// Create an empty properties structure so the UI can show all properties needed
-			return Response.ok(connector.getConnectorFactory().createConsumerProperties(null).getPropertyGroup()).build();
+			return Response.ok(getConnectorFactory(connector).createConsumerProperties(null).getPropertyGroup()).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -92,9 +97,9 @@ public class ConsumerService {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ConnectionController conn = connector.getConnectionOrFail(connectionname);
 			ConsumerController consumer = conn.getConsumer(consumername);
-			File dir = new File(conn.getDirectory().getAbsolutePath() + File.separatorChar + ConnectionController.DIR_PRODUCERS);
+			File dir = new File(conn.getDirectory(), ConnectionController.DIR_CONSUMERS);
 			if (consumer == null) {
-				ConsumerProperties props = connector.getConnectorFactory().createConsumerProperties(consumername);
+				ConsumerProperties props = getConnectorFactory(connector).createConsumerProperties(consumername);
 				props.setValue(data);
 				if (dir.exists() == false) {
 					dir.mkdirs();

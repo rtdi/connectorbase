@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryService;
 import io.rtdi.bigdata.connector.connectorframework.Service;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorCallerException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
@@ -44,7 +44,7 @@ public class ServiceController extends Controller<Controller<?>> {
 	@Override
 	protected void startControllerImpl() throws IOException {
 		if (serviceprops.isValid()) {
-			service = connector.getConnectorFactory().createService(this);
+			service = getConnectorFactory().createService(this);
 			service.start();
 			updateLandscape();
 		} else {
@@ -54,6 +54,10 @@ public class ServiceController extends Controller<Controller<?>> {
 		}
 	}
 	
+	private IConnectorFactoryService getConnectorFactory() {
+		return (IConnectorFactoryService) connector.getConnectorFactory();
+	}
+
 	public ServiceProperties getServiceProperties() {
 		return serviceprops;
 	}
@@ -90,7 +94,7 @@ public class ServiceController extends Controller<Controller<?>> {
 		
 		logger.info("reading configs for service \"" + getName() + "\"");
 		
-		IConnectorFactory<?, ?, ?> connectorfactory = connector.getConnectorFactory();
+		IConnectorFactoryService connectorfactory = getConnectorFactory();
 		serviceprops = connectorfactory.createServiceProperties(servicedir.getName());
 		serviceprops.read(servicedir);
 	}

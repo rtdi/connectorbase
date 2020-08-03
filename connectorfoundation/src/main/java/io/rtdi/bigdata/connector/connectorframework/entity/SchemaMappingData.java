@@ -80,7 +80,7 @@ public class SchemaMappingData {
 			if (mappingfiles != null && mappingfiles.length != 0) {
 				Arrays.sort(mappingfiles);
 				String lastfile = mappingfiles[mappingfiles.length-1];
-				return new File(mappingdir.getAbsolutePath() + File.separatorChar + lastfile);
+				return new File(mappingdir, lastfile);
 			}
 		}
 		return null;
@@ -110,7 +110,7 @@ public class SchemaMappingData {
 			if (mappingfiles != null && mappingfiles.length != 0) {
 				Arrays.sort(mappingfiles);
 				String lastfile = mappingfiles[mappingfiles.length-1];
-				return new File(mappingdir.getAbsolutePath() + File.separatorChar + lastfile);
+				return new File(mappingdir, lastfile);
 			}
 		}
 		return null;
@@ -119,8 +119,7 @@ public class SchemaMappingData {
 	public static File getMappingDir(ConnectorController connector, String connectionname, String remoteschemaname) {
 		ConnectionController connection = connector.getConnection(connectionname);
 		File dir = connection.getDirectory();
-		String mappingdirpath = dir.getAbsolutePath() + File.separatorChar + "mappings" + File.separatorChar + remoteschemaname;
-		return new File(mappingdirpath);
+		return new File(dir, "mappings" + File.separatorChar + remoteschemaname);
 	}
 		
 	/**
@@ -364,7 +363,7 @@ public class SchemaMappingData {
 		if (mappingfile == null) {
 			File mappingdir = getMappingDir(connector, connectionname, remoteschemaname);
 			mappingdir.mkdirs();
-			mappingfile = new File(mappingdir.getAbsolutePath() + File.separator + targetschemaname + "_v1_draft.json");
+			mappingfile = new File(mappingdir, targetschemaname + "_v1_draft.json");
 		} else if (!mappingfile.getName().endsWith("_draft.json")) {
 			// create a new version
 			String filename = mappingfile.getName();
@@ -373,7 +372,7 @@ public class SchemaMappingData {
 			String numberportion = filename.substring(startpos, endpos);
 			int version = Integer.valueOf(numberportion) + 1;
 			String mappingdir = mappingfile.getParent();
-			mappingfile = new File(mappingdir + File.separator + targetschemaname + "_v" + String.valueOf(version) + "_draft.json");
+			mappingfile = new File(mappingdir, targetschemaname + "_v" + String.valueOf(version) + "_draft.json");
 		}
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.writeValue(mappingfile, data);

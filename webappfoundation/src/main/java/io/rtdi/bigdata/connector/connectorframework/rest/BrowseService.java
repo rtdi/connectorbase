@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.ServletContext;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -61,6 +62,22 @@ public class BrowseService {
 			BrowsingService<?> sourceservice = conn.getBrowser();
 			Schema s = sourceservice.getRemoteSchemaOrFail(remotename);
 			return Response.ok(new SchemaTableData(remotename, s)).build();
+		} catch (Exception e) {
+			return JAXBErrorResponseBuilder.getJAXBResponse(e);
+		}
+	}
+
+	@DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+	@Path("/connections/{connectionname}/remoteschemas/{remotename}")
+	@RolesAllowed(ServletSecurityConstants.ROLE_SCHEMA)
+    public Response deleteRemoteSchema(@PathParam("connectionname") String connectionname, @PathParam("remotename") String remotename) {
+		try {
+			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
+			ConnectionController conn = connector.getConnectionOrFail(connectionname);
+			BrowsingService<?> sourceservice = conn.getBrowser();
+			sourceservice.deleteRemoteSchemaOrFail(remotename);
+			return JAXBSuccessResponseBuilder.getJAXBResponse("Deleted");
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}

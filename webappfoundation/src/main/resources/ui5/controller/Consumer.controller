@@ -45,7 +45,7 @@ save : function(oEvent) {
 	var oModel = this.getView().getModel();
 	var data = JSON.stringify(oModel.getJSON());
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
-	var sConsumername = oStateModel.getProperty("/name");
+	var sConsumername = oModel.getProperty("/name");
 	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.open("POST", "../rest/connections/" + encodeURI(sConnectionname) + "/consumers/" + encodeURI(sConsumername));
 	xmlhttp.setRequestHeader("Content-Type", "application/json");

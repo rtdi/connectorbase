@@ -14,6 +14,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryService;
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.entity.PipelineName;
@@ -38,7 +39,7 @@ public class HomeService {
     public Response getConnectionProperties() {
 		try {
 			ConnectorController controller = WebAppController.getConnector(servletContext);
-			IConnectorFactory<?, ?, ?> factory = WebAppController.getConnectorFactory(servletContext);
+			IConnectorFactory<?> factory = WebAppController.getConnectorFactory(servletContext);
 			return Response.ok(new HomeEntity(controller, factory)).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
@@ -64,10 +65,10 @@ public class HomeService {
 			super();
 		}
 		
-		public HomeEntity(ConnectorController controller, IConnectorFactory<?, ?, ?> factory) throws IOException {
+		public HomeEntity(ConnectorController controller, IConnectorFactory<?> factory) throws IOException {
 			if (factory != null) {
-				supportsconnections = factory.supportsConnections();
-				supportsservices = factory.supportsServices();
+				supportsconnections = factory instanceof IConnectorFactory<?>;
+				supportsservices = factory instanceof IConnectorFactoryService;
 			}
 			if (controller != null) {
 				if (pipelineAPIsAvailable == null) {

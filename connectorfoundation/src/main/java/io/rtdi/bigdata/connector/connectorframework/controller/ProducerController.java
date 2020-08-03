@@ -55,7 +55,7 @@ public class ProducerController extends Controller<ProducerInstanceController> {
 		return connectioncontroller.getPipelineAPI();
 	}
 
-	public IConnectorFactory<?, ?, ?> getConnectorFactory() {
+	public IConnectorFactory<?> getConnectorFactory() {
 		return connectioncontroller.getConnectorFactory();
 	}
 

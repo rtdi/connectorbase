@@ -77,5 +77,17 @@ public abstract class BrowsingService<S extends ConnectionProperties> implements
 	 */
 	public abstract Schema getRemoteSchemaOrFail(String remotename) throws IOException;
 	
+	/**
+	 * Validate that all connection properties are valid and a connection can be established
+	 * @throws IOException
+	 */
 	public abstract void validate() throws IOException;
+
+	/**
+	 * Delete the schema with the provided name.
+	 * 
+	 * @param remotename of the schema
+	 * @throws IOException
+	 */
+	public abstract void deleteRemoteSchemaOrFail(String remotename) throws IOException;
 }

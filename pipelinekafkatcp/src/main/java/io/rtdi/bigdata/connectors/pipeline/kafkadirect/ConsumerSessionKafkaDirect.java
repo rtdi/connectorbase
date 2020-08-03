@@ -46,6 +46,7 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 			
 			consumerprops.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 			consumerprops.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
+			consumerprops.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
 
 			api.addSecurityProperties(consumerprops);
 			consumer = new KafkaConsumer<byte[], byte[]>(consumerprops);
@@ -93,7 +94,7 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 			}
 			if (valuerecord != null) {
 				String topicname = record.topic();
-				processor.process(topicname, record.offset(), record.partition(), keyrecord, valuerecord, keyrecord.getSchemaId(), valuerecord.getSchemaId());
+				processor.process(topicname, record.offset(), record.partition(), keyrecord, valuerecord);
 				rowcount++;
 
 				// Due to a rebalance a new topic might be subscribed to

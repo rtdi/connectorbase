@@ -3,7 +3,7 @@ package io.rtdi.bigdata.connector.connectorframework.controller;
 import java.io.IOException;
 
 import io.rtdi.bigdata.connector.connectorframework.Consumer;
-import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryConsumer;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
@@ -101,8 +101,8 @@ public class ConsumerInstanceController extends ThreadBasedController<Controller
 		return consumercontroller.getPipelineAPI();
 	}
 
-	public IConnectorFactory<?, ?, ?> getConnectorFactory() {
-		return consumercontroller.getConnectorFactory();
+	public IConnectorFactoryConsumer<?,?> getConnectorFactory() {
+		return (IConnectorFactoryConsumer<?, ?>) consumercontroller.getConnectorFactory();
 	}
 
 	public long getRowsFetched() {

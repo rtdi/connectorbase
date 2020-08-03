@@ -4,11 +4,15 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import io.rtdi.bigdata.connector.connectorframework.controller.ConsumerInstanceController;
 import io.rtdi.bigdata.connector.pipeline.foundation.ConsumerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.IProcessFetchedRow;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerState;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
@@ -18,8 +22,8 @@ import io.rtdi.bigdata.connector.properties.ConsumerProperties;
  * A connector implements the consumer class to read data from the PipelineAPI and put it into a target system.
  * The code sequence is
  * <ul><li>constructor: does establish the connection with the PipelineAPI server</li>
- * <li>fetchBatch() of the PipelineAPI calls for each row {@link #process(String, long, int, byte[], byte[])} or 
- * {@link #process(String, long, int, org.apache.avro.generic.GenericRecord, org.apache.avro.generic.GenericRecord, int, int)}</li>
+ * <li>fetchBatch() of the PipelineAPI calls for each row 
+ * {@link #process(String, long, int, JexlRecord, JexlRecord)}</li>
  * <li>flushDataImpl() is called once a while to commit the data</li>
  * <li>close is called</li>
  * </ul>
@@ -31,6 +35,7 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 
 	private ConsumerSession<?> consumersession;
 	private ConsumerInstanceController instance;
+	protected final Logger logger;
 
 	/**
 	 * Create a new consumer session to read data from the PipelineAPI
@@ -44,6 +49,7 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 		consumersession.setController(instance);
 		consumersession.open();
 		this.instance = instance;
+		logger = LogManager.getLogger(this.getClass().getName());
 	}
 
 	@Override
@@ -85,8 +91,7 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 	 * 
 	 * @throws IOException if network error
 	 * 
-	 * @see #process(String, long, int, byte[], byte[])
-	 * @see #process(String, long, int, org.apache.avro.generic.GenericRecord, org.apache.avro.generic.GenericRecord, int, int)
+	 * @see #process(String, long, int, JexlRecord, JexlRecord)
 	 */
 	public abstract void fetchBatchStart() throws IOException;
 	
@@ -106,8 +111,9 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 	 */
 	public abstract void flushDataImpl() throws IOException;
 
-	public ConnectionProperties getConnectionProperties() {
-		return instance.getConnectionProperties();
+	@SuppressWarnings("unchecked")
+	public S getConnectionProperties() {
+		return (S) instance.getConnectionProperties();
 	}
 
 	/**

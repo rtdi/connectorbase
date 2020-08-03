@@ -42,6 +42,11 @@ public class JexlGenericData extends GenericData {
 	    	super(schema);
 	    }
 
+	    public JexlRecord(Schema schema, int schemaid) {
+	    	super(schema);
+	    	this.schemaid = schemaid;
+	    }
+
 		public void setParent(IAvroNested parent) {
 			this.parent = parent;
 		}

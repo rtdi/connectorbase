@@ -54,7 +54,7 @@ public class ConsumerController extends Controller<ConsumerInstanceController> {
 		return connectioncontroller.getPipelineAPI();
 	}
 
-	public IConnectorFactory<?, ?, ?> getConnectorFactory() {
+	public IConnectorFactory<?> getConnectorFactory() {
 		return connectioncontroller.getConnectorFactory();
 	}
 

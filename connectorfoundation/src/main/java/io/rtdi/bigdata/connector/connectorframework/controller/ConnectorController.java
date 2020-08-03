@@ -56,7 +56,7 @@ import io.rtdi.bigdata.connector.properties.ServiceProperties;
  *
  */
 public class ConnectorController extends ThreadBasedController<Controller<?>> {
-	private IConnectorFactory<?, ?, ?> connectorfactory;
+	private IConnectorFactory<?> connectorfactory;
 	private IPipelineAPI<?,?,?,?> api;
 	private File configdir;
 	private File connectiondir;
@@ -73,12 +73,12 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	 * @param props global.properties data
 	 * @param connectordirpath pointing to the root directory of the connection properties
 	 */
-	public ConnectorController(IConnectorFactory<?, ?, ?> factory, String connectordirpath, Properties props) {
+	public ConnectorController(IConnectorFactory<?> factory, String connectordirpath, Properties props) {
 		super(factory.getConnectorName());
 		this.connectorfactory = factory;
 		this.configdir = new File(connectordirpath);
-		this.connectiondir = new File(configdir.getAbsolutePath(), "connections");
-		this.servicedir = new File(configdir.getAbsolutePath(), "services");
+		this.connectiondir = new File(configdir, "connections");
+		this.servicedir = new File(configdir, "services");
 		globalsettings = new GlobalSettings(props);
 	}
 	
@@ -149,7 +149,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	/**
 	 * @return connector factory as provided to the constructor
 	 */
-	public IConnectorFactory<?, ?, ?> getConnectorFactory() {
+	public IConnectorFactory<?> getConnectorFactory() {
 		return connectorfactory;
 	}
 
@@ -282,7 +282,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	}
 
 	public ConnectionController addConnection(ConnectionProperties props) throws ConnectorRuntimeException {
-		File connectiondir = new File(configdir.getAbsolutePath() + File.separatorChar + "connections" + File.separatorChar + props.getName());
+		File connectiondir = new File(configdir, "connections" + File.separatorChar + props.getName());
 		ConnectionController connectioncontroller = new ConnectionController(connectiondir, this);
 		connectioncontroller.setConnectionProperties(props);
 		connections.put(connectioncontroller.getName(), connectioncontroller);
@@ -293,7 +293,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	public boolean removeConnection(ConnectionController conn) throws IOException {
 		connections.remove(conn.getName());
 		conn.disableController();
-		File connectiondir = new File(configdir.getAbsolutePath() + File.separatorChar + conn.getConnectionProperties().getName());
+		File connectiondir = new File(configdir, conn.getConnectionProperties().getName());
 		Files.walk(connectiondir.toPath()).sorted(Comparator.reverseOrder()).forEach(t -> {
 			try {
 				Files.delete(t);
@@ -304,7 +304,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	}
 	
 	public ServiceController addService(ServiceProperties props) throws ConnectorRuntimeException {
-		File servicedir = new File(configdir.getAbsolutePath() + File.separatorChar + "services" + File.separatorChar + props.getName());
+		File servicedir = new File(configdir, "services" + File.separatorChar + props.getName());
 		ServiceController servicecontroller = new ServiceController(servicedir, this);
 		servicecontroller.setServiceProperties(props);
 		services.put(servicecontroller.getName(), servicecontroller);

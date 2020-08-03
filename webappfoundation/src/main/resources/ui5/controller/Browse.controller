@@ -34,6 +34,9 @@ onPressSchemaEdit : function(oEvent) {
 	var obj = oModel.getProperty(path);
 	window.location.href = './EditSchema?connectionname=' + encodeURI(sConnectionname) + "&schemaname=" + encodeURI(obj.tablename);
 },
+onPressSchemaDelete : function(oEvent) {
+
+},
 onPressCreateSchema : function(oEvent) {
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	window.location.href = 'EditSchema?connectionname=' + encodeURI(sConnectionname);

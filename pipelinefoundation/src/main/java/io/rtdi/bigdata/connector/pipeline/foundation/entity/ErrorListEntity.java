@@ -24,7 +24,7 @@ public class ErrorListEntity {
 	}
 	
 	public void addError(Exception e) {
-		addError(e);
+		addError(new ErrorEntity(e));
 	}
 	
 	public List<ErrorEntity> getErrors() {

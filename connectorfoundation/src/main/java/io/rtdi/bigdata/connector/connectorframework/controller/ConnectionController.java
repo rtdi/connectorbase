@@ -6,6 +6,8 @@ import java.util.HashMap;
 
 import io.rtdi.bigdata.connector.connectorframework.BrowsingService;
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryConsumer;
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryProducer;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorCallerException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
@@ -55,12 +57,12 @@ public class ConnectionController extends Controller<Controller<?>> {
 		
 		logger.info("readingConfigs for connector \"" + getName() + "\"");
 		
-		IConnectorFactory<?, ?, ?> connectorfactory = connectorcontroller.getConnectorFactory();
+		IConnectorFactory<?> connectorfactory = connectorcontroller.getConnectorFactory();
 		connectionprops = connectorfactory.createConnectionProperties(connectiondir.getName());
 		connectionprops.read(connectiondir);
 
-	    File consumerdirroot = new File(connectiondir.getAbsolutePath()  + File.separatorChar + DIR_CONSUMERS);
-	    if (consumerdirroot.isDirectory()) {
+	    File consumerdirroot = new File(connectiondir, DIR_CONSUMERS);
+	    if (connectorfactory instanceof IConnectorFactoryConsumer && consumerdirroot.isDirectory()) {
 	    	File[] files = consumerdirroot.listFiles();
 	    	if (files != null) {
 	    		for (File consumerconfigfile : files) {
@@ -68,15 +70,15 @@ public class ConnectionController extends Controller<Controller<?>> {
 		    			String consumerconfigfilename = consumerconfigfile.getName();
 		    			int pos = consumerconfigfilename.lastIndexOf('.');
 		    			String consumername = consumerconfigfilename.substring(0, pos);
-		    			ConsumerProperties consumerprops = connectorfactory.createConsumerProperties(consumername);
+		    			ConsumerProperties consumerprops = ((IConnectorFactoryConsumer<?,?>) connectorfactory).createConsumerProperties(consumername);
 		    			consumerprops.read(consumerdirroot);
 		    			addConsumer(consumerprops);
 	    			}
 	    		}
 	    	}
 	    }
-	    File producerdirroot = new File(connectiondir.getAbsolutePath()  + File.separatorChar + DIR_PRODUCERS);
-	    if (producerdirroot.isDirectory()) {
+	    File producerdirroot = new File(connectiondir, DIR_PRODUCERS);
+	    if (connectorfactory instanceof IConnectorFactoryProducer && producerdirroot.isDirectory()) {
 	    	File[] files = producerdirroot.listFiles();
 	    	if (files != null) {
 	    		for (File producerfile : files) {
@@ -84,7 +86,7 @@ public class ConnectionController extends Controller<Controller<?>> {
 	    			int pos = producerfilename.lastIndexOf('.');
 	    			if (producerfilename.substring(pos).equalsIgnoreCase(".json")) {
 		    			String producername = producerfilename.substring(0, pos);
-		    			ProducerProperties producerproperties = connectorfactory.createProducerProperties(producername);
+		    			ProducerProperties producerproperties = ((IConnectorFactoryProducer<?,?>) connectorfactory).createProducerProperties(producername);
 		    			producerproperties.read(producerdirroot);
 		    			addProducer(producerproperties);
 	    			}
@@ -109,7 +111,7 @@ public class ConnectionController extends Controller<Controller<?>> {
 	public boolean removeProducer(ProducerController producer) {
 		producers.remove(producer.getProducerProperties().getName());
 		producer.disableController();
-		File producerfile = new File(connectiondir.getAbsolutePath() + File.separatorChar + DIR_PRODUCERS + File.separatorChar + producer.getProducerProperties().getName() + ".json");
+		File producerfile = new File(connectiondir, DIR_PRODUCERS + File.separatorChar + producer.getProducerProperties().getName() + ".json");
 		return producerfile.delete();
 	}
 
@@ -146,7 +148,7 @@ public class ConnectionController extends Controller<Controller<?>> {
 		return connectorcontroller.getPipelineAPI();
 	}
 
-	public IConnectorFactory<?, ?, ?> getConnectorFactory() {
+	public IConnectorFactory<?> getConnectorFactory() {
 		return connectorcontroller.getConnectorFactory();
 	}
 

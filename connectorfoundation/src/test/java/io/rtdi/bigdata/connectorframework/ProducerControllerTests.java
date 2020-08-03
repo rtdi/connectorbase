@@ -10,15 +10,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.rtdi.bigdata.connector.connectorframework.BrowsingService;
-import io.rtdi.bigdata.connector.connectorframework.Consumer;
-import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryProducer;
 import io.rtdi.bigdata.connector.connectorframework.Producer;
-import io.rtdi.bigdata.connector.connectorframework.Service;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectionController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
-import io.rtdi.bigdata.connector.connectorframework.controller.ConsumerInstanceController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ProducerInstanceController;
-import io.rtdi.bigdata.connector.connectorframework.controller.ServiceController;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeException;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
@@ -35,9 +31,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
-import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
-import io.rtdi.bigdata.connector.properties.ServiceProperties;
 import io.rtdi.bigdata.pipelinetest.PipelineTest;
 
 public class ProducerControllerTests {
@@ -51,7 +45,7 @@ public class ProducerControllerTests {
 		
 		api = new PipelineTest();
 		api.open();
-		IConnectorFactory<?, ?, ?> factory = new FailingConnectorFactory();
+		IConnectorFactoryProducer<?,?> factory = new FailingConnectorFactory();
 		connector = new ConnectorController(factory, "src/test/resource", null);
 		connector.setAPI(api);
 		ConnectionController connection = connector.addConnection(factory.createConnectionProperties(null));
@@ -83,16 +77,11 @@ public class ProducerControllerTests {
 		}
 	}
 	
-	public static class FailingConnectorFactory implements IConnectorFactory<ConnectionProperties, ProducerProperties, ConsumerProperties> {
+	public static class FailingConnectorFactory implements IConnectorFactoryProducer<ConnectionProperties, ProducerProperties> {
 
 		@Override
 		public String getConnectorName() {
 			return "FailingConnector";
-		}
-
-		@Override
-		public Consumer<ConnectionProperties, ConsumerProperties> createConsumer(ConsumerInstanceController instance) throws IOException {
-			return null;
 		}
 
 		@Override
@@ -106,11 +95,6 @@ public class ProducerControllerTests {
 		}
 
 		@Override
-		public ConsumerProperties createConsumerProperties(String name) throws PropertiesException {
-			return null;
-		}
-
-		@Override
 		public ProducerProperties createProducerProperties(String name) throws PropertiesException {
 			return new ProducerProperties("failingproducer1");
 		}
@@ -118,36 +102,6 @@ public class ProducerControllerTests {
 		@Override
 		public BrowsingService<ConnectionProperties> createBrowsingService(ConnectionController controller) throws IOException {
 			return null;
-		}
-
-		@Override
-		public Service createService(ServiceController instance) throws PropertiesException {
-			return null;
-		}
-
-		@Override
-		public ServiceProperties createServiceProperties(String servicename) throws PropertiesException {
-			return null;
-		}
-		
-		@Override
-		public boolean supportsConnections() {
-			return true;
-		}
-
-		@Override
-		public boolean supportsServices() {
-			return false;
-		}
-
-		@Override
-		public boolean supportsProducers() {
-			return true;
-		}
-
-		@Override
-		public boolean supportsConsumers() {
-			return false;
 		}
 
 		@Override

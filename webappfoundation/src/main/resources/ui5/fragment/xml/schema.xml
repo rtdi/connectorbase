@@ -18,7 +18,7 @@
 		<OverflowToolbar design="Transparent">
 			<ToolbarSpacer/>
 			<Button icon="sap-icon://edit" type="Transparent" press="onPressSchemaEdit" />
-			<Button icon="sap-icon://delete" type="Transparent" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
+			<Button icon="sap-icon://delete" type="Transparent" press="onPressSchemaDelete" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
 		</OverflowToolbar>
 	</VBox>
 
