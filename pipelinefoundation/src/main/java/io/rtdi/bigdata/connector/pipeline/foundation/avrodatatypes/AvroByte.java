@@ -72,16 +72,13 @@ public class AvroByte extends LogicalType implements IAvroPrimitive {
 	}
 	
 	@Override
-	public Object convertToInternal(Object value) throws PipelineCallerException {
+	public Integer convertToInternal(Object value) throws PipelineCallerException {
 		if (value == null) {
 			return null;
-		} else if (value instanceof Byte) {
-			return value;
+		} else if (value instanceof Integer) {
+			return (Integer) value;
 		} else if (value instanceof Number) {
-			int n = ((Number) value).intValue();
-			if (n <= 128 && n >= -127) {
-				return value;
-			}
+			return ((Number) value).intValue();
 		}
 		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Byte");
 	}

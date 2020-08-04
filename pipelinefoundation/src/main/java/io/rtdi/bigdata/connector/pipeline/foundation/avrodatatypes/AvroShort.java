@@ -72,21 +72,21 @@ public class AvroShort extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Short convertToInternal(Object value) throws PipelineCallerException {
+	public Integer convertToInternal(Object value) throws PipelineCallerException {
 		if (value == null) {
 			return null;
-		} else if (value instanceof Short) {
-			return (Short) value;
+		} else if (value instanceof Integer) {
+			return (Integer) value;
 		} else if (value instanceof String) {
 			try {
-				return Short.valueOf((String) value);
+				return Integer.valueOf((String) value);
 			} catch (NumberFormatException e) {
 				throw new PipelineCallerException("Cannot convert the string \"" + value + "\" into a Short");
 			}
 		} else if (value instanceof Number) {
-			return ((Number) value).shortValue();
+			return ((Number) value).intValue();
 		}
-		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Short");
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into an Integer");
 	}
 
 	@Override
@@ -113,7 +113,7 @@ public class AvroShort extends LogicalType implements IAvroPrimitive {
 
 	@Override
 	public Type getBackingType() {
-		return Type.STRING;
+		return Type.INT;
 	}
 
 	@Override

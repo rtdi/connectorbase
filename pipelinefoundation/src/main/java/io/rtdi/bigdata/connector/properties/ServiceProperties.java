@@ -113,10 +113,10 @@ public abstract class ServiceProperties {
 	 */
 	public void read(File directory) throws PropertiesException {
 		properties.read(directory);
-		for (File schema : directory.listFiles()) {
-			if (schema.isDirectory()) {
-				String schemaname = schema.getName();
-				for (File step : schema.listFiles()) {
+		for (File schemafile : directory.listFiles()) {
+			if (schemafile.isDirectory()) {
+				String schemaname = schemafile.getName();
+				for (File step : schemafile.listFiles()) {
 					if (step.isDirectory()) {
 						MicroServiceTransformation transformation = readMicroservice(step);
 						if (transformation != null) {

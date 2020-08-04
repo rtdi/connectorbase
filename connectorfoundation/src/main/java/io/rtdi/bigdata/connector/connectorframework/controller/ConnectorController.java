@@ -293,7 +293,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	public boolean removeConnection(ConnectionController conn) throws IOException {
 		connections.remove(conn.getName());
 		conn.disableController();
-		File connectiondir = new File(configdir, conn.getConnectionProperties().getName());
+		File connectiondir = new File(configdir, "connections" + File.separatorChar + conn.getConnectionProperties().getName());
 		Files.walk(connectiondir.toPath()).sorted(Comparator.reverseOrder()).forEach(t -> {
 			try {
 				Files.delete(t);

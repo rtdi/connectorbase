@@ -95,14 +95,7 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 					},
 					width: "100%",
 					selectionChange: function(oEvent) {
-						var oItems = oEvent.getSource().getItems();
-						var aSchemaNames = [];
-						if (oItems) {
-							oItems.forEach(function(oItem) {
-								aSchemaNames.push(oItem.getKey());
-							});
-						}
-						that.setProperty("value", aSchemaNames, true);
+						that.setProperty("value", oEvent.getSource().getSelectedKeys(), true);
 					}
 				});
 				this.setAggregation("_control", oControl);

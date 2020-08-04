@@ -10,6 +10,7 @@ import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.LogicalDataTypesRegistry;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 /**
@@ -20,6 +21,9 @@ import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 public class AvroSerializer {
 	
 	private static EncoderFactory encoderFactory = EncoderFactory.get();
+	static {
+		LogicalDataTypesRegistry.registerAll();
+	}
 
 
 	/**

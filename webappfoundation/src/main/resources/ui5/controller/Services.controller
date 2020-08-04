@@ -2,9 +2,37 @@ showFooter : function() {
 	return false;
 },
 init : function() {
-	this.onPressRefresh(null);
+	var oModel = new JSONModel();
+	var that = this;
+	oModel.attachRequestFailed(function(oEvent) {
+		that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+	});
+	var sURL = "../rest/services";
+	oModel.loadData(sURL);
+	oStateModel.setProperty("/modelurl", sURL);
+	this.getView().setModel(oModel);
 	oStateModel.setProperty("/title", "Services");
 	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"} ] );
+},
+onPressConsumerDelete : function(oEvent) {
+	var that = this;
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open("DELETE", "../rest/services/" + encodeURI(obj.name));
+	xmlhttp.setRequestHeader("Content-Type", "application/json");
+	xmlhttp.onreadystatechange = function() {
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+		        that.displaySuccess(JSON.parse(xmlhttp.responseText));
+				oModel.loadData(oStateModel.getProperty("/modelurl"));
+		    } else {
+		        that.displayError(JSON.parse(xmlhttp.responseText));
+		    }
+		}
+	}
+	xmlhttp.send();
 },
 save : function(oEvent) {
 },
@@ -15,15 +43,7 @@ onTileAdd : function(oEvent) {
 },
 onPressRefresh : function(oEvent) {
 	var oModel = this.getView().getModel();
-	if (!!!oModel) {
-		var oModel = new JSONModel();
-		var that = this;
-		oModel.attachRequestFailed(function(oEvent) {
-			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
-		});
-	}
-	oModel.loadData("../rest/services");
-	this.getView().setModel(oModel);
+	oModel.loadData(oStateModel.getProperty("/modelurl"));
 },
 onPressService : function(oEvent) {
 	var path = oEvent.getSource().getBindingContext().getPath();

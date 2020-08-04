@@ -2,7 +2,16 @@ showFooter : function() {
 	return false;
 },
 init : function() {
-	this.onPressRefresh(null);
+	var oModel = new JSONModel();
+	var that = this;
+	oModel.attachRequestFailed(function(oEvent) {
+		that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+	});
+	var sURL = "../rest/connections";
+	oModel.loadData(sURL);
+	this.getView().setModel(oModel);
+	oStateModel.setProperty("/modelurl", sURL);
+	
 	oStateModel.setProperty("/title", "Connections");
 	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"} ] );
 },
@@ -13,17 +22,29 @@ cancel : function(oEvent) {
 onTileAdd : function(oEvent) {
 	window.location.href = './Connection?name=';
 },
+onPressConnectionDelete : function(oEvent) {
+	var that = this;
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open("DELETE", "../rest/connections/" + encodeURI(obj.name));
+	xmlhttp.setRequestHeader("Content-Type", "application/json");
+	xmlhttp.onreadystatechange = function() {
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+		        that.displaySuccess(JSON.parse(xmlhttp.responseText));
+				oModel.loadData(oStateModel.getProperty("/modelurl"));
+		    } else {
+		        that.displayError(JSON.parse(xmlhttp.responseText));
+		    }
+		}
+	}
+	xmlhttp.send();
+},
 onPressRefresh : function(oEvent) {
 	var oModel = this.getView().getModel();
-	if (!!!oModel) {
-		var oModel = new JSONModel();
-		var that = this;
-		oModel.attachRequestFailed(function(oEvent) {
-			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
-		});
-	}
-	oModel.loadData("../rest/connections");
-	this.getView().setModel(oModel);
+	oModel.loadData(oStateModel.getProperty("/modelurl"));
 },
 onPressConnection : function(oEvent) {
 	var path = oEvent.getSource().getBindingContext().getPath();

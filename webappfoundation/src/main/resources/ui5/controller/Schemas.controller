@@ -7,7 +7,9 @@ init : function() {
 	oModel.attachRequestFailed(function(oEvent) {
 			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
 	});
-	oModel.loadData("../rest/schemas");
+	var sURL = "../rest/schemas";
+	oModel.loadData(sURL);
+	oStateModel.setProperty("/modelurl", sURL);
 	this.getView().setModel(oModel);
 	oStateModel.setProperty("/title", "All Schemas known by the server");
 	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"} ] );
@@ -15,6 +17,10 @@ init : function() {
 cancel : function(oEvent) {
 },
 save : function(oEvent) {
+},
+onPressRefresh : function(oEvent) {
+	var oModel = this.getView().getModel();
+	oModel.loadData(oStateModel.getProperty("/modelurl"));
 },
 onPressAddTopic : function(oEvent) {
 	var path = oEvent.getSource().getBindingContext().getPath();

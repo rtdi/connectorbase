@@ -2,6 +2,18 @@ showFooter : function() {
 	return false;
 },
 init : function() {
+	var that = this;
+	var oModel = new JSONModel();
+	oModel.attachRequestFailed(function(oEvent) {
+			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+	});
+	var sTopicname = jQuery.sap.getUriParameters().get("name");
+	if (sTopicname != null) {
+		var sURL = "../rest/topics/" + sTopicname + "/datapreview";
+		oModel.loadData(sURL);
+		oStateModel.setProperty("/modelurl", sURL);
+	}
+	this.getView().setModel(oModel);
 	this.onPressRefresh(null);
 	var sTopicname = jQuery.sap.getUriParameters().get("name");
 	oStateModel.setProperty("/title", "Recent entries in " + sTopicname);
@@ -17,16 +29,8 @@ cancel : function(oEvent) {
 save : function(oEvent) {
 },
 onPressRefresh : function(oEvent) {
-	var oModel = new JSONModel();
-	var that = this;
-	oModel.attachRequestFailed(function(oEvent) {
-			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
-	});
-	var sTopicname = jQuery.sap.getUriParameters().get("name");
-	if (sTopicname != null) {
-		oModel.loadData("../rest/topics/" + sTopicname + "/datapreview");
-		this.getView().setModel(oModel);
-	}
+	var oModel = this.getView().getModel();
+	oModel.loadData(oStateModel.getProperty("/modelurl"));
 },
 timeformatter : function(epoche) {
 	if ( ! epoche) {

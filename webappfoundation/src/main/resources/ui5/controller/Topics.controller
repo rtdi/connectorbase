@@ -5,16 +5,22 @@ init : function() {
 	var oModel = new JSONModel();
 	var that = this;
 	oModel.attachRequestFailed(function(oEvent) {
-			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+		that.displayError(JSON.parse(oEvent.getParameter("responseText")));
 	});
-	oModel.loadData("../rest/topics");
+	var sURL = "../rest/topics";
+	oModel.loadData(sURL);
 	this.getView().setModel(oModel);
+	oStateModel.setProperty("/modelurl", sURL);
 	oStateModel.setProperty("/title", "List of Topics");
 	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"} ] );
 },
 cancel : function(oEvent) {
 },
 save : function(oEvent) {
+},
+onPressRefresh : function(oEvent) {
+	var oModel = this.getView().getModel();
+	oModel.loadData(oStateModel.getProperty("/modelurl"));
 },
 onPressAddTopic : function(oEvent) {
 	window.location.href = './TopicDefinition?new';

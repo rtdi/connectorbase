@@ -118,7 +118,8 @@ public class ConnectionController extends Controller<Controller<?>> {
 	public boolean removeConsumer(ConsumerController consumer) {
 		consumers.remove(consumer.getConsumerProperties().getName());
 		consumer.disableController();
-		return consumer.joinAll(ControllerExitType.ABORT);
+		File consumerfile = new File(connectiondir, DIR_CONSUMERS + File.separatorChar + consumer.getConsumerProperties().getName() + ".json");
+		return consumerfile.delete();
 	}
 
 	@Override

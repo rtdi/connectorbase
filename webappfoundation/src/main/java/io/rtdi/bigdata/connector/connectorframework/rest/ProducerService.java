@@ -117,6 +117,8 @@ public class ProducerService {
 			if (!conn.isRunning()) {
 				throw new ConnectorTemporaryException("Cannot start a producer when its connection is not running", null, "First start the connection", connectionname);
 			}
+			File dir = new File(conn.getDirectory(), ConnectionController.DIR_PRODUCERS);
+			producer.getProducerProperties().read(dir);
 			producer.startController();
 			//TODO: Return if the producer was started correctly.
 			return JAXBSuccessResponseBuilder.getJAXBResponse("started");

@@ -9,9 +9,11 @@ init : function() {
 		oModel.attachRequestFailed(function(oEvent) {
 			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
 		});
-		oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas");
-		this.getView().setModel(oModel);
+		var sURL = "../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas";
+		oModel.loadData(sURL);
+		oStateModel.setProperty("/modelurl", sURL);
 	}	
+	this.getView().setModel(oModel);
 	oStateModel.setProperty("/title", "Definied Schemas");
 	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"}, {"text" : "Connections", "link" : "./Connections"} ] );
 },
@@ -19,14 +21,6 @@ cancel : function(oEvent) {
 },
 save : function(oEvent) {
 },
-/* schemaformatter : function(name) {
-	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
-	return "RemoteSchemaDefinition?connectionname=" + encodeURI(sConnectionname) + "&name=" + encodeURI(name);
-},
-mappingformatter : function(name) {
-	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
-	return "SchemaMapping?connectionname=" + encodeURI(sConnectionname) + "&name=" + encodeURI(name);
-}, */
 onPressSchemaEdit : function(oEvent) {
 	var path = oEvent.getSource().getBindingContext().getPath();
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
@@ -35,7 +29,25 @@ onPressSchemaEdit : function(oEvent) {
 	window.location.href = './EditSchema?connectionname=' + encodeURI(sConnectionname) + "&schemaname=" + encodeURI(obj.tablename);
 },
 onPressSchemaDelete : function(oEvent) {
-
+	var that = this;
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open("DELETE", "../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas/" + encodeURI(obj.tablename));
+	xmlhttp.setRequestHeader("Content-Type", "application/json");
+	xmlhttp.onreadystatechange = function() {
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+		        that.displaySuccess(JSON.parse(xmlhttp.responseText));
+				oModel.loadData(oStateModel.getProperty("/modelurl"));
+		    } else {
+		        that.displayError(JSON.parse(xmlhttp.responseText));
+		    }
+		}
+	}
+	xmlhttp.send();
 },
 onPressCreateSchema : function(oEvent) {
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
@@ -50,7 +62,5 @@ onPressMapping : function(oEvent) {
 },
 onPressRefresh : function(oEvent) {
 	var oModel = this.getView().getModel();
-	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
-	oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/remoteschemas");
-	this.getView().setModel(oModel);
+	oModel.loadData(oStateModel.getProperty("/modelurl"));
 }

@@ -131,7 +131,7 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	@Override
 	public SchemaHandler registerSchema(ValueSchema schema) throws PropertiesException {
 		try {
-			return registerSchema(schema.getName(), schema.getDescription(), KeySchema.create(schema.getSchema()), schema.getSchema());
+			return registerSchema(schema.getFullName(), schema.getDescription(), KeySchema.create(schema.getSchema()), schema.getSchema());
 		} catch (SchemaException e) {
 			throw new PropertiesException("Cannot create the Avro schema out of the ValueSchema", e);
 		}

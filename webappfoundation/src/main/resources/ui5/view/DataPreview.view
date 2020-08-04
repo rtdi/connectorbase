@@ -1,4 +1,4 @@
-<Table
+<Table id="previewcontent"
 	items="{path:'/rows', templateShareable:false}">
 	<headerToolbar>
 		<Toolbar>

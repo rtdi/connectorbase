@@ -1,5 +1,7 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 
+import java.nio.ByteBuffer;
+
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema;
@@ -65,13 +67,15 @@ public class AvroBytes extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public Object convertToInternal(Object value) throws PipelineCallerException {
+	public ByteBuffer convertToInternal(Object value) throws PipelineCallerException {
 		if (value == null) {
 			return null;
+		} else if (value instanceof ByteBuffer) {
+			return (ByteBuffer) value;
 		} else if (value instanceof byte[]) {
-			return (byte[]) value;
+			return ByteBuffer.wrap((byte[]) value);
 		}
-		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a byte[]");
+		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a ByteBuffer");
 	}
 
 	@Override

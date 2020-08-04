@@ -29,6 +29,15 @@ public class SchemaBuilder {
 	private Map<String, SchemaBuilder> childbuilders = new HashMap<>();
 
 	protected SchemaBuilder(String name, String namespace, String description) {
+		int p = name.lastIndexOf('.');
+		if (p != -1) {
+			if (namespace == null || namespace.length() == 0) {
+				namespace = name.substring(0, p);
+			} else {
+				namespace = namespace + "." + name.substring(0, p);
+			}
+			name = name.substring(p+1);
+		}
 		schema = Schema.createRecord(NameEncoder.encodeName(name), description, namespace, false);
 		schema.addProp(AvroField.COLUMN_PROP_ORIGINALNAME, name);
 	}
@@ -235,7 +244,11 @@ public class SchemaBuilder {
 	}
 	
 	public String getName() {
-		return NameEncoder.decodeName(schema.getName());
+		return schema.getName();
+	}
+	
+	public String getFullName() {
+		return schema.getFullName();
 	}
 
 	public String getDescription() {
@@ -244,7 +257,7 @@ public class SchemaBuilder {
 
 	@Override
 	public String toString() {
-		return schema.getName();
+		return schema.getFullName();
 	}
 	
 	public Schema getColumnSchema(String columnname) throws SchemaException {

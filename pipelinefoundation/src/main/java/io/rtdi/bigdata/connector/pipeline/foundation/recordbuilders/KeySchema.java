@@ -40,7 +40,7 @@ public class KeySchema extends SchemaBuilder {
 	 * @throws SchemaException if the value schema is invalid
 	 */
 	public static Schema create(Schema valueschema) throws SchemaException {
-		KeySchema kbuilder = new KeySchema(valueschema.getName(), null);
+		KeySchema kbuilder = new KeySchema(valueschema.getName(), valueschema.getNamespace(), valueschema.getDoc());
 		int count = 0;
 		for (Field f : valueschema.getFields()) {
 			if (AvroField.isPrimaryKey(f)) {

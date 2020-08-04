@@ -1,5 +1,12 @@
 <Table
 	items="{path:'/schemas', templateShareable:false}">
+	<headerToolbar>
+		<Toolbar>
+			<content>
+					<Button icon="sap-icon://refresh" text="Reload" class="sapUiTinyMarginBeginEnd" press="onPressRefresh" />
+			</content>
+		</Toolbar>
+	</headerToolbar>
 	<columns>
 		<Column>
 			<Label text="Schema Name" />

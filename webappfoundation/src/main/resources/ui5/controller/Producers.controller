@@ -2,7 +2,18 @@ showFooter : function() {
 	return false;
 },
 init : function() {
-	this.onPressRefresh(null);
+	var oModel = new JSONModel();
+	var that = this;
+	oModel.attachRequestFailed(function(oEvent) {
+		that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+	});
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	if (!!sConnectionname) {
+		var sURL = "../rest/connections/" + encodeURI(sConnectionname) + "/producers";
+		oModel.loadData(sURL);
+		oStateModel.setProperty("/modelurl", sURL);
+	}
+	this.getView().setModel(oModel);
 	oStateModel.setProperty("/title", "Producers");
 	oStateModel.setProperty("/breadcrumbs", [ 
 		{"text" : "Homepage", "link" : "./Home"}, 
@@ -11,18 +22,28 @@ init : function() {
 },
 onPressRefresh : function(oEvent) {
 	var oModel = this.getView().getModel();
-	if (!!!oModel) {
-		var oModel = new JSONModel();
-		var that = this;
-		oModel.attachRequestFailed(function(oEvent) {
-			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
-		});
-	}
+	oModel.loadData(oStateModel.getProperty("/modelurl"));
+},
+onPressConsumerDelete : function(oEvent) {
+	var that = this;
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
-	if (!!sConnectionname) {
-		oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/producers");
-		this.getView().setModel(oModel);
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open("DELETE", "../rest/connections/" + encodeURI(sConnectionname) + "/producers/" + encodeURI(obj.name));
+	xmlhttp.setRequestHeader("Content-Type", "application/json");
+	xmlhttp.onreadystatechange = function() {
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+		        that.displaySuccess(JSON.parse(xmlhttp.responseText));
+				oModel.loadData(oStateModel.getProperty("/modelurl"));
+		    } else {
+		        that.displayError(JSON.parse(xmlhttp.responseText));
+		    }
+		}
 	}
+	xmlhttp.send();
 },
 save : function(oEvent) {
 },
