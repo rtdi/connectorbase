@@ -24,7 +24,7 @@ onPressRefresh : function(oEvent) {
 	var oModel = this.getView().getModel();
 	oModel.loadData(oStateModel.getProperty("/modelurl"));
 },
-onPressConsumerDelete : function(oEvent) {
+onPressProducerDelete : function(oEvent) {
 	var that = this;
 	var path = oEvent.getSource().getBindingContext().getPath();
 	var oModel = this.getView().getModel();

@@ -34,6 +34,9 @@ public class ErrorEntity {
 			hint = pe.getHint();
 			causingobject = pe.getCausingObject();
 		}
+		if (message == null) {
+			message = exception;
+		}
 	}
 
 	
