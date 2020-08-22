@@ -3,7 +3,7 @@ package io.rtdi.bigdata.connector.connectorframework.rest;
 import java.io.IOException;
 import java.util.List;
 
-import javax.annotation.security.RolesAllowed;
+import jakarta.annotation.security.RolesAllowed;
 import javax.servlet.ServletContext;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;

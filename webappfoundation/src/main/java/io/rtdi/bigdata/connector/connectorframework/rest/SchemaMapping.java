@@ -1,6 +1,6 @@
 package io.rtdi.bigdata.connector.connectorframework.rest;
 
-import javax.annotation.security.RolesAllowed;
+import jakarta.annotation.security.RolesAllowed;
 import javax.servlet.ServletContext;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;

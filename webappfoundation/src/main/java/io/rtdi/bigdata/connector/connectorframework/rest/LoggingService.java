@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import javax.annotation.security.RolesAllowed;
+import jakarta.annotation.security.RolesAllowed;
 import javax.servlet.ServletContext;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
