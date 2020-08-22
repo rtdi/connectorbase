@@ -13,8 +13,8 @@ import org.apache.avro.generic.GenericRecord;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroInt;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.AvroNameEncoder;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
-import io.rtdi.bigdata.connector.pipeline.foundation.utils.NameEncoder;
 
 /**
  * The base class for creating key and value schemas and to create subschemas 
@@ -29,16 +29,37 @@ public class SchemaBuilder {
 	private Map<String, SchemaBuilder> childbuilders = new HashMap<>();
 
 	protected SchemaBuilder(String name, String namespace, String description) {
-		int p = name.lastIndexOf('.');
-		if (p != -1) {
-			if (namespace == null || namespace.length() == 0) {
-				namespace = name.substring(0, p);
-			} else {
-				namespace = namespace + "." + name.substring(0, p);
-			}
-			name = name.substring(p+1);
+		String[] nameparts = name.split("\\.");
+		String[] namespaceparts = null;
+		if (namespace != null) {
+			namespaceparts = namespace.split("\\.");
 		}
-		schema = Schema.createRecord(NameEncoder.encodeName(name), description, namespace, false);
+		StringBuffer ns = new StringBuffer();
+		/*
+		 * Add all namespace provided components and encode the names if needed
+		 */
+		if (namespaceparts != null) {
+			for (String part : namespaceparts) {
+				if (ns.length() != 0) {
+					ns.append('.');
+				}
+				ns.append(AvroNameEncoder.encodeName(part));
+			}
+		}
+		/*
+		 * If the name contains namespace elements as well, add that to the namespace.
+		 * Note the loop ends one before the last element!
+		 */
+		for (int i=0; i<nameparts.length-1; i++) {
+			if (ns.length() != 0) {
+				ns.append('.');
+			}
+			ns.append(AvroNameEncoder.encodeName(nameparts[i]));
+		}
+		/*
+		 * Last element in the name is the name, all previous were namespaces
+		 */
+		schema = Schema.createRecord(AvroNameEncoder.encodeName(nameparts[nameparts.length-1]), description, ns.toString(), false);
 		schema.addProp(AvroField.COLUMN_PROP_ORIGINALNAME, name);
 	}
 	
@@ -261,7 +282,7 @@ public class SchemaBuilder {
 	}
 	
 	public Schema getColumnSchema(String columnname) throws SchemaException {
-		String encodedname = NameEncoder.encodeName(columnname);
+		String encodedname = AvroNameEncoder.encodeName(columnname);
 		Field f = columnnameindex.get(encodedname);
 		if (f != null) {
 			return f.schema();

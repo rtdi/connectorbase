@@ -3,6 +3,8 @@ package io.rtdi.bigdata.connectorframework;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.avro.Schema;
 import org.junit.After;
@@ -19,7 +21,9 @@ import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeE
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroInt;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
@@ -119,7 +123,7 @@ public class ProducerControllerTests {
 			super(instance);
 		}
 		
-		public void poll() throws IOException {
+		public String poll(String transactionid) throws IOException {
 			int mod = messagecount % 10;
 			if (mod == 9) {
 				// in the pause interval set various errors
@@ -129,7 +133,7 @@ public class ProducerControllerTests {
 			switch (mod) {
 			case 0:
 				System.out.println("No data");
-				return;
+				return String.valueOf(messagecount);
 			case 10:
 				System.out.println("Throw a ConnectorTemporaryException");
 				throw new ConnectorTemporaryException("Temp Connector error", null, null, null);
@@ -149,6 +153,7 @@ public class ProducerControllerTests {
 				addRow(topichandler, null, schemahandler,
 						valuerecord, RowType.INSERT, String.valueOf(messagecount), "FAIL");
 				System.out.println("Producing message #" + String.valueOf(messagecount));
+				return String.valueOf(messagecount);
 			}
 		}
 
@@ -162,21 +167,14 @@ public class ProducerControllerTests {
 
 		@Override
 		public void createTopiclist() throws IOException {
-			topichandler = getPipelineAPI().getTopicOrCreate("FAIL", 1, (short) 1);
-			schemahandler = getPipelineAPI().getSchema("FAIL");
+			TopicName t = TopicName.create("FAIL");
+			SchemaRegistryName s = SchemaRegistryName.create("FAIL");
+			topichandler = getPipelineAPI().getTopicOrCreate(t, 1, (short) 1);
+			schemahandler = getPipelineAPI().getSchema(s);
 			if (schemahandler == null) {
-				schemahandler = getPipelineAPI().registerSchema("FAIL", null, getKeySchema(), getValueSchema());
+				schemahandler = getPipelineAPI().registerSchema(s, null, getKeySchema(), getValueSchema());
 			}
 			addTopicSchema(topichandler, schemahandler);
-		}
-
-		@Override
-		public String getLastSuccessfulSourceTransaction() throws IOException {
-			return null;
-		}
-
-		@Override
-		public void initialLoad() throws IOException {
 		}
 
 		@Override
@@ -196,6 +194,21 @@ public class ProducerControllerTests {
 		@Override
 		protected Schema createSchema(String sourceschemaname) throws SchemaException, IOException {
 			return null;
+		}
+
+		@Override
+		public List<String> getAllSchemas() {
+			return Collections.singletonList(schemahandler.getSchemaName().getName());
+		}
+
+		@Override
+		public long executeInitialLoad(String schemaname, String transactionid) throws IOException {
+			return 0L;
+		}
+
+		@Override
+		public String getCurrentTransactionId() throws IOException {
+			return "0";
 		}
 
 	}

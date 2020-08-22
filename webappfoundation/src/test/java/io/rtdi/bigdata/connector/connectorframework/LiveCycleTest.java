@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
-import io.rtdi.bigdata.connector.pipeline.foundation.SchemaName;
+import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroInt;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroLong;
@@ -38,10 +38,10 @@ public class LiveCycleTest {
 	@Test
 	public void test() {
 		try {
-			SchemaName schemaname = new SchemaName("HWMonitor");
+			SchemaRegistryName schemaname = SchemaRegistryName.create("HWMonitor");
 			SchemaHandler schemahandler = api.registerSchema(schemaname, "HWMonitor structure contains detailed data about the hardware utilization",
 					getKeySchema(), getValueSchema());
-			TopicName topic = new TopicName("TOPIC1");
+			TopicName topic = TopicName.create("TOPIC1");
 			TopicHandlerTest topichandler = api.topicCreate(topic, 1, (short) 1);
 			
 			/* IConnectorFactory<?, ?, ?> connector = new ConnectorFactoryTest("TEST");

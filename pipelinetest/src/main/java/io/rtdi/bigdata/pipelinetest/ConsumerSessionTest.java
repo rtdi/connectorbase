@@ -30,7 +30,7 @@ public class ConsumerSessionTest extends ConsumerSession<TopicHandlerTest> {
 			for (TopicPayload p : data) {
 				if (lastoffset < p.getOffset()) {
 					state = OperationState.FETCHGETTINGROW;
-					processor.process(topic.getTopicName().getName(), p.getOffset(), 1, p.getKeyRecord(), p.getValueRecord());
+					processor.process(topic.getTopicName(), p.getOffset(), 1, p.getKeyRecord(), p.getValueRecord());
 					lastoffset = p.getOffset();
 					rowsfetched++;
 				}
@@ -48,7 +48,7 @@ public class ConsumerSessionTest extends ConsumerSession<TopicHandlerTest> {
 
 	@Override
 	public void setTopics() throws PropertiesException {
-		TopicHandlerTest topic = getPipelineAPI().getTopic(new TopicName(getProperties().getTopicPattern()));
+		TopicHandlerTest topic = getPipelineAPI().getTopic(TopicName.create(getProperties().getTopicPattern()));
 		addTopic(topic);
 	}
 

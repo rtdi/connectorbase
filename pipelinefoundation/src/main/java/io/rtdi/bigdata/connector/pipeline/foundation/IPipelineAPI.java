@@ -9,12 +9,12 @@ import org.apache.avro.Schema;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.LoadInfo;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.PipelineConnectionProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
@@ -32,34 +32,12 @@ import io.rtdi.bigdata.connector.properties.ServiceProperties;
  */
 public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends TopicHandler, P extends ProducerSession<T>, C extends ConsumerSession<T>> extends IPipelineBase<S, T> {
 
-	/**
-	 * Same as {@link #getSchema(SchemaName)} except that it accepts as input a string. Should return the same as 
-	 * getSchema(new SchemaName(schemaname))
-	 * 
-	 * @param schemaname The schema name of this tenant. It is not the FQN.
-	 * @return SchemaHandler or null if not found
-	 * @throws PropertiesException if something goes wrong
-	 */
-	SchemaHandler getSchema(String schemaname) throws PropertiesException;
-	
 	String getAPIName();
 
 	@Override
 	Schema getSchema(int schemaid) throws PropertiesException;
 
-	SchemaHandler registerSchema(SchemaName schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException;
-
-	SchemaHandler registerSchema(String schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException;
-
-	/**
-	 * Helper function to register a new schema based on the ValueSchema. The schema name and description are taken from the ValueSchema and
-	 * the key schema are all primary key columns.
-	 * 
-	 * @param valueschema all is based on
-	 * @return SchemaHandler
-	 * @throws PropertiesException in case the schema is invalid
-	 */
-	SchemaHandler registerSchema(ValueSchema valueschema) throws PropertiesException;
+	SchemaHandler registerSchema(SchemaRegistryName schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException;
 
 	/**
 	 * @return A list of schema names for this tenant
@@ -68,7 +46,7 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	List<String> getSchemas() throws PropertiesException;
 
 	/**
-	 * Creates a new topic and fails if it exists already. see {@link #getTopicOrCreate(String, int, short)}
+	 * Creates a new topic and fails if it exists already. see {@link #getTopicOrCreate(TopicName, int, short)}
 	 * 
 	 * @param topic TopicName
 	 * @param partitioncount for the topic
@@ -80,7 +58,7 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	T topicCreate(TopicName topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException;
 
 	/**
-	 * Creates a new topic and fails if it exists already. see {@link #getTopicOrCreate(String, int, short)}
+	 * Creates a new topic and fails if it exists already. see {@link #getTopicOrCreate(TopicName, int, short)}
 	 * 
 	 * @param topic TopicName
 	 * @param partitioncount for the topic
@@ -90,31 +68,9 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 */
 	T topicCreate(TopicName topic, int partitioncount, short replicationfactor) throws PropertiesException;
 
-	/**
-	 * Creates a new topic and fails if it exists already. see {@link #getTopicOrCreate(String, int, short)}
-	 * 
-	 * @param topic name of the topic within the tenant
-	 * @param partitioncount for the topic
-	 * @param replicationfactor for the topic
-	 * @param configs optional parameters
-	 * @return TopicHandler
-	 * @throws PropertiesException if something goes wrong
-	 */
-	T topicCreate(String topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException;
 
 	/**
-	 * Creates a new topic and fails if it exists already. see {@link #getTopicOrCreate(String, int, short)}
-	 * 
-	 * @param topic name of the topic within the tenant
-	 * @param partitioncount for the topic
-	 * @param replicationfactor for the topic
-	 * @return TopicHandler
-	 * @throws PropertiesException if something goes wrong
-	 */
-	T topicCreate(String topic, int partitioncount, short replicationfactor) throws PropertiesException;
-
-	/**
-	 * A synchronized version of the {@link #getTopic(String)} and {@link #topicCreate(TopicName, int, short, Map)} to deal with the case where 
+	 * A synchronized version of the {@link #getTopic(TopicName)} and {@link #topicCreate(TopicName, int, short, Map)} to deal with the case where 
 	 * two threads want to create the same topic at the same time.
 	 * 
 	 * @param name name of the topic within the tenant
@@ -124,10 +80,10 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @return TopicHandler
 	 * @throws PropertiesException if something goes wrong
 	 */
-	T getTopicOrCreate(String name, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException;
+	T getTopicOrCreate(TopicName name, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException;
 
 	/**
-	 * Simplified version of {@link #getTopicOrCreate(String, int, short, Map)} for convenience.
+	 * Simplified version of {@link #getTopicOrCreate(TopicName, int, short, Map)} for convenience.
 	 * 
 	 * @param topicname name of the topic within the tenant
 	 * @param partitioncount for the topic
@@ -136,9 +92,9 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @throws PropertiesException if something goes wrong
 	 * 
 	 */
-	T getTopicOrCreate(String topicname, int partitioncount, short replicationfactor) throws PropertiesException;
+	T getTopicOrCreate(TopicName topicname, int partitioncount, short replicationfactor) throws PropertiesException;
 
-	SchemaHandler getOrCreateSchema(SchemaName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException;
+	SchemaHandler getOrCreateSchema(SchemaRegistryName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException;
 
 	/**
 	 * Get the TopicHandler of an already existing topic.
@@ -147,7 +103,7 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @return The TopicHandler representing the topic or null
 	 * @throws PropertiesException if something goes wrong
 	 */
-	T getTopic(String topicname) throws PropertiesException;
+	T getTopic(TopicName topicname) throws PropertiesException;
 
 	/**
 	 * Get a list of all known topics
@@ -156,33 +112,13 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 */
 	List<String> getTopics() throws IOException;
 
-	/**
-	 * @param topicname name of the topic within the tenant
-	 * @param count most recent n records
-	 * @return List of AvroRecords and their metadata
-	 * @throws IOException if something goes wrong
-	 * 
-	 */
-	List<TopicPayload> getLastRecords(String topicname, int count) throws IOException;
-
-	/**
-	 *  
-	 * @param topicname name of the topic within the tenant
-	 * @param timestamp starting point to read from
-	 * @param count max count of records
-	 * @param schema optionally restrict on a certain schema only
-	 * @return List of AvroRecords and their metadata
-	 * @throws IOException if something goes wrong
-	 * 
-	 */
-	List<TopicPayload> getLastRecords(String topicname, long timestamp, int count, String schema) throws IOException;
 
 	/**
 	 * Read the most recent n records from a topic.
 	 * 
 	 * @param topicname TopicName
 	 * @param count of most recent records to return
-	 * @return List of AvroRecords and their metadata
+	 * @return List of AvroRecords and their metadata in descending order, most recent first!
 	 * @throws IOException if something goes wrong
 	 */
 	List<TopicPayload> getLastRecords(TopicName topicname, int count) throws IOException;
@@ -195,10 +131,10 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @param timestamp starting point to read from
 	 * @param count stop reading after this many records
 	 * @param schema optional schema name to scan for
-	 * @return List of AvroRecords and their metadata
+	 * @return List of AvroRecords and their metadata in ascending order, oldest first!
 	 * @throws IOException if something goes wrong
 	 */
-	List<TopicPayload> getLastRecords(TopicName topicname, long timestamp, int count, SchemaName schema) throws IOException;
+	List<TopicPayload> getAllRecordsSince(TopicName topicname, long timestamp, int count, SchemaRegistryName schema) throws IOException;
 
 	P createNewProducerSession(ProducerProperties properties) throws PropertiesException;
 
@@ -310,4 +246,15 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 
 	String getBackingServerConnectionLabel();
 	
+	/**
+	 * Returns the list of all schemas that have been initial-loaded.
+	 * If an entry was never initial loaded, then it is not present.
+	 * 
+	 * @param producername the name of the producer
+	 * @param instanceno the producer instance number
+	 * @return a Map<Schemaname, Map<ProducerInstanceNumber, InitialLoadInfo>>
+	 * @throws IOException
+	 */
+	Map<String, LoadInfo> getLoadInfo(String producername, int instanceno) throws IOException;
+
 }

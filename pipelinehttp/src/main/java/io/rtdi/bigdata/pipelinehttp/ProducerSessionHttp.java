@@ -10,7 +10,6 @@ import javax.ws.rs.core.MediaType;
 import io.rtdi.bigdata.connector.pipeline.foundation.AvroSerializer;
 import io.rtdi.bigdata.connector.pipeline.foundation.ProducerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
-import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporaryException;
@@ -104,11 +103,6 @@ public class ProducerSessionHttp extends ProducerSession<TopicHandlerHttp> {
 	protected void addRowImpl(TopicHandlerHttp topic, Integer partition, SchemaHandler handler, JexlRecord keyrecord, JexlRecord valuerecord) throws IOException {
 		byte[] key = AvroSerializer.serialize(handler.getDetails().getKeySchemaID(), keyrecord);
 		byte[] value = AvroSerializer.serialize(handler.getDetails().getValueSchemaID(), valuerecord);
-		addRowBinary(topic, partition, key, value);
-	}
-
-	@Override
-	public void addRowBinary(TopicHandler topic, Integer partition, byte[] keyrecord, byte[] valuerecord) throws IOException {
 		io.sendInt(out, 1);
 		io.sendString(out, topic.getTopicName().getName());
 		
@@ -117,8 +111,23 @@ public class ProducerSessionHttp extends ProducerSession<TopicHandlerHttp> {
 		} else {
 			io.sendInt(out, partition.intValue());
 		}
-		io.sendBytes(out, keyrecord);
-		io.sendBytes(out, valuerecord);
+		io.sendBytes(out, key);
+		io.sendBytes(out, value);
+	}
+
+	@Override
+	public void confirmInitialLoad(String schemaname, int producerinstance, long rowcount) {
+		// TODO Needs implementation
+	}
+
+	@Override
+	public void markInitialLoadStart(String schemaname, int producerinstance) throws IOException {
+		// TODO Needs implementation
+	}
+
+	@Override
+	public void confirmDeltaLoad(int producerinstance) throws IOException {
+		// TODO Auto-generated method stub
 	}
 
 }

@@ -29,12 +29,13 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
-import io.rtdi.bigdata.connector.pipeline.foundation.SchemaName;
+import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.ServiceSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.LoadInfo;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.JAXBErrorMessage;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEntity;
@@ -50,10 +51,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicPayloadBinaryDa
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.TopicMetadata;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.HttpUtil;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
@@ -85,17 +83,6 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	}
 	
 	@Override
-	public SchemaHandler getSchema(String schemaname) throws PropertiesException {
-		Response entityresponse = callRestfulservice(getRestEndpoint("/schema/byname", schemaname));
-		if (entityresponse == null) {
-			return null;
-		} else {
-			SchemaHandlerEntity entityout = entityresponse.readEntity(SchemaHandlerEntity.class);
-			return new SchemaHandler(schemaname, entityout.getKeySchema(), entityout.getValueSchema(), entityout.getKeySchemaId(), entityout.getValueSchemaId());
-		}
-	}
-
-	@Override
 	public Schema getSchema(int schemaid) throws PropertiesException {
 		Response entityresponse = callRestfulservice(getRestEndpoint("/schema/byid", String.valueOf(schemaid)));
 		if (entityresponse == null) {
@@ -107,34 +94,26 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	}
 
 	@Override
-	public SchemaHandler getSchema(SchemaName schemaname) throws PropertiesException {
-		return getSchema(schemaname.getName());
+	public SchemaHandler getSchema(SchemaRegistryName schemaname) throws PropertiesException {
+		Response entityresponse = callRestfulservice(getRestEndpoint("/schema/byname", schemaname.getEncodedName()));
+		if (entityresponse == null) {
+			return null;
+		} else {
+			SchemaHandlerEntity entityout = entityresponse.readEntity(SchemaHandlerEntity.class);
+			return new SchemaHandler(schemaname, entityout.getKeySchema(), entityout.getValueSchema(), entityout.getKeySchemaId(), entityout.getValueSchemaId());
+		}
 	}
 
 	@Override
-	public SchemaHandler registerSchema(SchemaName schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
-		return registerSchema(schemaname.getName(), description, keyschema, valueschema);
-	}
-
-	@Override
-	public SchemaHandler registerSchema(String schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
+	public SchemaHandler registerSchema(SchemaRegistryName schemaname, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
 		SchemaHandlerEntity entityin = new SchemaHandlerEntity();
-		entityin.setSchemaName(schemaname);
+		entityin.setSchemaName(schemaname.getEncodedName());
 		entityin.setDescription(description);
 		entityin.setKeySchemaString(keyschema.toString());
 		entityin.setValueSchemaString(valueschema.toString());
-		Response entityresponse = postRestfulService(getRestEndpoint("/schema/byname", schemaname), entityin);
+		Response entityresponse = postRestfulService(getRestEndpoint("/schema/byname", schemaname.getEncodedName()), entityin);
 		SchemaHandlerEntity entityout = entityresponse.readEntity(SchemaHandlerEntity.class);
 		return new SchemaHandler(schemaname, keyschema, valueschema, entityout.getKeySchemaId(), entityout.getValueSchemaId());
-	}
-
-	@Override
-	public SchemaHandler registerSchema(ValueSchema schema) throws PropertiesException {
-		try {
-			return registerSchema(schema.getFullName(), schema.getDescription(), KeySchema.create(schema.getSchema()), schema.getSchema());
-		} catch (SchemaException e) {
-			throw new PropertiesException("Cannot create the Avro schema out of the ValueSchema", e);
-		}
 	}
 
 	@Override
@@ -151,15 +130,10 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	@Override
 	public TopicHandlerHttp topicCreate(TopicName topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
 		TopicHandlerEntity entityin = new TopicHandlerEntity(topic.getName(), partitioncount, replicationfactor, configs);
-		Response entityresponse = postRestfulService(getRestEndpoint("/topic/byname", topic.getName()), entityin);
+		Response entityresponse = postRestfulService(getRestEndpoint("/topic/byname", topic.getEncodedName()), entityin);
 		TopicHandlerEntity entityout = entityresponse.readEntity(TopicHandlerEntity.class);
 		TopicMetadata metadata = getTopicMetadata(entityout);
 		return new TopicHandlerHttp(topic, metadata );
-	}
-
-	@Override
-	public TopicHandlerHttp topicCreate(String topic, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
-		return topicCreate(new TopicName(topic), partitioncount, replicationfactor, configs);
 	}
 
 	private TopicMetadata getTopicMetadata(TopicHandlerEntity entity) {
@@ -187,34 +161,24 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	}
 
 	@Override
-	public TopicHandlerHttp topicCreate(String topic, int partitioncount, short replicationfactor) throws PropertiesException {
-		return topicCreate(topic, partitioncount, replicationfactor, null);
-	}
-
-	@Override
-	public synchronized TopicHandlerHttp getTopicOrCreate(String topicname, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
+	public synchronized TopicHandlerHttp getTopicOrCreate(TopicName topicname, int partitioncount, short replicationfactor, Map<String, String> configs) throws PropertiesException {
 		TopicHandlerHttp t = getTopic(topicname);
 		if (t == null) {
-			t = topicCreate(new TopicName(topicname), replicationfactor, replicationfactor, configs);
+			t = topicCreate(topicname, replicationfactor, replicationfactor, configs);
 		} 
 		return t;
 	}
 
-	
+
 	@Override
-	public TopicHandlerHttp getTopic(String topicname) throws PropertiesException {
-		Response entityresponse = callRestfulservice(getRestEndpoint("/topic/byname", topicname));
+	public TopicHandlerHttp getTopic(TopicName topic) throws PropertiesException {
+		Response entityresponse = callRestfulservice(getRestEndpoint("/topic/byname", topic.getEncodedName()));
 		if (entityresponse == null) {
 			return null;
 		} else {
 			TopicHandlerEntity entityout = entityresponse.readEntity(TopicHandlerEntity.class);
-			return new TopicHandlerHttp(topicname, getTopicMetadata(entityout));
+			return new TopicHandlerHttp(topic, getTopicMetadata(entityout));
 		}
-	}
-
-	@Override
-	public TopicHandlerHttp getTopic(TopicName topic) throws PropertiesException {
-		return getTopic(topic.getName());
 	}
 
 	@Override
@@ -229,35 +193,25 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	}
 
 	@Override
-	public List<TopicPayload> getLastRecords(String topicname, int count) throws IOException {
-		Response entityresponse = callRestfulservice(getRestEndpoint("/data/preview/count", topicname, String.valueOf(count)));
-		if (entityresponse == null) {
-			return null;
-		} else {
-			TopicPayloadBinaryData entityout = entityresponse.readEntity(TopicPayloadBinaryData.class);
-			return entityout.asTopicPayloadList(this, schemaidcache);
-		}
-	}
-
-	@Override
-	public List<TopicPayload> getLastRecords(String topicname, long timestamp, int count, String schema) throws IOException {
-		Response entityresponse = callRestfulservice(getRestEndpoint("/data/preview/time", topicname, String.valueOf(timestamp)));
-		if (entityresponse == null) {
-			return null;
-		} else {
-			TopicPayloadBinaryData entityout = entityresponse.readEntity(TopicPayloadBinaryData.class);
-			return entityout.asTopicPayloadList(this, schemaidcache);
-		}
-	}
-
-	@Override
 	public List<TopicPayload> getLastRecords(TopicName topicname, int count) throws IOException {
-		return getLastRecords(topicname.getName(), count);
+		Response entityresponse = callRestfulservice(getRestEndpoint("/data/preview/count", topicname.getEncodedName(), String.valueOf(count)));
+		if (entityresponse == null) {
+			return null;
+		} else {
+			TopicPayloadBinaryData entityout = entityresponse.readEntity(TopicPayloadBinaryData.class);
+			return entityout.asTopicPayloadList(this, schemaidcache);
+		}
 	}
 
 	@Override
-	public List<TopicPayload> getLastRecords(TopicName topicname, long timestamp, int count, SchemaName schema) throws IOException {
-		return getLastRecords(topicname, timestamp, count, schema);
+	public List<TopicPayload> getAllRecordsSince(TopicName topicname, long timestamp, int count, SchemaRegistryName schema) throws IOException {
+		Response entityresponse = callRestfulservice(getRestEndpoint("/data/preview/time", topicname.getEncodedName(), String.valueOf(timestamp)));
+		if (entityresponse == null) {
+			return null;
+		} else {
+			TopicPayloadBinaryData entityout = entityresponse.readEntity(TopicPayloadBinaryData.class);
+			return entityout.asTopicPayloadList(this, schemaidcache);
+		}
 	}
 
 	@Override
@@ -503,7 +457,7 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	}
 
 	@Override
-	public SchemaHandler getOrCreateSchema(SchemaName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
+	public SchemaHandler getOrCreateSchema(SchemaRegistryName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
 		return registerSchema(name, description, keyschema, valueschema);
 	}
 
@@ -535,4 +489,11 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	public String getAPIName() {
 		return ConnectionPropertiesHttp.APINAME;
 	}
+
+	@Override
+	public Map<String, LoadInfo> getLoadInfo(String producername, int instanceno) throws PipelineRuntimeException {
+		// TODO needs to be implemented
+		return null;
+	}
+
 }

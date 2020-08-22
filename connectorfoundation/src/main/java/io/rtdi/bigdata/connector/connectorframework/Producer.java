@@ -3,6 +3,7 @@ package io.rtdi.bigdata.connector.connectorframework;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,9 +21,11 @@ import io.rtdi.bigdata.connector.connectorframework.exceptions.ShutdownException
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.ProducerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.LoadInfo;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.RowType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -57,12 +60,12 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	protected ProducerInstanceController instance;
 	protected final Logger logger;
 
-
 	public Producer(ProducerInstanceController instance) throws PropertiesException {
-		producersession = instance.getPipelineAPI().createNewProducerSession(instance.getProducerProperties());
+		IPipelineAPI<?, ?, ?, ?> api = instance.getPipelineAPI();
+		producersession = api.createNewProducerSession(instance.getProducerProperties());
+		logger = LogManager.getLogger(this.getClass().getName());
 		producersession.open();
 		this.instance = instance;
-		logger = LogManager.getLogger(this.getClass().getName());
 	}
 
 	/**
@@ -93,24 +96,10 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	 * @see #addTopic(TopicHandler)
 	 * @see #addTopicSchema(TopicHandler, SchemaHandler)
 	 * 
-	 * @throws PropertiesException if error
+	 * @throws IOException if error
 	 */
 	public abstract void createTopiclist() throws IOException;
 
-	/**
-	 * @return null or the point as transactionid where the producer should start reading the source system
-	 * @throws IOException if error
-	 */
-	public abstract String getLastSuccessfulSourceTransaction() throws IOException;
-
-	/**
-	 * In case the producer is started for the first time, this method is called and
-	 * should send all the source data.
-	 * @throws IOException if error
-	 * 
-	 * @throws PropertiesException if error
-	 */
-	public abstract void initialLoad() throws IOException;
 
 	/**
 	 * In case the producer is restarted after an error, this method is called so the
@@ -119,19 +108,19 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	 * @param lastsourcetransactionid where to start from
 	 * @throws IOException if error
 	 * 
-	 * @see #getLastSuccessfulSourceTransaction()
 	 */
 	public abstract void restartWith(String lastsourcetransactionid) throws IOException;
 	
 	/**
 	 * The poll method implementer must test if the process is active still and update the counters.
-	 * 
+	 * @param from_transactionid 
+	 * @return the next transaction start point
 	 * @throws IOException if error
 	 */
-	public abstract void poll() throws IOException;
+	public abstract String poll(String from_transactionid) throws IOException;
 	
 	/**
-	 * The {@link #poll()} calls are either blocking, meaning they themselves wait for data or return asap.
+	 * The {@link #poll(String)} calls are either blocking, meaning they themselves wait for data or return asap.
 	 * The time the process waits between two poll calls is returned by this method here.
 	 * 
 	 * @return number of ms to wait between polls from the source system
@@ -200,12 +189,13 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 		File mappingfile = SchemaMappingData.getLastActiveMapping(getConnectorController(), getConnectionController().getName(), sourceschemaname);
 		if (mappingfile != null) {
 			String targetschemaname = RecordMapping.getTargetSchemaname(mappingfile);
-			SchemaHandler schemahandler = getPipelineAPI().getSchema(targetschemaname);
+			SchemaRegistryName targetschema = SchemaRegistryName.create(targetschemaname);
+			SchemaHandler schemahandler = getPipelineAPI().getSchema(targetschema);
 			if (schemahandler == null) {
 				try {
 					Schema targetvalueschema = SchemaMappingData.getTargetSchema(mappingfile);
 					Schema targetkeyschema = KeySchema.create(targetvalueschema);
-					schemahandler = getPipelineAPI().registerSchema(targetschemaname, null, targetkeyschema, targetvalueschema);
+					schemahandler = getPipelineAPI().registerSchema(targetschema, null, targetkeyschema, targetvalueschema);
 				} catch (SchemaException e) {
 					throw new ConnectorRuntimeException("Creating the value schema failed", e, null, sourceschemaname);
 				}
@@ -222,16 +212,15 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 			return mapping.getOutputSchemaHandler();
 		} else {
 			// There is no mapping, use the schema directly
-			SchemaHandler schemahandler = null; // getPipelineAPI().getSchema(sourceschemaname);
-			if (schemahandler == null) {
-				Schema valueschema = null;
-				try {
-					valueschema = createSchema(sourceschemaname);
-					Schema keyschema = KeySchema.create(valueschema);
-					schemahandler = getPipelineAPI().registerSchema(sourceschemaname, null, keyschema, valueschema);
-				} catch (SchemaException e) {
-					throw new ConnectorRuntimeException("Creating the value schema failed", e, null, sourceschemaname);
-				}
+			SchemaHandler schemahandler = null; // recreate the schema to make sure it is current
+			Schema valueschema = null;
+			try {
+				valueschema = createSchema(sourceschemaname);
+				SchemaRegistryName schemaname = SchemaRegistryName.create(sourceschemaname);
+				Schema keyschema = KeySchema.create(valueschema);
+				schemahandler = getPipelineAPI().registerSchema(schemaname, null, keyschema, valueschema);
+			} catch (SchemaException e) {
+				throw new ConnectorRuntimeException("Creating the value schema failed", e, null, sourceschemaname);
 			}
 			return schemahandler;
 		}
@@ -338,15 +327,55 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 		instance.incrementRowsProducedBy(1);
 	}
 	
-	public void beginTransaction(String transactionid) throws PipelineRuntimeException {
-		producersession.beginTransaction(transactionid);
+	public void beginDeltaTransaction(String transactionid, int instancenumber) throws PipelineRuntimeException {
+		producersession.beginDeltaTransaction(transactionid, instancenumber);
+	}
+
+	public void beginInitialLoadTransaction(String sourcetransactionid, String schemaname, int instancenumber) throws IOException {
+		producersession.beginInitialLoadTransaction(sourcetransactionid, schemaname, instancenumber);
+	}
+
+	public void commitDeltaTransaction() throws IOException {
+		producersession.commitDeltaTransaction();
 	}
 	
-	public void commitTransaction() throws IOException {
-		producersession.commitTransaction();
+	public void commitInitialLoadTransaction(long rowcount) throws IOException {
+		producersession.commitInitialLoadTransaction(rowcount);
 	}
 	
 	public void abortTransaction() throws PipelineRuntimeException {
 		producersession.abortTransaction();
 	}
+
+	/**
+	 * This method is called periodically, currently every 20 minutes together with the schema cache updates, and allows
+	 * to perform some house keeping tasks.
+	 * @throws ConnectorRuntimeException 
+	 */
+	public void executePeriodicTask() throws ConnectorRuntimeException {
+	}
+	
+	public Map<String, LoadInfo> getLoadInfo() throws IOException {
+		return getPipelineAPI().getLoadInfo(this.getProducerProperties().getName(), instance.getInstanceNumber());
+	}
+
+	/**
+	 * @return a list of all schemas the producer handles
+	 */
+	public abstract List<String> getAllSchemas();
+
+	/**
+	 * This table/partition was never loaded, hence it needs to start with an initial load of all data.
+	 * For the initial load make sure the data is committed to Kafka at least every 10 minutes, otherwise 
+	 * a commit timeout in Kafka occurs after 15 minutes and the load fails. 
+	 * 
+	 * @param schemaname of the table to be loaded 
+	 * @param transactionid 
+	 * @return Number of rows loaded
+	 * @throws IOException if error
+	 */
+	public abstract long executeInitialLoad(String schemaname, String transactionid) throws IOException;
+
+	public abstract String getCurrentTransactionId() throws IOException;
+	
 }

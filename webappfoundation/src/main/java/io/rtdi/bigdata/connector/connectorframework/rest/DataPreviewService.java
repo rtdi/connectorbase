@@ -16,6 +16,7 @@ import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorControll
 import io.rtdi.bigdata.connector.connectorframework.rest.entity.DataPreview;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 
 
 @Path("/")
@@ -35,7 +36,7 @@ public class DataPreviewService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			IPipelineAPI<?, ?, ?, ?> api = connector.getPipelineAPI();
-			return Response.ok(new DataPreview(api, topicname)).build();
+			return Response.ok(new DataPreview(api, TopicName.create(topicname))).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}

@@ -1,15 +1,23 @@
 package io.rtdi.bigdata.connector.pipeline.foundation;
 
+import java.time.Duration;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.SchemaNameEncoder;
 
 /**
- * The schema name is a string concat in the form of &lt;<i>tenantid</i>&gt;-&lt;<i>schemaname</i>&gt;.
- * This class makes sure all names are of the proper format and helps to access
- * the FQN, the name (without tenant) or the tenant portion.
+ * The schema name is a string that has an encoded equivalent to be valid for the schema registry.
+ * Note that the schema name is actually the subject name part used for schema registry (which adds the text -key or -value)
  *
  */
-public class SchemaName implements Comparable<SchemaName>{
+public class SchemaRegistryName implements Comparable<SchemaRegistryName>{
 	private String name;
+	private String encodedname;
+	private static Cache<String, SchemaRegistryName> schemanamecache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(10000).build();
+
 
 	/**
 	 * Build the schema name based on the tenant and name.
@@ -17,12 +25,29 @@ public class SchemaName implements Comparable<SchemaName>{
 	 * @param schemaname is the tenant specific name of the schema
 	 * @throws PropertiesException in case the fqn is null
 	 */
-	public SchemaName(String schemaname) throws PropertiesException {
+	private SchemaRegistryName(String schemaname) throws PropertiesException {
 		if (schemaname == null || schemaname.length() == 0) {
 			throw new PropertiesException("schemaname cannot be null or empty");
 		}
-		TopicUtil.validate(schemaname);
 		this.name = schemaname;
+		this.encodedname = SchemaNameEncoder.encodeName(name);
+	}
+
+	/**
+	 * Factory method to create a new SchemaName
+	 * @param name is an arbitrary name, even names that are not supported by Kafka are fine 
+	 * @return a new SchemaName object
+	 */
+	public static SchemaRegistryName create(String name) {
+		return schemanamecache.get(name, k -> getNewSchemaName(k));
+	}
+	
+	private static SchemaRegistryName getNewSchemaName(String name) {
+		try {
+			return new SchemaRegistryName(name);
+		} catch (PropertiesException e) {
+			return null; // cannot happen actually
+		}
 	}
 
 	@Override
@@ -34,8 +59,8 @@ public class SchemaName implements Comparable<SchemaName>{
 	public boolean equals(Object obj) {
 		if (obj == null) {
 			return false;
-		} else if (obj instanceof SchemaName) {
-			SchemaName s = (SchemaName) obj;
+		} else if (obj instanceof SchemaRegistryName) {
+			SchemaRegistryName s = (SchemaRegistryName) obj;
 			return name.equals(s.name);
 		} else {
 			return false;
@@ -47,6 +72,9 @@ public class SchemaName implements Comparable<SchemaName>{
 		return name;
 	}
 
+	public String getEncodedName() {
+		return encodedname;
+	}
 
 	/**
 	 * Duplicate the string operations based on the name.
@@ -88,7 +116,7 @@ public class SchemaName implements Comparable<SchemaName>{
 	}
 
 	@Override
-	public int compareTo(SchemaName o) {
+	public int compareTo(SchemaRegistryName o) {
 		if (o == null) {
 			return -1;
 		} else {

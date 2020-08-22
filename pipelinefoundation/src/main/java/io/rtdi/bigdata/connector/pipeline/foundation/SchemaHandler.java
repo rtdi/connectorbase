@@ -12,24 +12,10 @@ import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.Schema
  */
 public class SchemaHandler {
 	
-	private SchemaName schemaname;
+	private SchemaRegistryName schemaname;
 	private SchemaMetadataDetails metadata;
 	private IRecordMapping mapping;
 	
-	/**
-	 * Constructs a new SchemaHandler by specifying the optional tenantid and the tenant's schema name.
-	 * 
-	 * @param name schemaname
-	 * @param keyschema Avro schema of the key
-	 * @param valueschema Avro schema of the value
-	 * @param keyschemaid schema id of the key
-	 * @param valueschemaid schema id of the value
-	 * @throws PropertiesException in case of any error
-	 */
-	public SchemaHandler(String name, Schema keyschema, Schema valueschema, int keyschemaid, int valueschemaid) throws PropertiesException {
-		this(new SchemaName(name), keyschema, valueschema, keyschemaid, valueschemaid); // includes the test if the name is null
-	}
-
 	/**
 	 * Creates a new SchemaHandler via the global schemaname in the form of {tenantid}-{schemaname}.
 	 * 
@@ -40,7 +26,7 @@ public class SchemaHandler {
 	 * @param valueschemaid schema id of the value
 	 * @throws PropertiesException in case of any error
 	 */
-	public SchemaHandler(SchemaName schemaname, Schema keyschema, Schema valueschema, int keyschemaid, int valueschemaid) throws PropertiesException {
+	public SchemaHandler(SchemaRegistryName schemaname, Schema keyschema, Schema valueschema, int keyschemaid, int valueschemaid) throws PropertiesException {
 		if (schemaname == null) {
 			throw new PropertiesException("Schemaname cannot be constructed from an empty string");
 		}
@@ -68,7 +54,7 @@ public class SchemaHandler {
 	/**
 	 * @return The global schema name as being set by the constructors
 	 */
-	public SchemaName getSchemaName() {
+	public SchemaRegistryName getSchemaName() {
 		return schemaname;
 	}
 

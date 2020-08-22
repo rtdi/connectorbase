@@ -80,4 +80,8 @@ public class ErrorEntity {
 		return stacktracerootcause;
 	}
 
+	@Override
+	public String toString() {
+		return exception;
+	}
 }

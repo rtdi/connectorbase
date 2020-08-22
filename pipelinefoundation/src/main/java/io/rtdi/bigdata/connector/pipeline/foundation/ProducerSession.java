@@ -23,6 +23,8 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	private ProducerProperties properties;
 	protected Logger logger = LogManager.getLogger(this.getClass().getName());
 	private IPipelineBase<?, T> api;
+	private String initialloadschema;
+	private int instanceno;
 
 
 	/**
@@ -41,15 +43,37 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * Start a new transaction and assign its metadata.
 	 * 
 	 * @param sourcetransactionid a strictly ascending id. Will be used to find a recovery point in case of an error.
+	 * @param instancenumber producer instance number
 	 * @throws PipelineRuntimeException in case the previous transaction is open still
 	 */
-	public final void beginTransaction(String sourcetransactionid) throws PipelineRuntimeException {
+	public final void beginDeltaTransaction(String sourcetransactionid, int instancenumber) throws PipelineRuntimeException {
 		if (isopen) {
 			throw new PipelineRuntimeException("Cannot begin a new transaction while it is not completed");
 		}
 		this.sourcetransactionidentifier = sourcetransactionid;
 		this.changetime = System.currentTimeMillis();
 		beginImpl();
+		this.instanceno = instancenumber;
+	}
+
+	/**
+	 * Start a new transaction and assign its metadata.
+	 * 
+	 * @param sourcetransactionid a strictly ascending id. Will be used to find a recovery point in case of an error.
+	 * @param schemaname name of the table to be loaded
+	 * @param instancenumber producer instance number
+	 * @throws IOException 
+	 */
+	public final void beginInitialLoadTransaction(String sourcetransactionid, String schemaname, int instancenumber) throws IOException {
+		if (isopen) {
+			throw new PipelineRuntimeException("Cannot begin a new transaction while it is not completed");
+		}
+		this.sourcetransactionidentifier = sourcetransactionid;
+		this.changetime = System.currentTimeMillis();
+		beginImpl();
+		markInitialLoadStart(schemaname, instancenumber);
+		this.initialloadschema = schemaname;
+		this.instanceno = instancenumber;
 	}
 
 	/**
@@ -58,12 +82,27 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * @throws IOException in case anything goes wrong during the commit
 	 * 
 	 */
-	public final void commitTransaction() throws IOException {
+	public final void commitDeltaTransaction() throws IOException {
+		confirmDeltaLoad(this.instanceno);
 		commitImpl();
 		isopen = false;
 		sourcetransactionidentifier = null;
 	}
 
+	/**
+	 * Commit the transaction in the producer, thus telling the source this record had been received and cannot get lost anymore.
+	 * @param rowcount number of rows loaded
+	 * 
+	 * @throws IOException in case anything goes wrong during the commit
+	 * 
+	 */
+	public final void commitInitialLoadTransaction(long rowcount) throws IOException {
+		confirmInitialLoad(this.initialloadschema, this.instanceno, rowcount);
+		commitImpl();
+		isopen = false;
+		sourcetransactionidentifier = null;
+	}
+	
 	/**
 	 * Rollback the current transaction.
 	 * 
@@ -77,7 +116,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	}
 
 	/**
-	 * Called at the end of {@link #beginTransaction(String)} to provide the implementer with a place to add custom code.
+	 * Called at the end of all begin transaction methods to provide the implementer with a place to add custom code.
 	 * Normally not called directly.
 	 * 
 	 * @throws PipelineRuntimeException in case anything goes wrong
@@ -85,7 +124,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	public abstract void beginImpl() throws PipelineRuntimeException;
 
 	/**
-	 * Called at the end of {@link #commitTransaction()} to provide the implementer with a place to add custom code.
+	 * Called at the end of commits to provide the implementer with a place to add custom code.
 	 * Normally not called directly.
 	 * 
 	 * @throws IOException in case anything goes wrong
@@ -100,14 +139,14 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	protected abstract void abort() throws PipelineRuntimeException;
 
 	/**
-	 * @return The current/last transaction's sourcetransactionidentifier as passed in the {@link #beginTransaction(String)}
+	 * @return The current/last transaction's sourcetransactionidentifier as passed in the begin transaction
 	 */
 	public String getSourceTransactionIdentifier() {
 		return sourcetransactionidentifier;
 	}
 
 	/**
-	 * @return The timestamp when the current/last invocation of {@link #beginTransaction(String)} was done. Is used as part of the record metadata.
+	 * @return The timestamp when the current/last invocation of begin transaction was executed. Is used as part of the record metadata.
 	 */
 	public long getChangetime() {
 		return changetime;
@@ -189,7 +228,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 		for (Field f : keyrecord.getSchema().getFields()) {
 			keyrecord.put(f.name(), valuerecord.get(f.name()));
 		}
-		addRow(topic, partition, handler, keyrecord, valuerecord, changetype, sourceSystemID, sourceSystemID);
+		addRow(topic, partition, handler, keyrecord, valuerecord, changetype, sourceRowID, sourceSystemID);
 	}
 
 
@@ -206,19 +245,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 */
 	protected abstract void addRowImpl(T topic, Integer partition, SchemaHandler handler, JexlRecord keyrecord, JexlRecord valuerecord) throws IOException;
 
-	/**
-	 * Some implementations, the http-pipeline with the http-server, exchange the data in the serialized format already. Then this version comes in handy.
-	 * Therefore the addRowImpl(TopicHandler, Integer, SchemaHandler, GenericRecord, GenericRecord)  
-	 * 
-	 * @param topic this record should be put into
-	 * @param partition optional partition information
-	 * @param keyrecord Avro record of the key in serialized form
-	 * @param valuerecord Avro record with the payload in serialized form
-	 * @throws IOException in case anything goes wrong
-	 */
-	public abstract void addRowBinary(TopicHandler topic, Integer partition, byte[] keyrecord, byte[] valuerecord) throws IOException;
-
-		
+	
 	@Override
 	public String toString() {
 		return "ProducerSession " + properties.getName();
@@ -232,9 +259,30 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	}
 
 	/**
-	 * @return the transaction id or null if no transaction is active yet
+	 * Called to tell the source was initial loaded
+	 * 
+	 * @param schemaname of the table initial loaded
+	 * @param producerinstance ID of the producer instance
+	 * @param rowcount number of rows loaded
+	 * @throws IOException in case anything goes wrong
 	 */
-	public String getTransactionID() {
-		return sourcetransactionidentifier;
-	}
+	public abstract void confirmInitialLoad(String schemaname, int producerinstance, long rowcount) throws IOException;
+
+	/**
+	 * Called to tell that the source initial load was started
+	 * 
+	 * @param schemaname of the table initial loaded
+	 * @param producerinstance ID of the producer instance
+	 * @throws IOException in case anything goes wrong
+	 */
+	public abstract void markInitialLoadStart(String schemaname, int producerinstance) throws IOException;
+
+	/**
+	 * Update the Delta information log that this source transaction has been fully loaded
+	 *  
+	 * @param producerinstance
+	 * @throws IOException
+	 */
+	public abstract void confirmDeltaLoad(int producerinstance) throws IOException;
+
 }

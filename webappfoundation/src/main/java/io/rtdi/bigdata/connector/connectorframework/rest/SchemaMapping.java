@@ -18,6 +18,7 @@ import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorControll
 import io.rtdi.bigdata.connector.connectorframework.entity.SchemaMappingData;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 
 
 @Path("/")
@@ -57,7 +58,7 @@ public class SchemaMapping {
     		SchemaMappingData data) {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
-			SchemaHandler targetschemhandler = connector.getPipelineAPI().getSchema(targetschemaname); 
+			SchemaHandler targetschemhandler = connector.getPipelineAPI().getSchema(SchemaRegistryName.create(targetschemaname)); 
 			data.save(connector, connectionname, remoteschemaname, targetschemhandler);
 			return JAXBSuccessResponseBuilder.getJAXBResponse("saved");
 		} catch (Exception e) {

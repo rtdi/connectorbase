@@ -15,10 +15,6 @@ public class TopicHandlerTest extends TopicHandler {
 	private ConcurrentLinkedQueue<TopicPayload> data = new ConcurrentLinkedQueue<>();
 	long offest = 0;
 
-	public TopicHandlerTest(String tenant, String name, TopicMetadata topicmetadata) throws PropertiesException {
-		super(name, topicmetadata);
-	}
-
 	public TopicHandlerTest(TopicName topicname, TopicMetadata topicmetadata) throws PropertiesException {
 		super(topicname, topicmetadata);
 	}

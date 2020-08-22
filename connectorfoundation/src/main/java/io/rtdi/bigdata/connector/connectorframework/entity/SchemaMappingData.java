@@ -27,6 +27,7 @@ import io.rtdi.bigdata.connector.connectorframework.controller.ConnectionControl
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroAnyPrimitive;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroType;
 import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.AvroArray;
@@ -132,7 +133,7 @@ public class SchemaMappingData {
 	 * @throws IOException if error
 	 */
 	public SchemaMappingData(ConnectorController connector, String connectionname, String remoteschemaname, String targetschemaname) throws IOException {
-		SchemaHandler schemahandler = connector.getPipelineAPI().getSchema(targetschemaname);
+		SchemaHandler schemahandler = connector.getPipelineAPI().getSchema(SchemaRegistryName.create(targetschemaname));
 		Schema schema = schemahandler.getValueSchema();
 		this.schemaname = targetschemaname;
 		SchemaElement mapping = null;

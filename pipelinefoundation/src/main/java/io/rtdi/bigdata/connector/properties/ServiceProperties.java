@@ -2,10 +2,7 @@ package io.rtdi.bigdata.connector.properties;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +14,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceConfigEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceConfigEntity.ServiceSchema;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceConfigEntity.ServiceStep;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 import io.rtdi.bigdata.connector.properties.atomic.IProperty;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyGroup;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
@@ -177,21 +175,14 @@ public abstract class ServiceProperties {
 				}
 				for (String delete : existingsteps) {
 					File stepdir = new File(schemadir, delete);
-					deleteDir(stepdir.toPath());
+					IOUtils.deleteDirectory(stepdir);
 				}					
 			}
 			for (String delete : existingschemas) {
 				File schemadir = new File(directory, delete);
-				deleteDir(schemadir.toPath());
+				IOUtils.deleteDirectory(schemadir);
 			}
 		}
-	}
-	
-	private void deleteDir(Path path) throws IOException {
-		Files.walk(path)
-		.sorted(Comparator.reverseOrder())
-		.map(Path::toFile)
-		.forEach(File::delete);
 	}
 	
 	public String getSourceTopic() {

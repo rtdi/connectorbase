@@ -10,6 +10,7 @@ import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.LogicalDataTypesRegistry;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
@@ -51,6 +52,10 @@ public class AvroSerializer {
 				throw new IOException(e);
 			}
 		}
+	}
+
+	public static byte[] serialize(JexlRecord data) throws IOException {
+		return serialize(data.getSchemaId(), data);
 	}
 
 }

@@ -93,13 +93,13 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 				logger.error("Cannot deserialize data Value with offset {}, row not processed", String.valueOf(record.offset()));
 			}
 			if (valuerecord != null) {
-				String topicname = record.topic();
+				TopicName topicname = TopicName.create(record.topic());
 				processor.process(topicname, record.offset(), record.partition(), keyrecord, valuerecord);
 				rowcount++;
 
 				// Due to a rebalance a new topic might be subscribed to
 				if (getTopic(topicname) == null) { 
-					addTopic(getPipelineAPI().getTopic(new TopicName(topicname)));
+					addTopic(getPipelineAPI().getTopic(topicname));
 				}
 			}
 		}
@@ -119,7 +119,7 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 	public void setTopics() throws PropertiesException {
 		Set<String> topics = consumer.subscription();
 		for ( String t : topics) {
-			addTopic(getPipelineAPI().getTopic(new TopicName(t)));
+			addTopic(getPipelineAPI().getTopic(TopicName.create(t)));
 		}
 	}
 

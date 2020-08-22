@@ -33,7 +33,7 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 	protected Logger logger;
 	protected OperationState state;
 	protected long lastoffset = -1;
-	protected String lasttopic = null;
+	protected TopicName lasttopic = null;
 	private IControllerState controller;
 
 	protected ConsumerSession(ConsumerProperties properties, IPipelineBase<?, T> api) throws PropertiesException {
@@ -176,7 +176,7 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 		return lastoffset;
 	}
 	
-	public String getLastTopic() {
+	public TopicName getLastTopic() {
 		return lasttopic;
 	}
 
