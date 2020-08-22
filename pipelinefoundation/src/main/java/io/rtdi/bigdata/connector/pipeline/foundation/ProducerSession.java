@@ -62,7 +62,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * @param sourcetransactionid a strictly ascending id. Will be used to find a recovery point in case of an error.
 	 * @param schemaname name of the table to be loaded
 	 * @param instancenumber producer instance number
-	 * @throws IOException 
+	 * @throws IOException in case of any errors
 	 */
 	public final void beginInitialLoadTransaction(String sourcetransactionid, String schemaname, int instancenumber) throws IOException {
 		if (isopen) {
@@ -280,8 +280,8 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	/**
 	 * Update the Delta information log that this source transaction has been fully loaded
 	 *  
-	 * @param producerinstance
-	 * @throws IOException
+	 * @param producerinstance is the instance number in case of parallel processing
+	 * @throws IOException on errors
 	 */
 	public abstract void confirmDeltaLoad(int producerinstance) throws IOException;
 

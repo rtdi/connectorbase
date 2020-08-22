@@ -252,8 +252,8 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * 
 	 * @param producername the name of the producer
 	 * @param instanceno the producer instance number
-	 * @return a Map<Schemaname, Map<ProducerInstanceNumber, InitialLoadInfo>>
-	 * @throws IOException
+	 * @return a Map with schema name and its LoadInfo
+	 * @throws IOException in case of any errors
 	 */
 	Map<String, LoadInfo> getLoadInfo(String producername, int instanceno) throws IOException;
 
