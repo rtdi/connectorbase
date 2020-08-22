@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletContext;
-import javax.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.SecurityContext;
 
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
