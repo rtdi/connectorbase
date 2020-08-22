@@ -1,13 +1,22 @@
 package io.rtdi.bigdata.connector.pipeline.foundation;
 
+import java.time.Duration;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.TopicNameEncoder;
 
 /**
- * Represents the name of a topic to simplify tenant, name and fqn name handling.
+ * Represents the name of a topic.
  *
  */
 public class TopicName implements Comparable<TopicName> {
 	private String name;
+	private String encodedname;
+	
+	private static Cache<String, TopicName> topicnamecache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(10000).build();
 
 	/**
 	 * Create a topic name based on the tenant and the tenant specific name. 
@@ -15,11 +24,29 @@ public class TopicName implements Comparable<TopicName> {
 	 * @param name topic name within the tenant
 	 * @throws PropertiesException in case the name is null
 	 */
-	public TopicName(String name) throws PropertiesException {
+	private TopicName(String name) throws PropertiesException {
 		if (name == null || name.length() == 0) {
 			throw new PropertiesException("Topicname cannot be null or empty");
 		}
 		this.name = name;
+		this.encodedname = TopicNameEncoder.encodeName(name);
+	}
+	
+	/**
+	 * Factory method to create a new TopicName object
+	 * @param name is an arbitrary text, even names not supported by Kafka are fine as it will be encoded
+	 * @return the TopicName object
+	 */
+	public static TopicName create(String name) {
+		return topicnamecache.get(name, k -> getNewTopicName(k));
+	}
+	
+	private static TopicName getNewTopicName(String name) {
+		try {
+			return new TopicName(name);
+		} catch (PropertiesException e) {
+			return null; // cannot happen actually
+		}
 	}
 	
 	@Override
@@ -74,6 +101,13 @@ public class TopicName implements Comparable<TopicName> {
 	 */
 	public String getName() {
 		return name;
+	}
+	
+	/**
+	 * @return the encoded name, that is a name where illegal characters are replaced 
+	 */
+	public String getEncodedName() {
+		return encodedname;
 	}
 	
 	@Override

@@ -10,6 +10,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.ISchemaRegistrySource;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
 
 public class TopicPayloadBinaryData {
@@ -19,7 +20,7 @@ public class TopicPayloadBinaryData {
 	public TopicPayloadBinaryData() {
 	}
 
-	public TopicPayloadBinaryData(IPipelineAPI<?, ?, ?, ?> api, String topicname) throws IOException {
+	public TopicPayloadBinaryData(IPipelineAPI<?, ?, ?, ?> api, TopicName topicname) throws IOException {
 		List<TopicPayload> data = api.getLastRecords(topicname,20);
 		if (data != null) {
 			rows = new ArrayList<>();

@@ -6,6 +6,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRe
 
 public interface IProcessFetchedRow {
 	
-	void process(String topic, long offset, int partition, JexlRecord keyRecord, JexlRecord valueRecord) throws IOException;
+	void process(TopicName topic, long offset, int partition, JexlRecord keyRecord, JexlRecord valueRecord) throws IOException;
 
 }

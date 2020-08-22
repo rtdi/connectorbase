@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.AvroUtils;
 
@@ -15,7 +16,7 @@ public class DataPreview {
 	public DataPreview() {
 	}
 
-	public DataPreview(IPipelineAPI<?, ?, ?, ?> api, String topicname) throws IOException {
+	public DataPreview(IPipelineAPI<?, ?, ?, ?> api, TopicName topicname) throws IOException {
 		List<TopicPayload> data = api.getLastRecords(topicname,20);
 		if (data != null) {
 			rows = new ArrayList<>();

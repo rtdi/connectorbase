@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
 
 public class GetRecordsIT {
@@ -33,7 +34,7 @@ public class GetRecordsIT {
 	@Test
 	public void testGetLastRecords() {
 		try {
-			List<TopicPayload> data = api.getLastRecords("S4CHANGES", 10);
+			List<TopicPayload> data = api.getLastRecords(TopicName.create("S4CHANGES"), 10);
 			System.out.println("Got " + data.size() + " records");
 			assertTrue(data.size() <= 10);
 		} catch (Exception e) {

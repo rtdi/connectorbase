@@ -9,6 +9,7 @@ import java.net.URL;
 import io.rtdi.bigdata.connector.pipeline.foundation.AvroDeserialize;
 import io.rtdi.bigdata.connector.pipeline.foundation.ConsumerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.IProcessFetchedRow;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.OperationState;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
@@ -47,7 +48,8 @@ public class ConsumerSessionHttp extends ConsumerSession<TopicHandlerHttp> {
 				switch (io.getNextIntValue()) {
 				case 1:
 					state = OperationState.FETCHGETTINGROW;
-					lasttopic = io.readString(in); // lasttopic is a monitoring variable, needs to be set anyhow, hence using it
+					String s = io.readString(in);
+					lasttopic = TopicName.create(s); // lasttopic is a monitoring variable, needs to be set anyhow, hence using it
 					lastoffset = io.readLong(in);
 					int partition = io.readInt(in);
 					TopicHandlerHttp topic = getTopic(lasttopic); 

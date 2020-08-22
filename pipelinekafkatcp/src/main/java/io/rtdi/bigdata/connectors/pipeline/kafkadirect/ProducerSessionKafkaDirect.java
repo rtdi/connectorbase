@@ -2,13 +2,10 @@ package io.rtdi.bigdata.connectors.pipeline.kafkadirect;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -17,6 +14,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.AvroSerializer;
+import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
 import io.rtdi.bigdata.connector.pipeline.foundation.ProducerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
@@ -28,11 +26,14 @@ import io.rtdi.bigdata.connector.properties.ProducerProperties;
 
 public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 	public static final long COMMIT_TIMEOUT = 20000L;
-	ArrayDeque<Future<RecordMetadata>> messagestatus = new ArrayDeque<Future<RecordMetadata>>();
 	private KafkaProducer<byte[], byte[]> producer;
+	private SchemaHandler transactionlogschema;
+	private Future<RecordMetadata> lastfuture;
+	
 
 	public ProducerSessionKafkaDirect(ProducerProperties properties, KafkaAPIdirect api) throws PropertiesException {
 		super(properties, api);
+		this.transactionlogschema = api.getTransactionLogSchema();
 	}
 
 	@Override
@@ -41,12 +42,19 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 
 	@Override
 	public void commitImpl() throws PipelineRuntimeException {
-		checkMessageStatus();
-		messagestatus.clear();
+		// This call waits for all data to be sent, no need to check manually
+		if (lastfuture != null) {
+			try {
+				lastfuture.get();
+			} catch (InterruptedException | ExecutionException e) {
+				throw new PipelineRuntimeException("Was not able to send all data to Kakfa", e, null, null);
+			}
+		}
 	}
 
 	@Override
 	protected void abort() {
+		lastfuture = null;
 	}
 
 	@Override
@@ -77,20 +85,6 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 	}
 
 	@Override
-	public void addRowBinary(TopicHandler topic, Integer partition, byte[] keyrecord, byte[] valuerecord) throws IOException {
-		if (topic == null) {
-			throw new PipelineRuntimeException("Sending rows requires a topic but it is null");
-		} else if (keyrecord == null || valuerecord == null) {
-			throw new PipelineRuntimeException("Sending rows requires a key and value record");
-		}
-		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getName(), partition, keyrecord, valuerecord);
-		messagestatus.add(producer.send(record));
-		logger.debug("Added data to the producer queue \"{}\"", topic.getTopicName().getName());
-
-		checkSentStatus();
-	}
-
-	@Override
 	protected void addRowImpl(TopicHandler topic, Integer partition, SchemaHandler handler, JexlRecord keyrecord, JexlRecord valuerecord) throws IOException {
 		if (topic == null) {
 			throw new PipelineRuntimeException("Sending rows requires a topic but it is null");
@@ -101,101 +95,44 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 		
 		byte[] value = AvroSerializer.serialize(handler.getDetails().getValueSchemaID(), valuerecord);
 		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(topic.getTopicName().getName(), partition, key, value);
-		messagestatus.add(producer.send(record));
+		// This message might block up to max.block.ms in case the send-buffer is full
+		lastfuture = producer.send(record);
 		logger.debug("Added data to the producer queue \"{}\"", topic.getTopicName().getName());
-
-		checkSentStatus();
 	}
 
-	
-	
-	
-	/* 
-	 * In case the source sends data too fast, we need to throttle it.
-	 * Maximum queue size shall be 10'000 elements
-	 */
-	private void checkSentStatus() throws PipelineRuntimeException {
-		if (messagestatus.size() > 10000) {
-			/*
-			 * The queue is larger, so we remove all leading elements that have been sent to Kafka successfully.
-			 * Multiple cases are possible:
-			 * 1. Not a single message has been received by Kafka yet because the payload is so large or the network to Kafka is slow or...
-			 * 2. Normal case will be that most messages were sent successfully, only the last few are pending still.
-			 * 3. All messages were sent, the messagestatus queue consists of completed only.
-			 * 
-			 * Only in the first case the process is throttled until the oldest message is sent. In case it cannot be sent within 20 seconds,
-			 * there is something wrong and the process is terminated.
-			 */
-			Future<RecordMetadata> firstfuture = messagestatus.getFirst(); // firstfuture cannot be null
-			if (firstfuture.isDone() == false) {
-				try {
-					logger.debug("More than 10'000 rows in the queue and the oldest one is still "
-							+ "in flight -> Waiting up to 20 seconds for it to be sent before throwing an exception");
-					firstfuture.get(20, TimeUnit.SECONDS);
-				} catch (InterruptedException | ExecutionException | TimeoutException e) {
-					throw new PipelineRuntimeException("ExecutionExcpetion", e, null);
-				}
-			} else {
-				while (firstfuture != null && firstfuture.isDone()) {
-					messagestatus.removeFirst();
-					if (messagestatus.size() > 0) {
-						firstfuture = messagestatus.getFirst();
-					} else {
-						firstfuture = null;
-					}
-				}
-			}
-		}
+	@Override
+	public void confirmInitialLoad(String schemaname, int producerinstance, long rowcount) throws IOException {
+		sendLoadStatus(schemaname, producerinstance, rowcount, true);
 	}
 
-	/**
-	 * This method checks if the sent data had been received by the Kafka server and confirmed. As these are asynchronous 
-	 * processes potentially, the logic is to empty the queue whenever the oldest (first) message had been sent.
-	 * If the overall time is longer than COMMIT_TIMEOUT, then the commit is considered failed.<BR>
-	 * 
-	 * The approach is not as straight forward, as there might be up to 10'000 messages in the queue. We cannot wait up to 20 seconds
-	 * on each message, as then the servlet would return after hours, in case no message was sent.<BR> 
-	 * 
-	 * Therefore an outer loop runs for up to 20 seconds and allows each message to confirm within one second. If the first message was not
-	 * sent within that time, it is tried again. This way the overall runtime of this method is between zero seconds - all messages have been 
-	 * sent already - and 20+1 seconds.
-	 * 
-	 * @throws PipelineRuntimeException if error
-	 */
-	private void checkMessageStatus() throws PipelineRuntimeException {
-		if (messagestatus.size() > 0) {
-			Future<RecordMetadata> firstfuture = messagestatus.getFirst();
-			long endtime = System.currentTimeMillis() + COMMIT_TIMEOUT;
-			
-			while (firstfuture != null && System.currentTimeMillis() < endtime) {
-				try {
-					firstfuture.get(1, TimeUnit.SECONDS);
-				} catch (TimeoutException e) {
-					// that is okay
-				} catch (InterruptedException | ExecutionException e) {
-					throw new PipelineRuntimeException("Checking the message status failed", e, null);
-				}
-				/*
-				 * There are multiple cases now
-				 * -- The current message had been sent (isDone == true) --> remove it from the queue and test the next
-				 * -- Above get did timeout as Kafka has not processed it yet --> try again
-				 * -- The entire process took longer than COMMIT_TIMEOUT --> something is wrong
-				 */
-				if (firstfuture.isDone()) {
-					messagestatus.removeFirst();
-					if (messagestatus.size() > 0) {
-						firstfuture = messagestatus.getFirst();
-					} else {
-						firstfuture = null;
-					}
-				}
-			}
-			if (firstfuture != null) {
-				logger.debug("After {} milliseconds there are still {} messages in flight, need to raise an exception", COMMIT_TIMEOUT, messagestatus.size());
-				throw new PipelineRuntimeException("Commit did not succeed within a reasonable amount of time (\"" + String.valueOf(COMMIT_TIMEOUT) + "\")");
-			}
-		}
+	@Override
+	public void markInitialLoadStart(String schemaname, int producerinstance) throws IOException {
+		sendLoadStatus(schemaname, producerinstance, null, false);
+	}
+	
+	@Override
+	public void confirmDeltaLoad(int producerinstance) throws IOException {
+		sendLoadStatus(PipelineAbstract.ALL_SCHEMAS, producerinstance, null, true);
 	}
 
+	private void sendLoadStatus(String schemaname, int producerinstance, Long rowcount, boolean finished) throws IOException {
+		JexlRecord keyrecord = new JexlRecord(transactionlogschema.getKeySchema());
+		keyrecord.set(PipelineAbstract.AVRO_FIELD_PRODUCERNAME, getProperties().getName());
+		keyrecord.set(PipelineAbstract.AVRO_FIELD_PRODUCER_INSTANCE_NO, producerinstance);
+		keyrecord.set(KafkaAPIdirect.AVRO_FIELD_SCHEMANAME, schemaname);
+		JexlRecord valuerecord = new JexlRecord(transactionlogschema.getValueSchema());
+		valuerecord.set(PipelineAbstract.AVRO_FIELD_PRODUCERNAME, getProperties().getName());
+		valuerecord.set(PipelineAbstract.AVRO_FIELD_PRODUCER_INSTANCE_NO, producerinstance);
+		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_SCHEMANAME, schemaname);
+		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_SOURCE_TRANSACTION_IDENTIFIER, this.getSourceTransactionIdentifier());
+		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_LASTCHANGED, System.currentTimeMillis());
+		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_ROW_COUNT, rowcount);
+		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_WAS_SUCCESSFUL, finished);
+		byte[] key = AvroSerializer.serialize(transactionlogschema.getDetails().getKeySchemaID(), keyrecord);
+		byte[] value = AvroSerializer.serialize(transactionlogschema.getDetails().getValueSchemaID(), valuerecord);
+		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(
+				getPipelineAPI().getProducerTransactionTopicName().getEncodedName(), null, key, value);
+		producer.send(record);
+	}
 
 }

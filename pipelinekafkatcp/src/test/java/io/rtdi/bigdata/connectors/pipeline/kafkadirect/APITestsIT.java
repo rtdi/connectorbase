@@ -13,8 +13,9 @@ import org.junit.Test;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
-import io.rtdi.bigdata.connector.pipeline.foundation.SchemaName;
+import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroInt;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroString;
@@ -87,14 +88,14 @@ public class APITestsIT {
 	@Test
 	public void testSchemaCreate() {
 		try {
-			TopicHandler topic1 = api.getTopic("Topic1");
+			TopicHandler topic1 = api.getTopic(TopicName.create("Topic1"));
 			if (topic1 == null) {
-				topic1 = api.topicCreate("Topic1", 1, (short) 1);
+				topic1 = api.topicCreate(TopicName.create("Topic1"), 1, (short) 1);
 			}
 			Schema keyschema = getKeySchema().getSchema();
 			Schema valueschema = getValueSchema().getSchema();
 			@SuppressWarnings("unused")
-			SchemaHandler employeeschema = api.registerSchema(new SchemaName("Employee"), "The employee schema", keyschema, valueschema);
+			SchemaHandler employeeschema = api.registerSchema(SchemaRegistryName.create("Employee"), "The employee schema", keyschema, valueschema);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -105,7 +106,7 @@ public class APITestsIT {
 	// @Test
 	public void testGetLastRecords() {
 		try {
-			List<TopicPayload> data = api.getLastRecords("Topic1", 10);
+			List<TopicPayload> data = api.getLastRecords(TopicName.create("Topic1"), 10);
 			assertTrue(data.size() <= 10);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -45,7 +45,7 @@ public class ValueMapperMicroService implements ValueTransformer<JexlRecord, Jex
 			}
 			return value;
 		} catch (IOException e) {
-			logger.error(e);
+			logger.error("IOException thrown", e);
 			throw new ProcessorStateException(e);
 		}
 	}

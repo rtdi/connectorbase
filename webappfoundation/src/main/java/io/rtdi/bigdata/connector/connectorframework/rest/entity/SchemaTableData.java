@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroAnyPrimitive;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -33,7 +34,7 @@ public class SchemaTableData {
 	public SchemaTableData(
 			IPipelineAPI<?, ?, ?, ?> api,
 			String schemaname) throws PropertiesException {
-		SchemaHandler schemahandler = api.getSchema(schemaname);
+		SchemaHandler schemahandler = api.getSchema(SchemaRegistryName.create(schemaname));
 		Schema schema = schemahandler.getValueSchema();
 		this.schemaname = schemaname;
 		data = new SchemaElement(schemaname, null, schema, new ArrayList<Schema>());

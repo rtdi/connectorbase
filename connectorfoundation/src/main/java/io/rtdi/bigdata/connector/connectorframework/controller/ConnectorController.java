@@ -2,9 +2,7 @@ package io.rtdi.bigdata.connector.connectorframework.controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +18,7 @@ import io.rtdi.bigdata.connector.connectorframework.utils.UsageStatisticSender;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
 import io.rtdi.bigdata.connector.properties.ServiceProperties;
 
@@ -87,36 +86,38 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	}
 	
 	public void setAPI() throws PropertiesException {
-		String apiclassname = globalsettings.getPipelineAPI();
-		if (apiclassname == null) {
-			apiclassname = "KafkaAPIdirect";
-			logger.info("The global.properties does not exist or has no settings for the PipelineAPI, using the default \"{}\"", apiclassname);
-		} else {
-			logger.info("The global.properties asks to use the class \"{}\"", apiclassname);
-		}
-		@SuppressWarnings("rawtypes")
-		ServiceLoader<IPipelineAPI> loader = ServiceLoader.load(IPipelineAPI.class);
-		int count = 0;
-		for (IPipelineAPI<?,?,?,?> serv : loader) {
-		    count++;
-		    api = serv;
-			if (apiclassname != null && apiclassname.equals(serv.getClass().getSimpleName())) {
-				logger.info("The global.properties asks to use the class \"{}\" and we found it", apiclassname);
-				break;
+		if (api == null) {
+			String apiclassname = globalsettings.getPipelineAPI();
+			if (apiclassname == null) {
+				apiclassname = "KafkaAPIdirect";
+				logger.info("The global.properties does not exist or has no settings for the PipelineAPI, using the default \"{}\"", apiclassname);
 			} else {
-				logger.info("Found the pipeline class \"{}\"", api.getClass().getSimpleName());
+				logger.info("The global.properties asks to use the class \"{}\"", apiclassname);
 			}
+			@SuppressWarnings("rawtypes")
+			ServiceLoader<IPipelineAPI> loader = ServiceLoader.load(IPipelineAPI.class);
+			int count = 0;
+			for (IPipelineAPI<?,?,?,?> serv : loader) {
+			    count++;
+			    api = serv;
+				if (apiclassname != null && apiclassname.equals(serv.getClass().getSimpleName())) {
+					logger.info("The global.properties asks to use the class \"{}\" and we found it", apiclassname);
+					break;
+				} else {
+					logger.info("Found the pipeline class \"{}\"", api.getClass().getSimpleName());
+				}
+			}
+			
+			if (count == 0) {
+				throw new PropertiesException("No class for a pipeline was found. Seems a jar file is missing in the web application?");
+			}
+			api.setWEBINFDir(configdir);
+			if (!api.hasConnectionProperties()) {
+				// User does not want to see the low level error but the fact that the properties are not set yet.
+				throw new PropertiesException("No Connection Properties defined yet", "Use the home page to get to the UI for setting them", null);
+			}
+			api.loadConnectionProperties();
 		}
-		
-		if (count == 0) {
-			throw new PropertiesException("No class for a pipeline was found. Seems a jar file is missing in the web application?");
-		}
-		api.setWEBINFDir(configdir);
-		if (!api.hasConnectionProperties()) {
-			// User does not want to see the low level error but the fact that the properties are not set yet.
-			throw new PropertiesException("No Connection Properties defined yet", "Use the home page to get to the UI for setting them", null);
-		}
-		api.loadConnectionProperties();
 	}
 	
 	/**
@@ -294,12 +295,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 		connections.remove(conn.getName());
 		conn.disableController();
 		File connectiondir = new File(configdir, "connections" + File.separatorChar + conn.getConnectionProperties().getName());
-		Files.walk(connectiondir.toPath()).sorted(Comparator.reverseOrder()).forEach(t -> {
-			try {
-				Files.delete(t);
-			} catch (IOException e) {
-			}
-		});
+		IOUtils.deleteDirectory(connectiondir);
 		return connectiondir.exists() == false;
 	}
 	
@@ -316,12 +312,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 		services.remove(service.getName());
 		service.disableController();
 		File servicedir = new File(configdir, File.separatorChar + "services" + File.separatorChar + service.getServiceProperties().getName());
-		Files.walk(servicedir.toPath()).sorted(Comparator.reverseOrder()).forEach(t -> {
-			try {
-				Files.delete(t);
-			} catch (IOException e) {
-			}
-		});
+		IOUtils.deleteDirectory(servicedir);
 		return servicedir.exists() == false;
 	}
 

@@ -1,5 +1,6 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -9,6 +10,8 @@ import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -363,4 +366,12 @@ public class IOUtils {
 		return buf.toString();		
 	}
 
+	public static void deleteDirectory(File dir) throws IOException {
+		Files.walk(dir.toPath()).sorted(Comparator.reverseOrder()).forEach(t -> {
+			try {
+				Files.delete(t);
+			} catch (IOException e) {
+			}
+		});
+	}
 }

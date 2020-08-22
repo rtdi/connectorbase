@@ -12,6 +12,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.ConsumerSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.IProcessFetchedRow;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerState;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -23,7 +24,7 @@ import io.rtdi.bigdata.connector.properties.ConsumerProperties;
  * The code sequence is
  * <ul><li>constructor: does establish the connection with the PipelineAPI server</li>
  * <li>fetchBatch() of the PipelineAPI calls for each row 
- * {@link #process(String, long, int, JexlRecord, JexlRecord)}</li>
+ * {@link #process(TopicName, long, int, JexlRecord, JexlRecord)}</li>
  * <li>flushDataImpl() is called once a while to commit the data</li>
  * <li>close is called</li>
  * </ul>
@@ -91,7 +92,7 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 	 * 
 	 * @throws IOException if network error
 	 * 
-	 * @see #process(String, long, int, JexlRecord, JexlRecord)
+	 * @see #process(TopicName, long, int, JexlRecord, JexlRecord)
 	 */
 	public abstract void fetchBatchStart() throws IOException;
 	

@@ -26,7 +26,7 @@ public interface IPipelineBase<S extends ConnectionProperties, T extends TopicHa
 	 * @return A global handler object containing all important information about the schema. 
 	 * @throws PropertiesException if something goes wrong
 	 */
-	SchemaHandler getSchema(SchemaName schemaname) throws PropertiesException;
+	SchemaHandler getSchema(SchemaRegistryName schemaname) throws PropertiesException;
 
 	S getAPIProperties();
 

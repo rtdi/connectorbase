@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.FileNameEncoder;
 
 public class PropertyRoot extends PropertyGroupAbstract {
 	private static final String TEXT = "text";
@@ -40,7 +41,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 		} else if (!directory.isDirectory()) {
 			throw new PropertiesException("Specified location exists and is no directory", (String) null, directory.getAbsolutePath());
 		} else { 
-			File file = new File(directory, getName() + ".json");
+			File file = new File(directory, FileNameEncoder.encodeName(getName() + ".json"));
 			if (!file.canRead()) {
 				throw new PropertiesException("Properties file is not read-able", "Check file permissions and users", file.getAbsolutePath());
 			} else {
@@ -89,7 +90,7 @@ public class PropertyRoot extends PropertyGroupAbstract {
 		} else if (!directory.isDirectory()) {
 			throw new PropertiesException("Specified location exists and is no directory", (String) null, directory.getAbsolutePath());
 		} else {
-			File file = new File(directory, getName() + ".json");
+			File file = new File(directory, FileNameEncoder.encodeName(getName() + ".json"));
 			if (file.exists() && !file.canWrite()) { // Either the file does not exist or it exists and is write-able
 				throw new PropertiesException("Properties file is not write-able", "Check file permissions and users", file.getAbsolutePath());
 			} else {

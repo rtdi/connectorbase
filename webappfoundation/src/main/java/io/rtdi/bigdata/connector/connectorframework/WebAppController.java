@@ -196,7 +196,7 @@ public class WebAppController implements ServletContextListener {
 			
 		} catch (Exception e) {
 			// An error is fine, it allows to start the web application still
-			logger.error(e);
+			logger.error("At webapp start an exception was thrown", e);
 			setError(sce.getServletContext(), e);
 		}
 	}

@@ -5,7 +5,7 @@ import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ContentSensitivity;
-import io.rtdi.bigdata.connector.pipeline.foundation.utils.NameEncoder;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.AvroNameEncoder;
 
 public class AvroField extends Field {
 
@@ -17,12 +17,12 @@ public class AvroField extends Field {
 	public static final String COLUMN_PROP_CONTENT_SENSITIVITY = "__sensitivity";
 
 	public AvroField(String name, Schema schema, String doc, boolean nullable, Object defaultValue) {
-		super(NameEncoder.encodeName(name), getSchema(schema, nullable), doc, defaultValue);
+		super(AvroNameEncoder.encodeName(name), getSchema(schema, nullable), doc, defaultValue);
 		setOriginalName(name);
 	}
 
 	public AvroField(String name, Schema schema, String doc, Object defaultValue, boolean nullable, Order order) {
-		super(NameEncoder.encodeName(name), getSchema(schema, nullable), doc, defaultValue, order);
+		super(AvroNameEncoder.encodeName(name), getSchema(schema, nullable), doc, defaultValue, order);
 		setOriginalName(name);
 	}
 	

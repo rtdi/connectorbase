@@ -3,6 +3,7 @@ package io.rtdi.bigdata.connector.connectorframework.controller;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,9 +11,11 @@ import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryProducer;
 import io.rtdi.bigdata.connector.connectorframework.Producer;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ShutdownException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
+import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.LoadInfo;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
@@ -54,6 +57,10 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 		this.instancenumber = instancenumber;
 	}
 
+	public String getLastTransactionId() {
+		return lastsourcetransactionid;
+	}
+
 	@Override
 	protected void startThreadControllerImpl() throws PipelineRuntimeException {
 	}
@@ -75,26 +82,82 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	public void runUntilError() throws IOException {
 		try (Producer<?,?> rowproducer = getConnectorFactory().createProducer(this)) {
 			try {
+				// Allow the producer to create all schemas, topics and their relationships
 				rowproducer.createTopiclist();
+				// Start capturing changes on all requested source objects 
 				rowproducer.startProducerChangeLogging();
 				
-				lastsourcetransactionid = rowproducer.getLastSuccessfulSourceTransaction();
-	
-				if (lastsourcetransactionid == null || lastsourcetransactionid.length() == 0) {
-					rowproducer.initialLoad();
+				/*
+				 *  Read the LoadInfo from the transaction topic. This tells what table have been initial 
+				 *  loaded already and the last processed delta transaction.
+				 */
+				Map<String, LoadInfo> loadinfo = rowproducer.getLoadInfo();
+				/*
+				 * The initial load info is per table, the delta is global.
+				 * Imagine situations where the initial load started but only half the tables were loaded. In that case
+				 * the initial load should skip the already loaded objects.
+				 * The normal case will be that all tables have been initial loaded and the last successful transaction
+				 * was 1234, hence all tables are read from this transaction onwards.
+				 * Another case would be that all was fine but now a new table got added.
+				 */
+				LoadInfo delta = loadinfo.get(PipelineAbstract.ALL_SCHEMAS);
+				lastsourcetransactionid = null;
+				String transactionid_at_start = rowproducer.getCurrentTransactionId();
+				logger.debug("TransactionID at start is \"{}\"", transactionid_at_start);
+				
+				if (delta != null) {
+					// The producer had processed delta before and should continue where it left.
+					lastsourcetransactionid = delta.getTransactionid();
+					logger.debug("TransactionID of the last delta is \"{}\"", lastsourcetransactionid);
 				} else {
+					logger.debug("No delta ever executed, marking the current transaction id \"{}\" as the start point", transactionid_at_start);
+					rowproducer.beginDeltaTransaction(transactionid_at_start, instancenumber);
+					rowproducer.commitDeltaTransaction();
+				}
+				
+				/*
+				 * Check if all current tables had been initial loaded already, maybe the user added a new one?
+				 */
+				List<String> schemanames = rowproducer.getAllSchemas();
+				if (schemanames != null) {
+					for (String name : schemanames) {
+						if (!loadinfo.containsKey(name)) {
+							// Initial load all tables the initial load was not yet complete.
+							logger.debug("Initial load for table \"{}\" with transaction id \"{}\" is started", name, transactionid_at_start);
+							rowproducer.executeInitialLoad(name, transactionid_at_start);
+							logger.debug("Initial load for table \"{}\" with transaction id \"{}\" is completed", name, transactionid_at_start);
+						}
+					}
+				}
+
+				if (lastsourcetransactionid != null && lastsourcetransactionid.length() != 0) {
+					// Allow the producer to execute some recovery logic
+					logger.debug("Execute restart logic with transaction id \"{}\" is started", lastsourcetransactionid);
 					rowproducer.restartWith(lastsourcetransactionid);
+				} else {
+					lastsourcetransactionid = transactionid_at_start;
 				}
 	
+				// A hook for the producer to execute code after initial load/recovery and prior to reading, if needed
 				operationstate = OperationState.REQUESTDATA;
 				rowproducer.startProducerCapture();
 				
 				while (isRunning()) {
 					operationstate = OperationState.REQUESTDATA;
-					rowproducer.poll();
+					// Poll for change data
+					logger.debug("Polling all changes starting with transaction id \"{}\"", lastsourcetransactionid);
+					lastsourcetransactionid = rowproducer.poll(lastsourcetransactionid);
+					logger.debug("Polling all changes completed, all data up to transaction id \"{}\" was sent", lastsourcetransactionid);
 					pollcalls++;
 					if (updateschemacaches) {
+						/*
+						 *  Every 20 minutes execute some code. That is to fetch the newest producer schemas in case
+						 *  they have changed. Otherwise we would continue producing data with the schema id of and old
+						 *  schema. No harm in that, but better to use new schemas if they are present.
+						 *  Also allow the producer to execute some housekeeping tasks, e.g. empty log tables.
+						 */
 						updateSchemaWithLatest();
+						rowproducer.executePeriodicTask();
 					}
 					if (ismetadatachanged) {
 						updateLandscape();
@@ -104,7 +167,12 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 				}
 			} catch (ShutdownException e) { // A shutdown signal should silently terminate
 				rowproducer.abortTransaction();
-			}				
+			} finally {
+				/*
+				 * Clear the interrupt flag to ensure the close() of the try operation can close all resources gracefully
+				 */
+				Thread.interrupted();
+			}
 		}
 	}
 	
@@ -246,7 +314,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 		return rowsprocessed;
 	}
 	
-	public void incrementRowsProducedBy(long increment) {
+	public synchronized void incrementRowsProducedBy(long increment) {
 		rowsprocessed += increment;
 		lastdatatimestamp = System.currentTimeMillis();
 	}

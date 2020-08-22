@@ -10,12 +10,13 @@ import org.apache.avro.Schema;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
-import io.rtdi.bigdata.connector.pipeline.foundation.SchemaName;
+import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.ServiceSession;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.LoadInfo;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
@@ -30,7 +31,7 @@ import io.rtdi.bigdata.connector.properties.ServiceProperties;
 public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties, TopicHandlerTest, ProducerSessionTest, ConsumerSessionTest> {
 
 	private List<Schema> schemas = new ArrayList<>();
-	private Map<SchemaName, SchemaHandler> schemahandlers = new HashMap<>();
+	private Map<SchemaRegistryName, SchemaHandler> schemahandlers = new HashMap<>();
 	private Map<TopicName, TopicHandlerTest> topics = new HashMap<>();
 	
 	private ProducerMetadataEntity producerdirectory = null;
@@ -38,6 +39,7 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 	private ServiceMetadataEntity servicedirectory = null;
 	
 	private PipelineConnectionProperties pipelineproperties;
+	private Map<String, LoadInfo> loadinfo = new HashMap<>();
 	
 	public PipelineTest() {
 		super();
@@ -59,21 +61,21 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 	}
 
 	@Override
-	public SchemaHandler getSchema(SchemaName schemaname) throws PipelineRuntimeException {
+	public SchemaHandler getSchema(SchemaRegistryName schemaname) throws PipelineRuntimeException {
 		return schemahandlers.get(schemaname);
 	}
 
 	@Override
 	public List<String> getSchemas() throws PipelineRuntimeException {
 		ArrayList<String> ret = new ArrayList<>();
-		for (SchemaName n : schemahandlers.keySet()) {
+		for (SchemaRegistryName n : schemahandlers.keySet()) {
 			ret.add(n.getName());
 		}
 		return ret;
 	}
 
 	@Override
-	public SchemaHandler getOrCreateSchema(SchemaName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
+	public SchemaHandler getOrCreateSchema(SchemaRegistryName name, String description, Schema keyschema, Schema valueschema) throws PropertiesException {
 		SchemaHandler current = schemahandlers.get(name);
 		if (current != null && current.getKeySchema().equals(keyschema) && current.getValueSchema().equals(valueschema)) {
 			return current;
@@ -128,7 +130,7 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 	}
 
 	@Override
-	public List<TopicPayload> getLastRecords(TopicName topicname, long timestamp, int count, SchemaName schema) throws PipelineRuntimeException {
+	public List<TopicPayload> getAllRecordsSince(TopicName topicname, long timestamp, int count, SchemaRegistryName schema) throws PipelineRuntimeException {
 		TopicHandlerTest handler = getTopic(topicname);
 		if (handler != null) {
 			// TODO: Handle the count and schema parameters
@@ -237,7 +239,7 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 	}
 
 	@Override
-	public SchemaHandler registerSchema(SchemaName schemaname, String description, Schema keyschema, Schema valueschema)
+	public SchemaHandler registerSchema(SchemaRegistryName schemaname, String description, Schema keyschema, Schema valueschema)
 			throws PropertiesException {
 		return getOrCreateSchema(schemaname, description, keyschema, valueschema);
 	}
@@ -273,6 +275,11 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 	@Override
 	public String getAPIName() {
 		return "PipelineTest";
+	}
+
+	@Override
+	public Map<String, LoadInfo> getLoadInfo(String producername, int instanceno) throws IOException {
+		return loadinfo ;
 	}
 
 }

@@ -70,6 +70,8 @@ public abstract class PropertyGroupAbstract {
 		IProperty element = getElement(name);
 		if (element instanceof PropertyArrayList) {
 			((PropertyArrayList)element).setValue(value);
+		} else if (element instanceof PropertyMultiSchemaSelector) {
+			((PropertyMultiSchemaSelector)element).setValue(value);
 		} else {
 			throw new PropertiesException("A property of the name \"" + name + "\" exists but is not of an Array type");
 		}

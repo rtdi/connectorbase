@@ -14,6 +14,8 @@ import org.junit.Test;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.IProcessFetchedRow;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
+import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroInt;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroLong;
@@ -51,14 +53,15 @@ public class TopicTestsIT {
 	@Test
 	public void test() {
 		try {
-			TopicHandlerHttp handlerin = api.getTopicOrCreate("topic1", 1, (short) 1);
-			TopicHandlerHttp handlerout = api.getTopic("topic1");
+			TopicName t = TopicName.create("topic1");
+			TopicHandlerHttp handlerin = api.getTopicOrCreate(t, 1, (short) 1);
+			TopicHandlerHttp handlerout = api.getTopic(t);
 			assertEquals(handlerin, handlerout);
 			
 			List<String> list = api.getTopics();
 			assertTrue(list != null && list.size() > 0);
 			
-			SchemaHandler schema = api.registerSchema("HWMonitor", null, getKeySchema(), getValueSchema());
+			SchemaHandler schema = api.registerSchema(SchemaRegistryName.create("HWMonitor"), null, getKeySchema(), getValueSchema());
 			assertNotNull(schema);
 			
 			JexlRecord keyrecord = new JexlRecord(schema.getKeySchema());
@@ -72,14 +75,14 @@ public class TopicTestsIT {
 			
 			
 			producersession.open();
-			producersession.beginTransaction("x");
+			producersession.beginDeltaTransaction("x", 0);
 			for (int i = 0; i < 2; i++) {
 				keyrecord.put("TIMESTAMP", System.currentTimeMillis());
 				valuerecord.put("TIMESTAMP", keyrecord.get("TIMESTAMP"));
 	
 				producersession.addRow(handlerout, null, schema, keyrecord, valuerecord, RowType.INSERT, null, null);
 			}
-			producersession.commitTransaction();
+			producersession.commitDeltaTransaction();
 			
 			producersession.close();
 			ConsumerProperties consumerprops = new ConsumerProperties("default");

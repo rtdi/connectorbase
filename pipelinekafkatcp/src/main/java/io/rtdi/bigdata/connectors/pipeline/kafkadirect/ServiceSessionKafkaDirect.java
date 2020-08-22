@@ -55,15 +55,15 @@ public class ServiceSessionKafkaDirect extends ServiceSession {
 				streamsConfiguration.put(SaslConfigs.SASL_MECHANISM, "PLAIN");
 			}    	
 	
-		    TopicName source = new TopicName(properties.getSourceTopic());
-		    TopicName target = new TopicName(properties.getTargetTopic());
-		    api.getTopicOrCreate(target.getName(), 1, (short) 1); // make sure the target topic exists
+		    TopicName source = TopicName.create(properties.getSourceTopic());
+		    TopicName target = TopicName.create(properties.getTargetTopic());
+		    api.getTopicOrCreate(target, 1, (short) 1); // make sure the target topic exists
 		    StreamsBuilder builder = new StreamsBuilder();
-		    KStream<byte[], JexlRecord> input = builder.stream(source.getName());
+		    KStream<byte[], JexlRecord> input = builder.stream(source.getEncodedName());
 	
 		    KStream<byte[], JexlRecord> microservice = input.transformValues(() -> new ValueMapperMicroService(properties.getSchemaTransformations()));
 	
-			microservice.to(target.getName());
+			microservice.to(target.getEncodedName());
 	
 		    stream = new KafkaStreams(builder.build(), streamsConfiguration);
 	
