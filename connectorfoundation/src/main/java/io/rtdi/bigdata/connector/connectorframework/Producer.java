@@ -113,7 +113,7 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	
 	/**
 	 * The poll method implementer must test if the process is active still and update the counters.
-	 * @param from_transactionid 
+	 * @param from_transactionid is the pickup point for new data
 	 * @return the next transaction start point
 	 * @throws IOException if error
 	 */
@@ -350,7 +350,7 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	/**
 	 * This method is called periodically, currently every 20 minutes together with the schema cache updates, and allows
 	 * to perform some house keeping tasks.
-	 * @throws ConnectorRuntimeException 
+	 * @throws ConnectorRuntimeException on errors
 	 */
 	public void executePeriodicTask() throws ConnectorRuntimeException {
 	}
@@ -370,7 +370,7 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	 * a commit timeout in Kafka occurs after 15 minutes and the load fails. 
 	 * 
 	 * @param schemaname of the table to be loaded 
-	 * @param transactionid 
+	 * @param transactionid the initial load should be marked with
 	 * @return Number of rows loaded
 	 * @throws IOException if error
 	 */
