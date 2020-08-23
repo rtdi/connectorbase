@@ -376,6 +376,10 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	 */
 	public abstract long executeInitialLoad(String schemaname, String transactionid) throws IOException;
 
+	/**
+	 * @return a transaction number valid for this point in time - will be used to associate a fresh load with this transaction id
+	 * @throws IOException in case of errors
+	 */
 	public abstract String getCurrentTransactionId() throws IOException;
 	
 }

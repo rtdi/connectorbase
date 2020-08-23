@@ -20,14 +20,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import jakarta.ws.rs.ProcessingException;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.client.WebTarget;
-import jakarta.ws.rs.core.GenericType;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
@@ -130,8 +130,8 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	private WebTarget target;
 
 	
-	private Cache<Integer, Schema> schemaidcache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(1000).build();
-	private Cache<SchemaRegistryName, SchemaHandler> schemacache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(31)).maximumSize(1000).build();
+	private Cache<Integer, Schema> schemaidcache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(30)).maximumSize(1000).build();
+	private Cache<SchemaRegistryName, SchemaHandler> schemacache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(31)).maximumSize(1000).build();
 	
 
     private Map<String, Object> consumerprops = new HashMap<>(); // These are used for admin tasks only, not to read data
