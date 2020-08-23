@@ -1,7 +1,7 @@
 package io.rtdi.bigdata.connector.connectorframework.rest;
 
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.JAXBSuccessMessage;
 
