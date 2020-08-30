@@ -128,7 +128,7 @@ public class ConnectionService {
 					dir.mkdirs();
 				}
 				props.write(dir);
-				connector.addConnection(props);
+				conn = connector.addConnection(props);
 			} else {
 				conn.getConnectionProperties().setValue(data);
 				conn.getConnectionProperties().write(conn.getDirectory());
