@@ -1,10 +1,10 @@
 package io.rtdi.bigdata.connector.connectorframework.rest;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -117,10 +117,10 @@ public class LoggingService {
 			File found_server_file = null;
 			File found_app_file = null;
 			for (File f : logfiles) {
-				if (found_server_file == null && f.getName().startsWith("catalina.")) {
+				if (found_server_file == null && f.getName().matches("catalina\\..*\\.log")) {
 					found_server_file = f;
 				}
-				if (found_app_file == null && f.getName().startsWith("webappname")) {
+				if (found_app_file == null && f.getName().matches(webappname + ".*\\.log")) {
 					found_app_file = f;
 				}
 				if (found_app_file != null && found_server_file != null) {
@@ -140,14 +140,20 @@ public class LoggingService {
 			long length = file.length();
 			if (length != 0) {
 				long startpoint = length - 30000L;
-				try (InputStream r = new BufferedInputStream(new FileInputStream(file));) {
-					r.skip(startpoint); // deals with negative numbers
-					int c = r.read();
-					while (c != -1 && c != '\n') {
-						c = r.read(); // find next line start
+				try (BufferedReader r = new BufferedReader(new FileReader(file));) {
+					if (startpoint > 0) {
+						// Move the file pointer ahead to the last 30k chars and read the complete line. That is the starting point
+						r.skip(startpoint);
+						r.readLine();
 					}
-					byte[] data = r.readAllBytes();
-					return new String(data, "UTF-8");
+					try (StringWriter out = new StringWriter();) {
+						String line;
+						while ((line = r.readLine()) != null) {
+							out.append(line);
+							out.append("\r\n");
+						}
+						return out.toString();
+					}
 				} catch (IOException e) {
 					return null;
 				}

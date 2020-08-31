@@ -154,8 +154,10 @@ public class UsageStatistics {
 				this.producerindex = new HashMap<>();
 				for (ProducerController producercontroller : producers.values()) {
 					String name = producercontroller.getName();
-					this.producerindex.put(name, this.producers.size());
-					this.producers.add(new Producer(producercontroller, getProducerByNameFrom(name, prev)));
+					if (name != null) {
+						this.producerindex.put(name, this.producers.size());
+						this.producers.add(new Producer(producercontroller, getProducerByNameFrom(name, prev)));
+					}
 				}
 			}
 			HashMap<String, ConsumerController> consumers = connection.getConsumers();
@@ -164,8 +166,10 @@ public class UsageStatistics {
 				this.consumerindex = new HashMap<>();
 				for (ConsumerController consumercontroller : consumers.values()) {
 					String name = consumercontroller.getName();
-					this.consumerindex.put(name, this.consumers.size());
-					this.consumers.add(new Consumer(consumercontroller, getConsumerByNameFrom(name, prev)));
+					if (name != null) {
+						this.consumerindex.put(name, this.consumers.size());
+						this.consumers.add(new Consumer(consumercontroller, getConsumerByNameFrom(name, prev)));
+					}
 				}
 			}
 		}

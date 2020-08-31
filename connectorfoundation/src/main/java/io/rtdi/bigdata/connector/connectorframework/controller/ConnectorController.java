@@ -217,11 +217,15 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 		 */
 		if (executioncounter % 3600 == 62) {
 			// every hour and at start
-			UsageStatistics stats = new UsageStatistics(this, previousstatistics);
-			sender.setUsageData(stats);
-			usagesender = new Thread(sender);
-			usagesender.start();
-			previousstatistics = stats;
+			try {
+				UsageStatistics stats = new UsageStatistics(this, previousstatistics);
+				sender.setUsageData(stats);
+				usagesender = new Thread(sender);
+				previousstatistics = stats;
+				usagesender.start();
+			} catch (Exception e) {
+				logger.info("Failed to start the UsageStatistic sender", e);
+			}
 		}
 	}
 
