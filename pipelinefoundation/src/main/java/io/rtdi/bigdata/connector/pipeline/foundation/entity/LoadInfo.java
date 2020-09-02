@@ -1,5 +1,7 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.entity;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
+
 public class LoadInfo {
 
 	private String producername;
@@ -64,4 +66,12 @@ public class LoadInfo {
 		this.rowcount = rowcount;
 	}
 
+	@Override
+	public String toString() {
+		if (schemaname != null && schemaname.equals(PipelineAbstract.ALL_SCHEMAS)) {
+			return "DeltaIteration for Producer: " + producername + " completed with transaction: " + transactionid;
+		} else {
+			return "Initialload for Producer: " + producername + ", schemaname: " + schemaname + " completed with transaction: " + transactionid;
+		}
+	}
 }

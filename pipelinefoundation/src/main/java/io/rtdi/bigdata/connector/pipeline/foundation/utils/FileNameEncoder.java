@@ -12,7 +12,7 @@ public class FileNameEncoder {
 	 * Only allow letters, numbers (incl. Unicode), ., - and _
 	 * All other characters are encoded in the form of _xFFFF where FFFF is the UTF-16 code of the character
 	 */
-	static Pattern encoderpattern = Pattern.compile("[^\\p{L}\\p{M}0-9\\.\\-_]");
+	static Pattern encoderpattern = Pattern.compile("[^\\p{L}\\p{M}0-9\\.\\-_ ]");
 	static Pattern decoderpattern = Pattern.compile("_x[0-9a-f][0-9a-f][0-9a-f][0-9a-f]");
 
 

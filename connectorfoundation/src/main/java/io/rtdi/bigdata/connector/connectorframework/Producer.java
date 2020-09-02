@@ -242,10 +242,10 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	 * 
 	 * @param topic TopicHandler
 	 * @param schema Schema
-	 * @throws PipelineRuntimeException if error
+	 * @throws IOException if error
 	 * @see ProducerInstanceController
 	 */
-	public void addTopicSchema(TopicHandler topic, SchemaHandler schema) throws PipelineRuntimeException {
+	public void addTopicSchema(TopicHandler topic, SchemaHandler schema) throws IOException {
 		instance.addTopicSchema(topic, schema);
 	}
 	
