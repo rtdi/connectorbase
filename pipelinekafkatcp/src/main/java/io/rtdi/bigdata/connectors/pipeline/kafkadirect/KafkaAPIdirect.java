@@ -312,10 +312,12 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				producerprops.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
 				producerprops.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
 				producerprops.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
+				producerprops.put(ProducerConfig.CLIENT_ID_CONFIG, "MetadataProducer_" + Thread.currentThread().getId());
 				addSecurityProperties(producerprops);
 
 				Map<String, Object> adminprops = new HashMap<>();
 				adminprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, connectionprops.getKafkaBootstrapServers());
+				adminprops.put(ProducerConfig.CLIENT_ID_CONFIG, "KafkaAPIAdminClient_" + Thread.currentThread().getId());
 				addSecurityProperties(adminprops);
 		
 				producer = new KafkaProducer<byte[], byte[]>(producerprops);
