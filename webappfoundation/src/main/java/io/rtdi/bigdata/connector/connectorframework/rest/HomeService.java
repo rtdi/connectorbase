@@ -67,7 +67,7 @@ public class HomeService {
 		
 		public HomeEntity(ConnectorController controller, IConnectorFactory<?> factory) throws IOException {
 			if (factory != null) {
-				supportsconnections = factory instanceof IConnectorFactory<?>;
+				supportsconnections = !(factory instanceof IConnectorFactoryService);
 				supportsservices = factory instanceof IConnectorFactoryService;
 			}
 			if (controller != null) {
