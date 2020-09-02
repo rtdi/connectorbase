@@ -9,6 +9,7 @@ import java.util.Set;
 
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryProducer;
 import io.rtdi.bigdata.connector.connectorframework.Producer;
+import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorCallerException;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ShutdownException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
@@ -181,12 +182,24 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	 * @throws PropertiesException if the schema is invalid
 	 */
 	public void updateSchemaWithLatest() throws PropertiesException {
-		for (Set<SchemaHandler> schemas : usedtopics.values()) {
-			Set<SchemaHandler> newschemas = new HashSet<>(); // collect the new schemahandlers here
-			for (SchemaHandler schema : schemas) {
-				newschemas.add(getPipelineAPI().getSchema(schema.getSchemaName()));
+		try {
+			for (Set<SchemaHandler> schemas : usedtopics.values()) {
+				Set<SchemaHandler> newschemas = new HashSet<>(); // collect the new schemahandlers here
+				for (SchemaHandler schema : schemas) {
+					if (schema != null) {
+						SchemaHandler s = getPipelineAPI().getSchema(schema.getSchemaName());
+						if (s == null) {
+							s = schema; // What if the schema does not exist any longer? Use the existing.
+						}
+						newschemas.add(s);
+					} else {
+						logger.debug("updateSchemaWithLatest has a null entry in the schemas");
+					}
+				}
+				schemas.addAll(newschemas); // overwrite the current schemahandlers with the new ones
 			}
-			schemas.addAll(newschemas); // overwrite the current schemahandlers with the new ones
+		} catch (Exception e) {
+			logger.info("updating the schema failed", e, "As this is optional, any error is ignored", null);
 		}
 		updateschemacaches = false;
 	}
@@ -234,8 +247,12 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	 * 
 	 * @param topic TopicHandler
 	 * @param schema SchemaHandler to add
+	 * @throws ConnectorCallerException 
 	 */
-	public void addTopicSchema(TopicHandler topic, SchemaHandler schema) {
+	public void addTopicSchema(TopicHandler topic, SchemaHandler schema) throws ConnectorCallerException {
+		if (schema == null) {
+			throw new ConnectorCallerException("SchemaHandler cannot be null for topic", null, null, topic.getTopicName().getName());
+		}
 		Set<SchemaHandler> topicschemas = usedtopics.get(topic);
 		if (topicschemas == null) {
 			addTopic(topic);
