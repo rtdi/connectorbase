@@ -43,7 +43,7 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @return A list of schema names for this tenant
 	 * @throws PropertiesException if something goes wrong
 	 */
-	List<String> getSchemas() throws PropertiesException;
+	List<SchemaRegistryName> getSchemas() throws PropertiesException;
 
 	/**
 	 * Creates a new topic and fails if it exists already. see {@link #getTopicOrCreate(TopicName, int, short)}
@@ -110,7 +110,7 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @return A list of all known topics in the server
 	 * @throws IOException if something goes wrong
 	 */
-	List<String> getTopics() throws IOException;
+	List<TopicName> getTopics() throws IOException;
 
 
 	/**

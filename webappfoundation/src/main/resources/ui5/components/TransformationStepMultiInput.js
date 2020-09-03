@@ -25,10 +25,9 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 			};
 			this.addValidator(fnValidator);
 			this.attachTokenUpdate(function(oEvent) {
-				var oContext = this.getBindingContext();
 				var aAddedTokens = oEvent.getParameter("addedTokens");
 				var aRemovedTokens = oEvent.getParameter("removedTokens");
-				var oData = oContext.getObject();
+				var oData = this.getModel().getData();
 				if (!oData.steps) {
 					oData.steps = [];
 				}
@@ -42,8 +41,8 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 						oData.steps = oData.steps.filter( el => el.stepname !== aRemovedTokens[i].getKey() );
 					}
 				}
-				oContext.getModel().setProperty(oContext.getPath + "/steps", oData.steps);
-				oContext.getModel().refresh(); // to trigger showing the node and execute the sorter
+				this.getModel().setProperty("/steps", oData.steps);
+				this.getModel().refresh(); // to trigger showing the node and execute the sorter
 			});
 		},
 	});

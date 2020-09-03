@@ -40,43 +40,20 @@
 	</items>
 </Table>
 
-<Table 
-	items="{/schemas}" 
-	visible="{= ${state>/new} === false }" 
-	mode="{= (${state>/roles/config} ? 'Delete' : 'None') }"
-	delete=".onDeleteSchema" >
+<Panel 
+	visible="{= ${state>/new} === false }" >
 	<headerToolbar>
 		<OverflowToolbar>
-			<Label text="Transformation Network" />
-			<ToolbarSpacer/>
-			<ComboBox items="{schemas>/schemas}" enabled="{= ${state>/roles/config} }" id="schemaname">
-				<core:Item key="{schemas>schemaname}" text="{schemas>schemaname}" />
-			</ComboBox>
-            <Button icon="sap-icon://add" text="Add Schema" type="Transparent" press="onAddSchema" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}"/>
+			<Label text="Transformation Steps" />
 		</OverflowToolbar>
 	</headerToolbar>
-	<columns>
-		<Column width="20%">
-            <Label text="Transformation for Schema"/>
-		</Column>
-		<Column>
-            <Label text="Transformation steps"/>
-		</Column>
-	</columns>
-	<items>
-		<ColumnListItem vAlign="Middle">
-			<cells>
-				<Text text="{schemaname}" />
-				<components:TransformationStepMultiInput
-					id="steps"
-					showValueHelp="false"
-					tokens="{path:'steps', sorter: { path: 'stepname' }, templateShareable:false}">
-					<components:tokens>
-						<Token key="{stepname}" text="{stepname}" press=".onStepPress" />
-					</components:tokens>
-				</components:TransformationStepMultiInput>
-			</cells>
-		</ColumnListItem>
-	</items>
-</Table>
-		
+	<components:TransformationStepMultiInput
+		id="steps"
+		showValueHelp="false"
+		tokens="{path:'/steps', sorter: { path: 'stepname' }, templateShareable:false}">
+		<components:tokens>
+			<Token key="{stepname}" text="{stepname}" press=".onStepPress" />
+		</components:tokens>
+	</components:TransformationStepMultiInput>
+</Panel>
+

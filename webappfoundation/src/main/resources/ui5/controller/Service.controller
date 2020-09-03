@@ -27,15 +27,6 @@ init : function() {
 	oModelTopics.setSizeLimit(1000);
 	oModelTopics.loadData("../rest/topics");
 	this.getView().setModel(oModelTopics, "topics");
-
-	var oModelSchemas = new JSONModel();
-	oModelSchemas.attachRequestFailed(function(oEvent) {
-			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
-	});
-	oModelSchemas.setSizeLimit(100000);
-	oModelSchemas.loadData("../rest/schemas");
-	this.getView().setModel(oModelSchemas, "schemas");
-
 },
 save : function(oEvent) {
 	var oModel = this.getView().getModel();
@@ -66,43 +57,14 @@ cancel : function(oEvent) {
 	}
 	oModel.refresh();
 },
-onAddSchema : function(oEvent) {
-	var oSchemaNameControl = this.getView().byId("schemaname");
-	var sVal = oSchemaNameControl.getSelectedKey();
-	var oModel = this.getView().getModel();
-	var oData = oModel.getData();
-	if (oData.schemas.find( el => el.schemaname === sVal )) {
-		sap.m.MessageToast.show("Schema " + sVal + " already added");
-	} else {
-		oModel.setProperty("/schemas/" + oData.schemas.length, { schemaname: sVal } );
-	}
-},
 onStepPress : function(oEvent) {
 	var oModel = this.getView().getModel();
 	var oToken = oEvent.getSource();
 	var oContext = oToken.getBindingContext();
-	if (oContext.getObject().path) {
-		var sServicename = oModel.getProperty("/serviceproperties/name");
-		var sStepName = oToken.getKey();
-		var sSchemaPath = oContext.getPath(); // e.g. /schemas/0/steps/0
-		sSchemaPath = sSchemaPath.substring(0, sSchemaPath.lastIndexOf('/')); // e.g. /schemas/0/steps
-		sSchemaPath = sSchemaPath.substring(0, sSchemaPath.lastIndexOf('/')); // e.g. /schemas/0
-		var sSchema = oModel.getProperty(sSchemaPath).schemaname;
-		var win = window.open('./ServiceDetails?servicename=' + encodeURI(sServicename) +
-			"&schema=" + encodeURI(sSchema) +
-			"&microservice=" + encodeURI(sStepName),
-			 '_blank');
-		win.focus();
-	} else {
-		sap.m.MessageToast.show("New Step, save first");
-	}
-},
-onDeleteSchema : function(oEvent) {
-	var oSchema = oEvent.getParameter("listItem");
-	var oContext = oSchema.getBindingContext();
-	var oModel = this.getView().getModel();
-	var index = oContext.getPath().substring(oContext.getPath().lastIndexOf('/')+1);
-	var aSchemas = oModel.getProperty("/schemas");
-	aSchemas.splice(index, 1);
-	oModel.setProperty("/schemas", aSchemas);
+	var sServicename = oModel.getProperty("/serviceproperties/name");
+	var sStepName = oToken.getKey();
+	var win = window.open('./ServiceDetails?servicename=' + encodeURI(sServicename) +
+		"&microservice=" + encodeURI(sStepName),
+		 '_blank');
+	win.focus();
 }

@@ -76,7 +76,7 @@ public class APITestsIT {
 	@Test
 	public void testGetSchemas() {
 		try {
-			List<String> list = api.getSchemas();
+			List<SchemaRegistryName> list = api.getSchemas();
 			if (list != null) {
 				System.out.println(list.toString());
 			}

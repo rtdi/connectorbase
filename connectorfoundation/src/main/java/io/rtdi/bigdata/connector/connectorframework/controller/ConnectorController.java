@@ -122,9 +122,9 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	
 	/**
 	 * Read the configuration directory and create the object tree
-	 * @throws PropertiesException if properties are invalid
+	 * @throws IOException 
 	 */
-	public void readConfigs() throws PropertiesException {
+	public void readConfigs() throws IOException {
 		if (connectiondir.isDirectory()) {
 			for ( File connectiondir : connectiondir.listFiles()) {
 		    	if (connectiondir.isDirectory()) {

@@ -41,7 +41,17 @@ public class SchemaRegistryName implements Comparable<SchemaRegistryName>{
 	public static SchemaRegistryName create(String name) {
 		return schemanamecache.get(name, k -> getNewSchemaName(k));
 	}
-	
+
+	/**
+	 * Factory method to create a new SchemaName based on the encoded name
+	 * @param name is an actual topic name 
+	 * @return a new SchemaName object
+	 */
+	public static SchemaRegistryName createViaEncoded(String name) {
+		String realname = SchemaNameEncoder.decodeName(name);
+		return schemanamecache.get(realname, k -> getNewSchemaName(k));
+	}
+
 	private static SchemaRegistryName getNewSchemaName(String name) {
 		try {
 			return new SchemaRegistryName(name);

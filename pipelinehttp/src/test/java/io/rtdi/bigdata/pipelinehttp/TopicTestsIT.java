@@ -58,7 +58,7 @@ public class TopicTestsIT {
 			TopicHandlerHttp handlerout = api.getTopic(t);
 			assertEquals(handlerin, handlerout);
 			
-			List<String> list = api.getTopics();
+			List<TopicName> list = api.getTopics();
 			assertTrue(list != null && list.size() > 0);
 			
 			SchemaHandler schema = api.registerSchema(SchemaRegistryName.create("HWMonitor"), null, getKeySchema(), getValueSchema());

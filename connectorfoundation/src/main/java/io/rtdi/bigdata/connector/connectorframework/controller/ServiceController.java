@@ -2,13 +2,11 @@ package io.rtdi.bigdata.connector.connectorframework.controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.util.Iterator;
 import java.util.Set;
 
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryService;
 import io.rtdi.bigdata.connector.connectorframework.Service;
-import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorCallerException;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.MicroServiceTransformation;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
@@ -83,7 +81,7 @@ public class ServiceController extends Controller<Controller<?>> {
 		return connector.getPipelineAPI();
 	}
 	
-	public void readConfigs() throws PropertiesException {
+	public void readConfigs() throws IOException {
 		if (servicedir == null) {
 			throw new PropertiesException("servicedirectory is not set");
 		} else if (!servicedir.exists()) {
@@ -115,31 +113,8 @@ public class ServiceController extends Controller<Controller<?>> {
 		}
 	}
 
-	public Map<String, List<? extends MicroServiceTransformation>> getSchemaTransformations() {
-		return serviceprops.getSchemaTransformations();
-	}
-
-	public MicroServiceTransformation getMicroserviceOrFail(String schemaname, String microservicename) throws ConnectorCallerException {
-		MicroServiceTransformation m = getMicroservice(schemaname, microservicename);
-		if (m == null) {
-			throw new ConnectorCallerException("No Microservice with this name configured", null, "getMicroservice() was called for a non-existing name", microservicename);
-		} else {
-			return m;
-		}
-	}
-
-	public MicroServiceTransformation getMicroservice(String schemaname, String microservicename) throws ConnectorCallerException {
-		if (serviceprops != null && serviceprops.getSchemaTransformations() != null) {
-			List<? extends MicroServiceTransformation> l = serviceprops.getMicroServices(schemaname);
-			if (l != null) {
-				for ( MicroServiceTransformation m : l) {
-					if (m.getName().equals(microservicename)) {
-						return m;
-					}
-				}
-			}
-		}
-		return null;
+	public Set<MicroServiceTransformation> getMicroservices() {
+		return serviceprops.getMicroserviceTransformations();
 	}
 
 	@Override
@@ -156,13 +131,24 @@ public class ServiceController extends Controller<Controller<?>> {
 		}
 	}
 
-	public Set<String> getSchemas() {
-		Map<String, List<? extends MicroServiceTransformation>> m = serviceprops.getSchemaTransformations();
+	public MicroServiceTransformation getMicroserviceOrFail(String microservicename) throws PropertiesException {
+		MicroServiceTransformation m = getMicroservice(microservicename);
 		if (m != null) {
-			return m.keySet();
+			return m;
 		} else {
-			return null;
+			throw new PropertiesException("A microservice with that name is not configured", (Throwable) null, microservicename);
 		}
+	}
+
+	public MicroServiceTransformation getMicroservice(String microservicename) {
+		Iterator<MicroServiceTransformation> iter = serviceprops.getMicroserviceTransformations().iterator();
+		while (iter.hasNext()) {
+			MicroServiceTransformation m = iter.next();
+			if (m.getName().equals(microservicename)) {
+				return m;
+			}
+		}
+		return null;
 	}
 
 }

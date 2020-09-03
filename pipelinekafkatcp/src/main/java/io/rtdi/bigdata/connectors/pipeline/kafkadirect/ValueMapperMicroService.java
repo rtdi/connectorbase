@@ -1,8 +1,7 @@
 package io.rtdi.bigdata.connectors.pipeline.kafkadirect;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import org.apache.kafka.streams.errors.ProcessorStateException;
 import org.apache.kafka.streams.kstream.ValueTransformer;
@@ -15,13 +14,13 @@ import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRe
 
 public class ValueMapperMicroService implements ValueTransformer<JexlRecord, JexlRecord> {
 
-	private Map<String, List<? extends MicroServiceTransformation>> transformations;
+	private Set<MicroServiceTransformation> transformations;
 	protected Logger logger = LogManager.getLogger(this.getClass().getName());
 	@SuppressWarnings("unused")
 	private ProcessorContext context;
 
-	public ValueMapperMicroService(Map<String, List<? extends MicroServiceTransformation>> transformations) {
-		this.transformations = transformations;
+	public ValueMapperMicroService(Set<MicroServiceTransformation> set) {
+		this.transformations = set;
 	}
 	
 	@Override
@@ -36,12 +35,8 @@ public class ValueMapperMicroService implements ValueTransformer<JexlRecord, Jex
 	@Override
 	public JexlRecord transform(JexlRecord value) {
 		try {
-			String schemaname = value.getSchema().getName();
-			List<? extends MicroServiceTransformation> steps = transformations.get(schemaname);
-			if (steps != null) {
-				for (MicroServiceTransformation step : steps) {
-					value = step.apply(value);
-				}
+			for (MicroServiceTransformation step : transformations) {
+				value = step.apply(value);
 			}
 			return value;
 		} catch (IOException e) {
