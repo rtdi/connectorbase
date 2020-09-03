@@ -20,6 +20,8 @@ import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorControll
 import io.rtdi.bigdata.connector.connectorframework.entity.PipelineName;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
+import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 
 
 @Path("/")
@@ -84,15 +86,15 @@ public class HomeService {
 							api.reloadConnectionProperties();
 							controller.startController();
 						}
-						List<String> l = api.getTopics();
+						List<TopicName> l = api.getTopics();
 						if (l != null) {
 							topiccount = l.size();
 						} else {
 							topiccount = 0;
 						}
-						l = api.getSchemas();
+						List<SchemaRegistryName> k = api.getSchemas();
 						if (l != null) {
-							schemacount = l.size();
+							schemacount = k.size();
 						} else {
 							schemacount = 0;
 						}

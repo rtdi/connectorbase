@@ -117,13 +117,13 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	}
 
 	@Override
-	public List<String> getSchemas() throws PropertiesException {
+	public List<SchemaRegistryName> getSchemas() throws PropertiesException {
 		Response entityresponse = callRestfulservice(getRestEndpoint("/schema", "list"));
 		if (entityresponse == null) {
 			return null;
 		} else {
 			SchemaListEntity entity = entityresponse.readEntity(SchemaListEntity.class);
-			return entity.getSchemas();
+			return entity.schemasAsRegistryName();
 		}
 	}
 
@@ -182,13 +182,13 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 	}
 
 	@Override
-	public List<String> getTopics() throws PropertiesException {
+	public List<TopicName> getTopics() throws PropertiesException {
 		Response entityresponse = callRestfulservice(getRestEndpoint("/topic", "list"));
 		if (entityresponse == null) {
 			return null;
 		} else {
 			TopicListEntity entityout = entityresponse.readEntity(TopicListEntity.class);
-			return entityout.getTopics();
+			return entityout.topicsAsTopicName();
 		}
 	}
 

@@ -7,6 +7,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
+import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 
 public class Topics {
 	private ArrayList<Topic> topics;
@@ -16,10 +17,10 @@ public class Topics {
 	}
 		
 	public Topics(IPipelineAPI<?, ?, ?, ?> api) throws IOException {
-		List<String> entities = api.getTopics();
+		List<TopicName> entities = api.getTopics();
 		topics = new ArrayList<Topic>(entities.size());
-		for (String entity : entities) {
-			Topic data = new Topic(entity);
+		for (TopicName entity : entities) {
+			Topic data = new Topic(entity.getName());
 			topics.add(data);
 		}
 	}

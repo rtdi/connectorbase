@@ -7,6 +7,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
+import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 
 public class Schemas {
@@ -17,10 +18,10 @@ public class Schemas {
 	}
 
 	public Schemas(IPipelineAPI<?, ?, ?, ?> api) throws PipelineRuntimeException, IOException {
-		List<String> entities = api.getSchemas();
+		List<SchemaRegistryName> entities = api.getSchemas();
 		schemas = new ArrayList<Schema>(entities.size());
-		for (String entity : entities) {
-			Schema data = new Schema(entity);
+		for (SchemaRegistryName entity : entities) {
+			Schema data = new Schema(entity.getName());
 			schemas.add(data);
 		}
 	}

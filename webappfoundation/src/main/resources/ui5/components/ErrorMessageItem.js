@@ -86,7 +86,7 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 
 						new sap.m.Title( { text: "Source code reference" } ), 
 						new sap.m.Label( { text: "SourceCode" } ), 
-						new sap.m.Link( { href: oItem.getSourcecodeline(), text: "Show Source line", target: "_blank" } ),
+						new sap.m.Link( { href: oItem.getSourcecodeline(), text: "Show Source line", target: "_blank", visible: (!!oItem.getSourcecodeline()) } ),
 					] } ),
 
 					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [

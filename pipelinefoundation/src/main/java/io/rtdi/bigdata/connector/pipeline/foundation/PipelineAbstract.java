@@ -37,6 +37,11 @@ public abstract class PipelineAbstract<
 
 	protected File webinfdir;
 	protected Logger logger = LogManager.getLogger(this.getClass().getName());
+	public static final String SCHEMA_TOPIC_NAME = "_schemaregistry";
+	public static final String PRODUCER_TRANSACTION_TOPIC_NAME = "_producertransactions";
+	public static final String PRODUCER_METADATA_TOPIC_NAME = "ProducerMetadata";
+	public static final String CONSUMER_METADATA_TOPIC_NAME = "ConsumerMetadata";
+	public static final String SERVICE_METADATA_TOPIC_NAME = "ServiceMetadata";
 
 	public PipelineAbstract() {
 		super();

@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 
-public abstract class MicroServiceTransformation {
+public abstract class MicroServiceTransformation implements Comparable<MicroServiceTransformation> {
 	
 	private String name;
 	private long rowsprocessed = 0;
@@ -34,4 +34,21 @@ public abstract class MicroServiceTransformation {
 	public String getName() {
 		return name;
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		return name.equals(o);
+	}
+	
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
+	@Override
+	public int compareTo(MicroServiceTransformation o) {
+		return name.compareTo(o.getName());
+	}
+	
+	
 }

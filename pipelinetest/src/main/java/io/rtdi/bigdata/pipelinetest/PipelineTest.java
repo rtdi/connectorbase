@@ -66,10 +66,10 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 	}
 
 	@Override
-	public List<String> getSchemas() throws PipelineRuntimeException {
-		ArrayList<String> ret = new ArrayList<>();
+	public List<SchemaRegistryName> getSchemas() throws PipelineRuntimeException {
+		ArrayList<SchemaRegistryName> ret = new ArrayList<>();
 		for (SchemaRegistryName n : schemahandlers.keySet()) {
-			ret.add(n.getName());
+			ret.add(n);
 		}
 		return ret;
 	}
@@ -105,10 +105,10 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 	}
 
 	@Override
-	public List<String> getTopics() throws PipelineRuntimeException {
-		ArrayList<String> list = new ArrayList<>();
+	public List<TopicName> getTopics() throws PipelineRuntimeException {
+		ArrayList<TopicName> list = new ArrayList<>();
 		for (TopicName t : topics.keySet()) {
-			list.add(t.getName());
+			list.add(t);
 		}
 		return list;
 	}

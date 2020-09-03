@@ -1,6 +1,5 @@
 package io.rtdi.bigdata.connectors.pipeline.kafkadirect;
 
-import java.util.List;
 import java.util.Properties;
 
 import org.apache.kafka.common.config.SaslConfigs;
@@ -30,7 +29,7 @@ public class ServiceSessionKafkaDirect extends ServiceSession {
 
 	@Override
 	public void start() throws PropertiesException {
-		if (properties.getSchemaTransformations() != null && properties.getSchemaTransformations().size() > 0) {
+		if (properties.getMicroserviceTransformations() != null && properties.getMicroserviceTransformations().size() > 0) {
 			Properties streamsConfiguration = new Properties();
 			streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "rtdi.io microservice." + properties.getName());
 		    streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, properties.getName());
@@ -61,7 +60,7 @@ public class ServiceSessionKafkaDirect extends ServiceSession {
 		    StreamsBuilder builder = new StreamsBuilder();
 		    KStream<byte[], JexlRecord> input = builder.stream(source.getEncodedName());
 	
-		    KStream<byte[], JexlRecord> microservice = input.transformValues(() -> new ValueMapperMicroService(properties.getSchemaTransformations()));
+		    KStream<byte[], JexlRecord> microservice = input.transformValues(() -> new ValueMapperMicroService(properties.getMicroserviceTransformations()));
 	
 			microservice.to(target.getEncodedName());
 	
@@ -82,12 +81,10 @@ public class ServiceSessionKafkaDirect extends ServiceSession {
 
 	@Override
 	public long getRowsProcessed() {
-		if (properties.getSchemaTransformations() != null) {
+		if (properties.getMicroserviceTransformations() != null) {
 			long rowcount = 0L;
-			for (List<? extends MicroServiceTransformation> transformations : properties.getSchemaTransformations().values()) {
-				if (transformations != null && transformations.size() > 0) {
-					rowcount += transformations.get(0).getRowProcessed();
-				}
+			for (MicroServiceTransformation transformations : properties.getMicroserviceTransformations()) {
+				rowcount += transformations.getRowProcessed();
 			}
 			return rowcount;
 		} else {
@@ -97,11 +94,11 @@ public class ServiceSessionKafkaDirect extends ServiceSession {
 
 	@Override
 	public Long getLastRowProcessed() {
-		if (properties.getSchemaTransformations() != null) {
+		if (properties.getMicroserviceTransformations() != null) {
 			long maxdate = 0L;
-			for (List<? extends MicroServiceTransformation> transformations : properties.getSchemaTransformations().values()) {
-				if (transformations != null && transformations.size() > 0) {
-					long d = transformations.get(0).getRowProcessed();
+			for (MicroServiceTransformation transformations : properties.getMicroserviceTransformations()) {
+				if (transformations != null) {
+					long d = transformations.getLastRowProcessed();
 					if (d > maxdate) {
 						maxdate = d;
 					}

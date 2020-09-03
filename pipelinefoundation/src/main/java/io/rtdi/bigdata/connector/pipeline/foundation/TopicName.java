@@ -40,7 +40,17 @@ public class TopicName implements Comparable<TopicName> {
 	public static TopicName create(String name) {
 		return topicnamecache.get(name, k -> getNewTopicName(k));
 	}
-	
+
+	/**
+	 * Factory method to create a new TopicName object
+	 * @param name is an actual Kafka topic name
+	 * @return the TopicName object
+	 */
+	public static TopicName createViaEncoded(String name) {
+		String realname = TopicNameEncoder.decodeName(name);
+		return topicnamecache.get(realname, k -> getNewTopicName(k));
+	}
+
 	private static TopicName getNewTopicName(String name) {
 		try {
 			return new TopicName(name);
