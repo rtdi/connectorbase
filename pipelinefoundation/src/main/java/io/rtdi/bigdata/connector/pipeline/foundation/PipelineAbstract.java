@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.GlobalSettings;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.PipelineConnectionProperties;
@@ -37,16 +38,98 @@ public abstract class PipelineAbstract<
 
 	protected File webinfdir;
 	protected Logger logger = LogManager.getLogger(this.getClass().getName());
-	public static final String SCHEMA_TOPIC_NAME = "_schemaregistry";
-	public static final String PRODUCER_TRANSACTION_TOPIC_NAME = "_producertransactions";
-	public static final String PRODUCER_METADATA_TOPIC_NAME = "ProducerMetadata";
-	public static final String CONSUMER_METADATA_TOPIC_NAME = "ConsumerMetadata";
-	public static final String SERVICE_METADATA_TOPIC_NAME = "ServiceMetadata";
+	private GlobalSettings settings;
+	private static final SchemaRegistryName PRODUCER_TRANSACTIONS_SCHEMA_NAME_ = SchemaRegistryName.create("ProducerTransactions");
+	private static final SchemaRegistryName PRODUCER_METADATA_SCHEMA_NAME_ = SchemaRegistryName.create("ProducerMetadata");
+	private static final SchemaRegistryName CONSUMER_METADATA_SCHEMA_NAME_ = SchemaRegistryName.create("ConsumerMetadata");
+	private static final SchemaRegistryName SERVICE_METADATA_SCHEMA_NAME_ = SchemaRegistryName.create("ServiceMetadata");
+	private static final TopicName SCHEMA_TOPIC_NAME_ = TopicName.create("_schemaregistry");
+	private static final TopicName PRODUCER_TRANSACTION_TOPIC_NAME_ = TopicName.create("_producertransactions");
+	private static final TopicName PRODUCER_METADATA_TOPIC_NAME_ = TopicName.create("ProducerMetadata");
+	private static final TopicName CONSUMER_METADATA_TOPIC_NAME_ = TopicName.create("ConsumerMetadata");
+	private static final TopicName SERVICE_METADATA_TOPIC_NAME_ = TopicName.create("ServiceMetadata");
 
 	public PipelineAbstract() {
 		super();
 	}
-		
+	
+	@Override
+	public void setGlobalSettings(GlobalSettings settings) {
+		this.settings = settings;
+	}
+	
+	public TopicName getSchemaRegistryTopicName() {
+		if (settings != null && settings.getSchemaRegistryTopicName() != null) {
+			return settings.getSchemaRegistryTopicName();
+		} else {
+			return SCHEMA_TOPIC_NAME_;
+		}
+	}
+
+	public TopicName getTransactionsTopicName() {
+		if (settings != null && settings.getTransactionsTopicName() != null) {
+			return settings.getTransactionsTopicName();
+		} else {
+			return PRODUCER_TRANSACTION_TOPIC_NAME_;
+		}
+	}
+	
+	public TopicName getProducerMetadataTopicName() {
+		if (settings != null && settings.getProducerMetadataTopicName() != null) {
+			return settings.getProducerMetadataTopicName();
+		} else {
+			return PRODUCER_METADATA_TOPIC_NAME_;
+		}
+	}
+	
+	public TopicName getConsumerMetadataTopicName() {
+		if (settings != null && settings.getConsumerMetadataTopicName() != null) {
+			return settings.getConsumerMetadataTopicName();
+		} else {
+			return CONSUMER_METADATA_TOPIC_NAME_;
+		}
+	}
+	
+	public TopicName getServiceMetadataTopicName() {
+		if (settings != null && settings.getServiceMetadataTopicName() != null) {
+			return settings.getServiceMetadataTopicName();
+		} else {
+			return SERVICE_METADATA_TOPIC_NAME_;
+		}
+	}
+	
+	public SchemaRegistryName getTransactionsSchemaName() {
+		if (settings != null && settings.getTransactionsSchemaName() != null) {
+			return settings.getTransactionsSchemaName();
+		} else {
+			return PRODUCER_TRANSACTIONS_SCHEMA_NAME_;
+		}
+	}
+
+	public SchemaRegistryName getProducerMetadataSchemaName() {
+		if (settings != null && settings.getProducerMetadataSchemaName() != null) {
+			return settings.getProducerMetadataSchemaName();
+		} else {
+			return PRODUCER_METADATA_SCHEMA_NAME_;
+		}
+	}
+
+	public SchemaRegistryName getConsumerMetadataSchemaName() {
+		if (settings != null && settings.getConsumerMetadataSchemaName() != null) {
+			return settings.getConsumerMetadataSchemaName();
+		} else {
+			return CONSUMER_METADATA_SCHEMA_NAME_;
+		}
+	}
+
+	public SchemaRegistryName getServiceMetadataSchemaName() {
+		if (settings != null && settings.getServiceMetadataSchemaName() != null) {
+			return settings.getServiceMetadataSchemaName();
+		} else {
+			return SERVICE_METADATA_SCHEMA_NAME_;
+		}
+	}
+
 	@Override
 	public boolean hasConnectionProperties() {
 		Path p = webinfdir.toPath().resolve(this.getAPIName() + ".json");

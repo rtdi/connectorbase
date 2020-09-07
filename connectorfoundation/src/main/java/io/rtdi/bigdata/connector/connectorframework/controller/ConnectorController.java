@@ -18,6 +18,7 @@ import io.rtdi.bigdata.connector.connectorframework.utils.UsageStatisticSender;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.GlobalSettings;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
 import io.rtdi.bigdata.connector.properties.ServiceProperties;
@@ -83,6 +84,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	
 	public void setAPI(IPipelineAPI<?,?,?,?> api) {
 		this.api = api;
+		api.setGlobalSettings(globalsettings);
 	}
 	
 	public void setAPI() throws PropertiesException {
@@ -112,6 +114,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 				throw new PropertiesException("No class for a pipeline was found. Seems a jar file is missing in the web application?");
 			}
 			api.setWEBINFDir(configdir);
+			api.setGlobalSettings(globalsettings);
 			if (!api.hasConnectionProperties()) {
 				// User does not want to see the low level error but the fact that the properties are not set yet.
 				throw new PropertiesException("No Connection Properties defined yet", "Use the home page to get to the UI for setting them", null);
@@ -320,56 +323,6 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 		return servicedir.exists() == false;
 	}
 
-
-	public class GlobalSettings {
-		private String ui5url = "https://openui5.hana.ondemand.com/resources/sap-ui-core.js";
-		private String companyname = null;
-		private String pipelineapi;
-		private String connectorhelpurl;
-		
-		public GlobalSettings() {
-		}
-
-		public GlobalSettings(Properties props) {
-			if (props != null) {
-				if (props.getProperty("ui5url") != null) {
-					ui5url = props.getProperty("ui5url");
-				}
-				companyname = props.getProperty("companyname");
-				pipelineapi = props.getProperty("api");
-				connectorhelpurl = props.getProperty("connectorhelpurl");
-			}
-		}
-
-		public String getUi5url() {
-			return ui5url;
-		}
-
-		public void setUi5url(String ui5url) {
-			this.ui5url = ui5url;
-		}
-
-		public String getCompanyName() {
-			return companyname;
-		}
-
-		public void setCompanyName(String companyname) {
-			this.companyname = companyname;
-		}
-
-		public String getPipelineAPI() {
-			return pipelineapi;
-		}
-
-		public void setPipelineAPI(String classname) {
-			this.pipelineapi = classname;
-		}
-
-		public String getConnectorHelpURL() {
-			return connectorhelpurl;
-		}
-
-	}
 
 	public GlobalSettings getGlobalSettings() {
 		return globalsettings;

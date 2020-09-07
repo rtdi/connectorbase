@@ -15,6 +15,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEnti
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.GlobalSettings;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.PipelineConnectionProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
@@ -256,5 +257,12 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	 * @throws IOException in case of any errors
 	 */
 	Map<String, LoadInfo> getLoadInfo(String producername, int instanceno) throws IOException;
+
+	/**
+	 * This method most be called early, before the open.
+	 * 
+	 * @param globalsettings provides global information like internal topic names
+	 */
+	void setGlobalSettings(GlobalSettings globalsettings);
 
 }
