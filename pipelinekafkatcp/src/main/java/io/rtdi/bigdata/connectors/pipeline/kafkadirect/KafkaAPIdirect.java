@@ -103,7 +103,6 @@ import io.rtdi.bigdata.connectors.pipeline.kafkadirect.schemaentity.SchemaRegist
 import io.rtdi.bigdata.connectors.pipeline.kafkadirect.schemaentity.SchemaValue;
 
 public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, TopicHandler, ProducerSessionKafkaDirect, ConsumerSessionKafkaDirect> {
-	public static final String PRODUCER_TRANSACTIONS = "ProducerTransactions";
 	public static final String AVRO_FIELD_SOURCE_TRANSACTION_IDENTIFIER = "SourceTransactionIdentifier";
 	public static final String AVRO_FIELD_CONNECTION_NAME = "Connectionname";
 	public static final String AVRO_FIELD_TOPICNAME = "TopicName";
@@ -220,13 +219,9 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 			.endRecord();
 
 	
-	private TopicPartition schemaregistrypartition = new TopicPartition(PipelineAbstract.SCHEMA_TOPIC_NAME, 0);
-	private Collection<TopicPartition> schemaregistrypartitions = Collections.singletonList(schemaregistrypartition);
+	private TopicPartition schemaregistrypartition;
+	private Collection<TopicPartition> schemaregistrypartitions;
 	private KafkaConnectionProperties connectionprops = new KafkaConnectionProperties();
-	private TopicName producermetadatatopicname;
-	private TopicName consumermetadatatopicname;
-	private TopicName servicemetadatatopicname;
-	private TopicName producertransactiontopicname;
 
 	public KafkaAPIdirect(File rootdir) throws PropertiesException {
 		this();
@@ -298,6 +293,10 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
     public void open() throws PropertiesException {
     	if (producer == null) {
     		try {
+    			
+    			schemaregistrypartition = new TopicPartition(getSchemaRegistryTopicName().getEncodedName(), 0);
+    			schemaregistrypartitions = Collections.singletonList(schemaregistrypartition);
+
 		        Map<String, Object> producerprops = new HashMap<>();
 				producerprops.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, connectionprops.getKafkaBootstrapServers());
 				producerprops.put(ProducerConfig.ACKS_CONFIG, "all");
@@ -340,31 +339,19 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 					target = client.target(uri);
 				} else {
 					target = null;
-					createInternalTopic(TopicName.create(PipelineAbstract.SCHEMA_TOPIC_NAME));					
+					createInternalTopic(getSchemaRegistryTopicName());					
 				}
 
 								
-				SchemaRegistryName producermetadataschemaname = SchemaRegistryName.create(PipelineAbstract.PRODUCER_METADATA_TOPIC_NAME);
-				producermetadataschema = getOrCreateSchema(producermetadataschemaname, null, producerkeyschema, producervalueschema);
-				
-				SchemaRegistryName consumermetadataschemaname = SchemaRegistryName.create(PipelineAbstract.CONSUMER_METADATA_TOPIC_NAME);
-				consumermetadataschema = getOrCreateSchema(consumermetadataschemaname, null, consumerkeyschema, consumervalueschema);
-				
-				SchemaRegistryName servicemetadataschemaname = SchemaRegistryName.create(PipelineAbstract.SERVICE_METADATA_TOPIC_NAME);
-				servicemetadataschema = getOrCreateSchema(servicemetadataschemaname, null, servicekeyschema, servicevalueschema);
+				producermetadataschema = getOrCreateSchema(getProducerMetadataSchemaName(), null, producerkeyschema, producervalueschema);
+				consumermetadataschema = getOrCreateSchema(getConsumerMetadataSchemaName(), null, consumerkeyschema, consumervalueschema);
+				servicemetadataschema = getOrCreateSchema(getServiceMetadataSchemaName(), null, servicekeyschema, servicevalueschema);
+				producertransactionschema = getOrCreateSchema(getTransactionsSchemaName(), null, producertransactionkeyschema, producertransactionvalueschema);
 
-				SchemaRegistryName producertransactionname = SchemaRegistryName.create(PRODUCER_TRANSACTIONS);
-				producertransactionschema = getOrCreateSchema(producertransactionname, null, producertransactionkeyschema, producertransactionvalueschema);
-
-				producertransactiontopicname = TopicName.create(PipelineAbstract.PRODUCER_TRANSACTION_TOPIC_NAME);
-				createInternalTopic(producertransactiontopicname);
-				
-				producermetadatatopicname = TopicName.create(PipelineAbstract.PRODUCER_METADATA_TOPIC_NAME);
-				createInternalTopic(producermetadatatopicname);
-				consumermetadatatopicname = TopicName.create(PipelineAbstract.CONSUMER_METADATA_TOPIC_NAME);
-				createInternalTopic(consumermetadatatopicname);
-				servicemetadatatopicname = TopicName.create(PipelineAbstract.SERVICE_METADATA_TOPIC_NAME);
-				createInternalTopic(servicemetadatatopicname);
+				createInternalTopic(getTransactionsTopicName());
+				createInternalTopic(getProducerMetadataTopicName());
+				createInternalTopic(getConsumerMetadataTopicName());
+				createInternalTopic(getServiceMetadataTopicName());
 				
     		} catch (PipelineRuntimeException e) {
 				close();
@@ -601,7 +588,11 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
    private void registerSubject(String subjectname, int id, int version, Schema schema) throws PipelineRuntimeException {
 	   	SchemaValue valuedef = new SchemaValue(subjectname, version, id, schema.toString(), false);
 		SchemaKey keydef = new SchemaKey(subjectname, version);
-		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(PipelineAbstract.SCHEMA_TOPIC_NAME, null, Converter.serilalizeKey(keydef), Converter.serilalizeValue(valuedef));
+		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(
+				getSchemaRegistryTopicName().getEncodedName(),
+				null,
+				Converter.serilalizeKey(keydef),
+				Converter.serilalizeValue(valuedef));
 		// add new subject
 		Future<RecordMetadata> future = producer.send(record);
 		try {
@@ -677,12 +668,10 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				List<TopicName> topicNames = new ArrayList<>();
 				for ( TopicListing t : listing) {
 					String n = t.name();
-					switch (n) {
-					case PipelineAbstract.PRODUCER_METADATA_TOPIC_NAME:
-					case PipelineAbstract.CONSUMER_METADATA_TOPIC_NAME:
-					case PipelineAbstract.SERVICE_METADATA_TOPIC_NAME:
-						break;
-					default:
+					if (!n.equals(getSchemaRegistryTopicName().getEncodedName()) &&
+							!n.equals(getProducerMetadataTopicName().getEncodedName()) &&
+							!n.equals(getConsumerMetadataTopicName().getEncodedName()) &&
+							!n.equals(getServiceMetadataTopicName().getEncodedName())) {
 						topicNames.add(TopicName.createViaEncoded(n));
 					}
 				}
@@ -919,13 +908,10 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 								if (schemadef.isDeleted()) {
 									subjects.remove(subject);
 								} else if (!subjects.contains(subject)) {
-									switch (subject.getName()) {
-									case PipelineAbstract.CONSUMER_METADATA_TOPIC_NAME:
-									case PipelineAbstract.PRODUCER_METADATA_TOPIC_NAME:
-									case PipelineAbstract.PRODUCER_TRANSACTION_TOPIC_NAME:
-									case PipelineAbstract.SERVICE_METADATA_TOPIC_NAME:
-										break;
-									default:
+									if (!subject.equals(getConsumerMetadataSchemaName()) &&
+											!subject.equals(getProducerMetadataSchemaName()) &&
+											!subject.equals(getServiceMetadataSchemaName()) &&
+											!subject.equals(getTransactionsSchemaName())) {
 										subjects.add(subject);
 									}
 								}
@@ -946,15 +932,13 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 					if (entityout != null) {
 						for (String s : entityout) {
 							if (s.endsWith("-key")) {
-								String subject = s.substring(0, s.lastIndexOf('-'));
-								switch (subject) {
-								case PipelineAbstract.CONSUMER_METADATA_TOPIC_NAME:
-								case PipelineAbstract.PRODUCER_METADATA_TOPIC_NAME:
-								case PipelineAbstract.PRODUCER_TRANSACTION_TOPIC_NAME:
-								case PipelineAbstract.SERVICE_METADATA_TOPIC_NAME:
-									break;
-								default:
-									subjects.add(SchemaRegistryName.createViaEncoded(subject));
+								String subjectname = s.substring(0, s.lastIndexOf('-'));
+								SchemaRegistryName subject = SchemaRegistryName.createViaEncoded(subjectname);
+								if (!subject.equals(getConsumerMetadataSchemaName()) &&
+										!subject.equals(getProducerMetadataSchemaName()) &&
+										!subject.equals(getServiceMetadataSchemaName()) &&
+										!subject.equals(getTransactionsSchemaName())) {
+									subjects.add(subject);
 								}
 							}
 						}
@@ -976,7 +960,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
     	GenericRecord keyrecord = new Record(producermetadataschema.getKeySchema());
     	keyrecord.put(PipelineAbstract.AVRO_FIELD_PRODUCERNAME, producername);
 		byte[] key = AvroSerializer.serialize(producermetadataschema.getDetails().getKeySchemaID(), keyrecord);
-    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getTenantProducerMetadataName().getName(), 0, key, null);
+    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getProducerMetadataTopicName().getEncodedName(), 0, key, null);
     	producer.send(record);
 	}
 
@@ -985,7 +969,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
     	GenericRecord keyrecord = new Record(consumermetadataschema.getKeySchema());
     	keyrecord.put(AVRO_FIELD_CONSUMERNAME, consumername);
 		byte[] key = AvroSerializer.serialize(consumermetadataschema.getDetails().getKeySchemaID(), keyrecord);
-    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(this.getTenantConsumerMetadataName().getName(), 0, key, null);
+    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getConsumerMetadataTopicName().getEncodedName(), 0, key, null);
     	
     	producer.send(record);
 	}
@@ -995,7 +979,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
     	GenericRecord keyrecord = new Record(servicemetadataschema.getKeySchema());
     	keyrecord.put(AVRO_FIELD_SERVICENAME, servicename);
 		byte[] key = AvroSerializer.serialize(servicemetadataschema.getDetails().getKeySchemaID(), keyrecord);
-    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(this.getTenantServiceMetadataName().getName(), 0, key, null);
+    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getServiceMetadataTopicName().getEncodedName(), 0, key, null);
     	producer.send(record);
 	}
 
@@ -1025,7 +1009,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 			byte[] key = AvroSerializer.serialize(producermetadataschema.getDetails().getKeySchemaID(), keyrecord);
 			byte[] value = AvroSerializer.serialize(producermetadataschema.getDetails().getValueSchemaID(), valuerecord);
 	    	
-	    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getTenantProducerMetadataName().getName(), 0, key, value);
+	    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getProducerMetadataTopicName().getEncodedName(), 0, key, value);
 	    	
 	    	this.producer.send(record);
 
@@ -1048,7 +1032,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 			byte[] key = AvroSerializer.serialize(consumermetadataschema.getDetails().getKeySchemaID(), keyrecord);
 			byte[] value = AvroSerializer.serialize(consumermetadataschema.getDetails().getValueSchemaID(), valuerecord);
 	    	
-	    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getTenantConsumerMetadataName().getName(), 0, key, value);
+	    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getConsumerMetadataTopicName().getEncodedName(), 0, key, value);
 	    	
 	    	producer.send(record);
 		}
@@ -1083,7 +1067,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 			byte[] key = AvroSerializer.serialize(servicemetadataschema.getDetails().getKeySchemaID(), keyrecord);
 			byte[] value = AvroSerializer.serialize(servicemetadataschema.getDetails().getValueSchemaID(), valuerecord);
 	    	
-	    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(this.getTenantServiceMetadataName().getName(), 0, key, value);
+	    	ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getServiceMetadataTopicName().getEncodedName(), 0, key, value);
 	    	
 	    	this.producer.send(record);
 
@@ -1094,7 +1078,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
     @Override
 	public ProducerMetadataEntity getProducerMetadata() throws PipelineRuntimeException {
     	long metadatamaxage = System.currentTimeMillis() - METADATAAGE;
-		List<TopicPayload> records = getLastRecords(getTenantProducerMetadataName(), 10000); // list is sorted descending
+		List<TopicPayload> records = getLastRecords(getProducerMetadataTopicName(), 10000); // list is sorted descending
 		if (records != null && records.size() > 0) {
 			List<ProducerEntity> producerlist = new ArrayList<>();
 			Set<String> uniqueproducers = new HashSet<>();
@@ -1147,7 +1131,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
     @Override
 	public ConsumerMetadataEntity getConsumerMetadata() throws PipelineRuntimeException {
     	long metadatamaxage = System.currentTimeMillis() - METADATAAGE;
-		List<TopicPayload> records = getLastRecords(getTenantConsumerMetadataName(), 10000); // list is sorted descending
+		List<TopicPayload> records = getLastRecords(getConsumerMetadataTopicName(), 10000); // list is sorted descending
 		if (records != null && records.size() > 0) {
 			List<ConsumerEntity> list = new ArrayList<>();
 			Set<String> uniqueconsumers = new HashSet<>();
@@ -1193,7 +1177,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
     @Override
 	public ServiceMetadataEntity getServiceMetadata() throws PipelineRuntimeException {
     	long metadatamaxage = System.currentTimeMillis() - METADATAAGE;
-		List<TopicPayload> records = getLastRecords(getTenantServiceMetadataName(), 10000); // list is sorted descending
+		List<TopicPayload> records = getLastRecords(getServiceMetadataTopicName(), 10000); // list is sorted descending
 		if (records != null && records.size() > 0) {
 			List<ServiceEntity> servicelist = new ArrayList<>();
 			Set<String> uniqueservices = new HashSet<>();
@@ -1253,19 +1237,6 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		} else {
 			return null;
 		}
-	}
-
-
-	private TopicName getTenantConsumerMetadataName() throws PipelineRuntimeException {
-		return consumermetadatatopicname;
-	}
-
-	private TopicName getTenantProducerMetadataName() throws PipelineRuntimeException {
-		return producermetadatatopicname;
-	}
-
-	private TopicName getTenantServiceMetadataName() throws PipelineRuntimeException {
-		return servicemetadatatopicname;
 	}
 
 	public void loadConnectionProperties() throws PropertiesException {
@@ -1361,16 +1332,12 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		return producertransactionschema;
 	}
 	
-	public TopicName getProducerTransactionTopicName() {
-		return producertransactiontopicname;
-	}
-
 	@Override
 	public Map<String, LoadInfo> getLoadInfo(String producername, int instanceno) throws PipelineRuntimeException {
 		/*
 		 * data contains all records, oldest is first
 		 */
-		List<TopicPayload> data = getAllRecordsSince(producertransactiontopicname, 0L, Integer.MAX_VALUE, null);
+		List<TopicPayload> data = getAllRecordsSince(getTransactionsTopicName(), 0L, Integer.MAX_VALUE, null);
 		Map<String, LoadInfo> r = new HashMap<>();
 		for (TopicPayload d : data) {
 			JexlRecord record = d.getValueRecord();

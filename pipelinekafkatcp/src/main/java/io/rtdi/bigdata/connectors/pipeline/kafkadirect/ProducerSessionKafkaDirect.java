@@ -131,7 +131,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 		byte[] key = AvroSerializer.serialize(transactionlogschema.getDetails().getKeySchemaID(), keyrecord);
 		byte[] value = AvroSerializer.serialize(transactionlogschema.getDetails().getValueSchemaID(), valuerecord);
 		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(
-				getPipelineAPI().getProducerTransactionTopicName().getEncodedName(), null, key, value);
+				getPipelineAPI().getTransactionsTopicName().getEncodedName(), null, key, value);
 		producer.send(record);
 	}
 
