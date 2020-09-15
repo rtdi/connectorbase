@@ -80,7 +80,7 @@ public class AvroDate extends LogicalType implements IAvroPrimitive {
 			return (int) ((LocalDateTime) value).getLong(ChronoField.EPOCH_DAY);
 		} else if (value instanceof Date) {
 			Date d = (Date) value;
-			return (int) LocalDateTime.ofEpochSecond(d.getTime()/1000, 0, ZoneOffset.UTC).getLong(ChronoField.EPOCH_DAY);
+			return (int) LocalDateTime.ofEpochSecond(d.getTime()/1000L, 0, ZoneOffset.UTC).getLong(ChronoField.EPOCH_DAY);
 		} else if (value instanceof ZonedDateTime) {
 			ZonedDateTime d = (ZonedDateTime) value;
 			return (int) d.getLong(ChronoField.EPOCH_DAY);
@@ -92,12 +92,12 @@ public class AvroDate extends LogicalType implements IAvroPrimitive {
 	}
 
 	@Override
-	public LocalDateTime convertToJava(Object value) throws PipelineCallerException {
+	public Instant convertToJava(Object value) throws PipelineCallerException {
 		if (value == null) {
 			return null;
 		} else if (value instanceof Integer) {
 			long v = ((Integer) value).longValue();
-			return LocalDateTime.ofEpochSecond(v*24L*3600L, 0, ZoneOffset.UTC);
+			return Instant.ofEpochSecond(v*24L*3600L);
 		}
 		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Date");
 	}

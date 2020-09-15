@@ -21,8 +21,6 @@ The main reason for the global properties is to provide users a first level of c
 
 | Name       | Description |
 | ---------- | ----------- |
-| Topic      | sap-icon://batch-payments    | e061    |
-
 | ui5url | A link to the UI5 library to use. When not specified the latest SAP OpenUI5 version is used. For the docker images the locally deployed OpenUI5 version is specified. |
 | companyname | Free form text for the company name. Sent with the usage statistic information. |
 | pipelineapi | The default logic is to pick the first found PipelineAPI. In the docker images only the KafkaAPIdirect is copied by default. But if multiple are used, here the name can be specified. |

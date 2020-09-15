@@ -95,6 +95,8 @@ public class AvroShort extends LogicalType implements IAvroPrimitive {
 			return null;
 		} else if (value instanceof Short) {
 			return (Short) value;
+		} else if (value instanceof Integer) {
+			return ((Integer) value).shortValue();
 		}
 		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Short");
 	}

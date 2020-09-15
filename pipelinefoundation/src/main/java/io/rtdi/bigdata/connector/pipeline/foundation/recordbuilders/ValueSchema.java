@@ -9,6 +9,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlAr
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroAnyPrimitive;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroByte;
+import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroNVarchar;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroString;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroTimestamp;
 import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroVarchar;
@@ -46,11 +47,11 @@ public class ValueSchema extends SchemaBuilder {
 			extension.build();
 			
 			audit = new SchemaBuilder(AUDIT, "If data is transformed this information is recorded here");			
-			audit.add(TRANSFORMRESULT, AvroString.getSchema(), "Is the record PASS, FAILED or WARN?", false);
+			audit.add(TRANSFORMRESULT, AvroVarchar.getSchema(4), "Is the record PASS, FAILED or WARN?", false);
 			audit_details = audit.addColumnRecordArray(AUDITDETAILS, "Details of all transformations", "__audit_details", null);
-			audit_details.add(AUDITTRANSFORMATIONNAME, AvroString.getSchema(), "A name identifiying the applied transformation", false);
-			audit_details.add(TRANSFORMRESULT, AvroString.getSchema(), "Is the record PASS, FAILED or WARN?", false);
-			audit_details.add(AUDITTRANSFORMRESULTTEXT, AvroString.getSchema(), "Transforms can optionally describe what they did", true);
+			audit_details.add(AUDITTRANSFORMATIONNAME, AvroNVarchar.getSchema(1024), "A name identifiying the applied transformation", false);
+			audit_details.add(TRANSFORMRESULT, AvroVarchar.getSchema(4), "Is the record PASS, FAIL or WARN?", false);
+			audit_details.add(AUDITTRANSFORMRESULTTEXT, AvroNVarchar.getSchema(1024), "Transforms can optionally describe what they did", true);
 			audit_details.add(AUDIT_TRANSFORMRESULT_QUALITY, AvroByte.getSchema(), "Transforms can optionally return a percent value from 0 (FAIL) to 100 (PASS)", true);
 			audit.build();
 			auditdetails_array_schema = IOUtils.getBaseSchema(audit_details.schema());
@@ -156,15 +157,15 @@ public class ValueSchema extends SchemaBuilder {
 		add(SchemaConstants.SCHEMA_COLUMN_SOURCE_ROWID, 
 				AvroVarchar.getSchema(30),
 				"Optional unqiue and static pointer to the row, e.g. Oracle rowid", 
-				true).setInternal().setPrimaryKey().setTechnical();
+				true).setInternal().setTechnical();
 		add(SchemaConstants.SCHEMA_COLUMN_SOURCE_TRANSACTION, 
 				AvroVarchar.getSchema(30),
 				"Optional source transaction information for auditing", 
-				true).setInternal().setTechnical().setPrimaryKey();
+				true).setInternal().setTechnical();
 		add(SchemaConstants.SCHEMA_COLUMN_SOURCE_SYSTEM, 
 				AvroVarchar.getSchema(30),
 				"Optional source system information for auditing", 
-				true).setInternal().setTechnical().setPrimaryKey();
+				true).setInternal().setTechnical();
 		addColumnArray(SchemaConstants.SCHEMA_COLUMN_EXTENSION, extension.getSchema(), "Add more columns beyond the official logical data model").setInternal();
 		addColumnRecord(AUDIT, audit, "If data is transformed this information is recorded here", true).setInternal();
 	}

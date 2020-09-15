@@ -194,6 +194,11 @@ public class JexlGenericData extends GenericData {
 			return path;
 		}
 
+		@Override
+		public Field getParentField() {
+			return parentfield;
+		}
+
 	}
 
 	public static class JexlArray<T> extends Array<T> implements IAvroNested {
@@ -267,6 +272,12 @@ public class JexlGenericData extends GenericData {
 			}
 			return path;
 		}
+
+		@Override
+		public Field getParentField() {
+			return parentfield;
+		}
+
 	}
 
 	@Override
@@ -279,4 +290,5 @@ public class JexlGenericData extends GenericData {
 		return new JexlRecord(schema);
 	}
 
+	
 }

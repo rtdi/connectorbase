@@ -43,7 +43,7 @@ public abstract class PipelineAbstract<
 	private static final SchemaRegistryName PRODUCER_METADATA_SCHEMA_NAME_ = SchemaRegistryName.create("ProducerMetadata");
 	private static final SchemaRegistryName CONSUMER_METADATA_SCHEMA_NAME_ = SchemaRegistryName.create("ConsumerMetadata");
 	private static final SchemaRegistryName SERVICE_METADATA_SCHEMA_NAME_ = SchemaRegistryName.create("ServiceMetadata");
-	private static final TopicName SCHEMA_TOPIC_NAME_ = TopicName.create("_schemaregistry");
+	private static final TopicName SCHEMA_TOPIC_NAME_ = TopicName.create("_schemas");
 	private static final TopicName PRODUCER_TRANSACTION_TOPIC_NAME_ = TopicName.create("_producertransactions");
 	private static final TopicName PRODUCER_METADATA_TOPIC_NAME_ = TopicName.create("ProducerMetadata");
 	private static final TopicName CONSUMER_METADATA_TOPIC_NAME_ = TopicName.create("ConsumerMetadata");

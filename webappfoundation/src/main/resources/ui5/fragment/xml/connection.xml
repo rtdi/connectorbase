@@ -36,8 +36,8 @@
 				</ObjectNumber>
 			</HBox>
 			<Button icon="sap-icon://database" text="Manage Schemas" press="onPressBrowse" width="100%" />
-			<Button icon="sap-icon://table-row" text="Producers ({producercount})" press="onPressProducers" width="100%" />
-			<Button icon="sap-icon://detail-view" text="Consumers ({consumercount})" press="onPressConsumers" width="100%" />
+			<Button icon="sap-icon://table-row" text="Producers ({producercount})" press="onPressProducers" width="100%" visible="{producer}" />
+			<Button icon="sap-icon://detail-view" text="Consumers ({consumercount})" press="onPressConsumers" width="100%" visible="{consumer}" />
 		</VBox>
 		<OverflowToolbar design="Transparent">
 			<ToolbarSpacer/>
