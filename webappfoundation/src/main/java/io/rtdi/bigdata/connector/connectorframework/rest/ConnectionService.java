@@ -19,6 +19,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryConsumer;
+import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryProducer;
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectionController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
@@ -186,6 +188,8 @@ public class ConnectionService {
 		private int elements;
 		private long rowsprocessedcount;
 		private String state;
+		private boolean producer;
+		private boolean consumer;
 		List<ErrorEntity> messages;
 
 		public ConnectionEntity(ConnectionController connection) {
@@ -198,6 +202,8 @@ public class ConnectionService {
 			elements = producercount + consumercount;
 			state = connection.getState().name();
 			messages = connection.getErrorListRecursive();
+			producer = connection.getConnectorFactory() instanceof IConnectorFactoryProducer;
+			consumer = connection.getConnectorFactory() instanceof IConnectorFactoryConsumer;
 		}
 
 		public long getRowsprocessedcount() {
@@ -230,6 +236,14 @@ public class ConnectionService {
 
 		public List<ErrorEntity> getMessages() {
 			return messages;
+		}
+
+		public boolean isProducer() {
+			return producer;
+		}
+
+		public boolean isConsumer() {
+			return consumer;
 		}
 
 	}

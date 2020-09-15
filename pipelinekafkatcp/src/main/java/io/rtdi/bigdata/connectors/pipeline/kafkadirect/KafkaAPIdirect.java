@@ -122,7 +122,8 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	private KafkaProducer<byte[], byte[]> producer;
 	private AdminClient admin;
 	private WebTarget target;
-
+	private Set<String> internaltopics;
+	private Set<String> internalschemas;
 	
 	private Cache<Integer, Schema> schemaidcache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(30)).maximumSize(1000).build();
 	private Cache<SchemaRegistryName, SchemaHandler> schemacache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(31)).maximumSize(1000).build();
@@ -352,6 +353,20 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				createInternalTopic(getProducerMetadataTopicName());
 				createInternalTopic(getConsumerMetadataTopicName());
 				createInternalTopic(getServiceMetadataTopicName());
+				
+				internaltopics = new HashSet<>();
+				internaltopics.add(getTransactionsTopicName().getEncodedName());
+				internaltopics.add(getProducerMetadataTopicName().getEncodedName());
+				internaltopics.add(getConsumerMetadataTopicName().getEncodedName());
+				internaltopics.add(getServiceMetadataTopicName().getEncodedName());
+				internaltopics.add(getSchemaRegistryTopicName().getEncodedName());
+				
+				internalschemas = new HashSet<>();
+				internalschemas.add(getProducerMetadataSchemaName().getEncodedName());
+				internalschemas.add(getConsumerMetadataSchemaName().getEncodedName());
+				internalschemas.add(getServiceMetadataSchemaName().getEncodedName());
+				internalschemas.add(getTransactionsSchemaName().getEncodedName());
+				
 				
     		} catch (PipelineRuntimeException e) {
 				close();
@@ -668,10 +683,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				List<TopicName> topicNames = new ArrayList<>();
 				for ( TopicListing t : listing) {
 					String n = t.name();
-					if (!n.equals(getSchemaRegistryTopicName().getEncodedName()) &&
-							!n.equals(getProducerMetadataTopicName().getEncodedName()) &&
-							!n.equals(getConsumerMetadataTopicName().getEncodedName()) &&
-							!n.equals(getServiceMetadataTopicName().getEncodedName())) {
+					if (!internaltopics.contains(n)) {
 						topicNames.add(TopicName.createViaEncoded(n));
 					}
 				}
@@ -908,10 +920,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 								if (schemadef.isDeleted()) {
 									subjects.remove(subject);
 								} else if (!subjects.contains(subject)) {
-									if (!subject.equals(getConsumerMetadataSchemaName()) &&
-											!subject.equals(getProducerMetadataSchemaName()) &&
-											!subject.equals(getServiceMetadataSchemaName()) &&
-											!subject.equals(getTransactionsSchemaName())) {
+									if (!internalschemas.contains(subject.getEncodedName())) {
 										subjects.add(subject);
 									}
 								}
@@ -933,11 +942,8 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 						for (String s : entityout) {
 							if (s.endsWith("-key")) {
 								String subjectname = s.substring(0, s.lastIndexOf('-'));
-								SchemaRegistryName subject = SchemaRegistryName.createViaEncoded(subjectname);
-								if (!subject.equals(getConsumerMetadataSchemaName()) &&
-										!subject.equals(getProducerMetadataSchemaName()) &&
-										!subject.equals(getServiceMetadataSchemaName()) &&
-										!subject.equals(getTransactionsSchemaName())) {
+								if (!internalschemas.contains(subjectname)) {
+									SchemaRegistryName subject = SchemaRegistryName.createViaEncoded(subjectname);
 									subjects.add(subject);
 								}
 							}

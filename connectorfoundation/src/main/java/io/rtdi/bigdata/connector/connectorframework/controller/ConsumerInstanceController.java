@@ -45,7 +45,7 @@ public class ConsumerInstanceController extends ThreadBasedController<Controller
 				long rowslimit = rowsprocessed + maxrows;
 				consumer.setTopics();
 				while (isRunning()) {
-					logger.info("Fetching Data");
+					logger.debug("Fetching Data");
 					fetchcalls++;
 					int rowsfetched = consumer.fetchBatch();
 					if (rowsfetched != 0) {

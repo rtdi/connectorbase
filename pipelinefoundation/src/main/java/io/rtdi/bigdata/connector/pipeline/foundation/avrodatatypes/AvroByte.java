@@ -116,6 +116,8 @@ public class AvroByte extends LogicalType implements IAvroPrimitive {
 			return null;
 		} else if (value instanceof Byte) {
 			return (Byte) value;
+		} else if (value instanceof Integer) {
+			return ((Integer) value).byteValue();
 		}
 		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Byte");
 	}
