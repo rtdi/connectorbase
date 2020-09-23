@@ -98,8 +98,8 @@ public class ServiceSessionKafkaDirect extends ServiceSession {
 			long maxdate = 0L;
 			for (MicroServiceTransformation transformations : properties.getMicroserviceTransformations()) {
 				if (transformations != null) {
-					long d = transformations.getLastRowProcessed();
-					if (d > maxdate) {
+					Long d = transformations.getLastRowProcessed();
+					if (d != null && d > maxdate) {
 						maxdate = d;
 					}
 				}

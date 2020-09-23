@@ -24,8 +24,10 @@ import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectionController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConsumerController;
+import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ErrorEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
 
@@ -111,6 +113,45 @@ public class ConsumerService {
 				consumer.getConsumerProperties().write(dir);
 			}
 			return JAXBSuccessResponseBuilder.getJAXBResponse("created");
+		} catch (Exception e) {
+			return JAXBErrorResponseBuilder.getJAXBResponse(e);
+		}
+	}
+
+	@GET
+	@Path("/connections/{connectionname}/consumers/{consumername}/stop")
+    @Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed(ServletSecurityConstants.ROLE_OPERATOR)
+    public Response stopProducer(@PathParam("connectionname") String connectionname, @PathParam("consumername") String consumername) {
+		try {
+			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
+			ConnectionController conn = connector.getConnectionOrFail(connectionname);
+			ConsumerController consumer = conn.getConsumerOrFail(consumername);
+			consumer.disableController();
+			consumer.joinAll(ControllerExitType.ABORT);
+			return JAXBSuccessResponseBuilder.getJAXBResponse("stopped");
+		} catch (Exception e) {
+			return JAXBErrorResponseBuilder.getJAXBResponse(e);
+		}
+	}
+
+	@GET
+	@Path("/connections/{connectionname}/consumers/{consumername}/start")
+    @Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed(ServletSecurityConstants.ROLE_OPERATOR)
+    public Response startProducer(@PathParam("connectionname") String connectionname, @PathParam("consumername") String consumername) {
+		try {
+			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
+			ConnectionController conn = connector.getConnectionOrFail(connectionname);
+			ConsumerController consumer = conn.getConsumerOrFail(consumername);
+			if (!conn.isRunning()) {
+				throw new ConnectorTemporaryException("Cannot start a consumer when its connection is not running", null, "First start the connection", connectionname);
+			}
+			File dir = new File(conn.getDirectory(), ConnectionController.DIR_CONSUMERS);
+			consumer.getConsumerProperties().read(dir);
+			consumer.startController();
+			//TODO: Return if the producer was started correctly.
+			return JAXBSuccessResponseBuilder.getJAXBResponse("started");
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}

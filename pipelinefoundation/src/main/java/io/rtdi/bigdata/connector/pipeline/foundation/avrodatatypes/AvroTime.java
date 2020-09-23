@@ -2,8 +2,10 @@ package io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
@@ -72,6 +74,9 @@ public class AvroTime extends LogicalType implements IAvroPrimitive {
 			return null;
 		} else if (value instanceof Integer) {
 			return value;
+		} else if (value instanceof LocalTime) {
+			LocalTime t = (LocalTime) value;
+			return t.getLong(ChronoField.SECOND_OF_DAY);
 		}
 		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Time");
 	}
