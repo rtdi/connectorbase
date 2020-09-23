@@ -77,6 +77,8 @@ public class AvroFixed extends LogicalTypeWithLength implements IAvroPrimitive {
 			return null;
 		} else if (value instanceof byte[]) {
 			return (byte[]) value;
+		} else if (value instanceof ByteBuffer) {
+			return ((ByteBuffer) value).array();
 		}
 		throw new PipelineCallerException("Cannot convert a value of type \"" + value.getClass().getSimpleName() + "\" into a Fixed");
 	}
