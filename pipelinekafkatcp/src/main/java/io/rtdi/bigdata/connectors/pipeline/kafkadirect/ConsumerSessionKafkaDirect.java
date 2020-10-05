@@ -23,6 +23,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.IProcessFetchedRow;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
+import io.rtdi.bigdata.connector.pipeline.foundation.enums.OperationState;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
@@ -42,7 +43,8 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 			consumerprops.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 			consumerprops.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, getProperties().getFlushMaxRecords());
 			consumerprops.put(ConsumerConfig.GROUP_ID_CONFIG, getProperties().getName());
-			consumerprops.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
+			consumerprops.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000); // Heartbeats of the consumer must be received every 30 seconds or less
+			consumerprops.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 1800000); // 30 minutes time to process up to getFlushMaxRecords() records
 			
 			consumerprops.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 			consumerprops.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
@@ -76,9 +78,13 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 	@Override
 	public int fetchBatch(IProcessFetchedRow processor) throws IOException {
 		int rowcount = 0;
+		processor.setOperationState(OperationState.FETCHWAITINGFORDATA);
 		ConsumerRecords<byte[], byte[]> records = consumer.poll(Duration.ofSeconds(10));
+		processor.setOperationState(OperationState.FETCHGETTINGROW);
+		
 		Iterator<ConsumerRecord<byte[], byte[]>> recordsiterator = records.iterator();
-		while (recordsiterator.hasNext()) {
+		while (recordsiterator.hasNext() && processor.isActive()) {
+			processor.setOperationState(OperationState.FETCH);
 			ConsumerRecord<byte[], byte[]> record = recordsiterator.next();
 			JexlRecord keyrecord = null;
 			try {
@@ -95,6 +101,7 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 			if (valuerecord != null) {
 				TopicName topicname = TopicName.create(record.topic());
 				processor.process(topicname, record.offset(), record.partition(), keyrecord, valuerecord);
+				
 				rowcount++;
 
 				// Due to a rebalance a new topic might be subscribed to

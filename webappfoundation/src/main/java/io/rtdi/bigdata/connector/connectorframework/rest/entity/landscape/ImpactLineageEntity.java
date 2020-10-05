@@ -36,7 +36,7 @@ public class ImpactLineageEntity extends NetworkEntity {
 
 	public void addConsumedTopic(String topicname, ConsumerEntity consumer) throws PropertiesRuntimeException {
 		String topicid = "T:" + topicname;
-		String consumerid = "P:" + consumer.getConsumerName();
+		String consumerid = "C:" + consumer.getConsumerName();
 		NetworkNode n = addNode(topicid, NetworkNodeType.TOPIC, topicname, "Topic: " + topicname);
 		n.addLink(consumerid);
 	}

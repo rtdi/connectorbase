@@ -204,6 +204,7 @@ public class ConsumerService {
 		private long rowsprocessedcount;
 		private String state;
 		List<ErrorEntity> messages;
+		List<String> instanceoperations;
 
 		public ConsumerEntity(ConsumerController consumer) {
 			ConsumerProperties props = consumer.getConsumerProperties();
@@ -213,6 +214,7 @@ public class ConsumerService {
 			rowsprocessedcount = consumer.getRowsProcessedCount();
 			state = consumer.getState().name();
 			messages = consumer.getErrorListRecursive();
+			instanceoperations = consumer.getInstanceOperations();
 		}
 
 		public long getRowsprocessedcount() {
@@ -238,7 +240,11 @@ public class ConsumerService {
 		public List<ErrorEntity> getMessages() {
 			return messages;
 		}
+		
+		public List<String> getInstanceOperations() {
+			return instanceoperations;
+		}
 
 	}
-		
+	
 }

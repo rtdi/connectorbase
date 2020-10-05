@@ -15,6 +15,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerState;
+import io.rtdi.bigdata.connector.pipeline.foundation.enums.OperationState;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
@@ -58,6 +59,11 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 		consumersession.close();
 		closeImpl();
 	}
+	
+	@Override
+	public boolean isActive() {
+		return instance.isRunning();
+	}
 
 	/**
 	 * Place for the Consumer to close all resources after the consumer session is closed.
@@ -79,6 +85,10 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 		int rowcount = consumersession.fetchBatch(this);
 		fetchBatchEnd();
 		return rowcount;
+	}
+	
+	public void setOperationState(OperationState state) {
+		instance.setOperationState(state);
 	}
 
 	public final void flushData() throws IOException {
@@ -178,4 +188,7 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 		return instance.getState();
 	}
 
+	public void incrementRowsProcessed(long offset) {
+		instance.incrementRowProcessed(offset);
+	}
 }

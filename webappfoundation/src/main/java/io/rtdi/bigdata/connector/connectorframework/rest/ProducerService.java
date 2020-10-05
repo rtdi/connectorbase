@@ -205,6 +205,7 @@ public class ProducerService {
 		private long rowsprocessedcount;
 		private String state;
 		List<ErrorEntity> messages;
+		private List<String> instancestates;
 
 		public ProducerEntity(ProducerController producer) {
 			ProducerProperties props = producer.getProducerProperties();
@@ -214,6 +215,7 @@ public class ProducerService {
 			rowsprocessedcount = producer.getRowsProcessedCount();
 			state = producer.getState().name();
 			messages = producer.getErrorListRecursive();
+			instancestates = producer.getInstanceStates();
 		}
 
 		public long getRowsprocessedcount() {
@@ -238,6 +240,10 @@ public class ProducerService {
 		
 		public List<ErrorEntity> getMessages() {
 			return messages;
+		}
+
+		public List<String> getInstancestates() {
+			return instancestates;
 		}
 
 	}

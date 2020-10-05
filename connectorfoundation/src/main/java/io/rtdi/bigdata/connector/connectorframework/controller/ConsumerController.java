@@ -1,7 +1,9 @@
 package io.rtdi.bigdata.connector.connectorframework.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
@@ -106,6 +108,18 @@ public class ConsumerController extends Controller<ConsumerInstanceController> {
 			for (ConsumerInstanceController c : getInstances().values()) {
 				c.updateSchemaCache();
 			}
+		}
+	}
+
+	public List<String> getInstanceOperations() {
+		if (getInstances() != null) {
+			List<String> states = new ArrayList<>();
+			for (ConsumerInstanceController c : getInstances().values()) {
+				states.add(c.getOperationState().name());
+			}
+			return states;
+		} else {
+			return null;
 		}
 	}
 	
