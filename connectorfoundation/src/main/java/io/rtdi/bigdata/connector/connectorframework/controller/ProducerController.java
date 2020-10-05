@@ -1,7 +1,9 @@
 package io.rtdi.bigdata.connector.connectorframework.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
@@ -115,6 +117,18 @@ public class ProducerController extends Controller<ProducerInstanceController> {
 			for (ProducerInstanceController c : getInstances().values()) {
 				c.updateSchemaCache();
 			}
+		}
+	}
+
+	public List<String> getInstanceStates() {
+		if (getInstances() != null) {
+			List<String> states = new ArrayList<>();
+			for (ProducerInstanceController c : getInstances().values()) {
+				states.add(c.getOperation().name());
+			}
+			return states;
+		} else {
+			return null;
 		}
 	}
 }

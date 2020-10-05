@@ -8,6 +8,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
+import io.rtdi.bigdata.connector.pipeline.foundation.enums.OperationState;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
@@ -15,11 +16,12 @@ import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 public class ConsumerInstanceController extends ThreadBasedController<Controller<?>> {
 
 	private ConsumerController consumercontroller;
-	private long rowsprocessed = 0;
 	private Long lastdatatimestamp = null;
 	private long lastoffset = 0;
 	private int fetchcalls = 0;
 	private boolean updateConsumerMetadata;
+	private long rowsprocessed;
+	private OperationState state = OperationState.STOPPED;
 
 	public ConsumerInstanceController(String name, ConsumerController consumercontroller) {
 		super(name);
@@ -37,26 +39,27 @@ public class ConsumerInstanceController extends ThreadBasedController<Controller
 	@Override
 	public void runUntilError() throws IOException {
 		updateConsumerMetadata = true;
+		state = OperationState.OPEN;
 		try (Consumer<?,?> consumer = getConnectorFactory().createConsumer(this);) {
+			state = OperationState.DONEOPEN;
 			try {
 				long flushtime = getProperties().getFlushMaxTime();
 				long maxrows = getProperties().getFlushMaxRecords();
 				long timeout = System.currentTimeMillis() + flushtime;
-				long rowslimit = rowsprocessed + maxrows;
+				long rowcounter = 0;
 				consumer.setTopics();
 				while (isRunning()) {
 					logger.debug("Fetching Data");
+					state = OperationState.REQUESTDATA;
 					fetchcalls++;
-					int rowsfetched = consumer.fetchBatch();
-					if (rowsfetched != 0) {
-						rowsprocessed += rowsfetched;
-						lastdatatimestamp = System.currentTimeMillis();
-						lastoffset = consumer.getLastOffset();
-					}
-					if (System.currentTimeMillis() > timeout || rowsprocessed >= rowslimit) {
+					rowcounter += consumer.fetchBatch();
+					state = OperationState.DONEREQUESTDATA;
+					if (System.currentTimeMillis() > timeout || rowcounter >= maxrows) {
 						timeout = System.currentTimeMillis() + flushtime;
-						rowslimit = rowsprocessed + maxrows;
+						rowcounter = 0;
+						state = OperationState.DOEXPLICITCOMMIT;
 						consumer.flushData(); // flush/commit.
+						state = OperationState.DONEEXPLICITCOMMIT;
 					}
 					if (updateConsumerMetadata) {
 						getPipelineAPI().addConsumerMetadata(
@@ -79,6 +82,7 @@ public class ConsumerInstanceController extends ThreadBasedController<Controller
 					}
 				}
 			} finally {
+				state = OperationState.STOPPED;
 				/*
 				 * Clear the interrupt flag to ensure the close() of the try operation can close all resources gracefully
 				 */
@@ -136,5 +140,19 @@ public class ConsumerInstanceController extends ThreadBasedController<Controller
 	@Override
 	protected void updateSchemaCache() {
 	}
-	
+
+	public void incrementRowProcessed(long offset) {
+		rowsprocessed++;
+		lastoffset = offset;
+		lastdatatimestamp = System.currentTimeMillis();
+	}
+
+	public OperationState getOperationState() {
+		return state;
+	}
+
+	public void setOperationState(OperationState state) {
+		this.state = state;
+	}
+
 }

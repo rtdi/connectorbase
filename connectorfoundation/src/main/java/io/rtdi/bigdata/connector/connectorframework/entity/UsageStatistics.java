@@ -175,7 +175,7 @@ public class UsageStatistics {
 		}
 
 		private Producer getProducerByName(String name) {
-			if (producers != null && producerindex != null) {
+			if (producers != null && producerindex != null && name != null) {
 				int index = producerindex.get(name);
 				return producers.get(index);
 			} else {

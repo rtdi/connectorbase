@@ -1,19 +1,43 @@
 {
 	"values": [
 		{
+			"type": "PropertyText",
+			"name": "text"
+		},
+		{
 			"type": "PropertyString",
 			"name": "tenantid",
-			"value": "TENANT1"
+			"value": "T1"
 		},
 		{
 			"type": "PropertyString",
 			"name": "kafka.bootstrapservers",
-			"value": "kafka.rtdi.io:9092"
+			"value": ""
+		},
+		{
+			"type": "PropertyString",
+			"name": "kafka.api.key",
+			"value": ""
+		},
+		{
+			"type": "PropertyPassword",
+			"name": "kafka.api.secret",
+			"value": ""
 		},
 		{
 			"type": "PropertyString",
 			"name": "kafka.schemaregistry.url",
-			"value": "http://kafka.rtdi.io:8081"
+			"value": ""
+		},
+		{
+			"type": "PropertyString",
+			"name": "kafka.schemaregistry.security.key",
+			"value": ""
+		},
+		{
+			"type": "PropertyPassword",
+			"name": "kafka.schemaregistry.security.secret",
+			"value": ""
 		}
 	]
 }

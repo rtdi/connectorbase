@@ -75,6 +75,7 @@ onTargetCollapseAll: function() {
 	oTreeTable.collapseAll();
 },
 onDropMapping: function(oEvent) {
+	var allowEdit = oStateModel.getProperty("/roles/config");
 	if (allowEdit) {
 		var oSourceModel = this.getView().getModel("source");
 		var oSourcePath = oEvent.getParameter("draggedControl").getBindingContext("source").getPath();
