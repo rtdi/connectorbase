@@ -60,6 +60,13 @@ onPressProducer : function(oEvent) {
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	window.location.href = './Producer?connectionname=' + encodeURI(sConnectionname) + '&producername=' + encodeURI(obj.name);
 },
+onPressProducerInstances : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	window.location.href = './ProducerInstances?connectionname=' + encodeURI(sConnectionname) + '&producername=' + encodeURI(obj.name);
+},
 onPressStop : function(oEvent) {
 	var path = oEvent.getSource().getBindingContext().getPath();
 	var oModel = this.getView().getModel();

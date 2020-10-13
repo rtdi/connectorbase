@@ -1,0 +1,9 @@
+<Panel height="100%">
+	<headerToolbar>
+		<OverflowToolbar>
+			<Button icon="sap-icon://refresh" text="Reload" press="onPressRefresh" />
+		</OverflowToolbar>
+	</headerToolbar>
+	<Text text="Last consumed record, change and save to rewind the consumer instances" />
+	<DateTimePicker dateValue="{path: '/dateJ'}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
+</Panel>

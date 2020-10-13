@@ -8,9 +8,6 @@ import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerState;
 public abstract class ThreadBasedController<C extends Controller<?>> extends Controller<C> implements Runnable {
 
 	private Thread thread = null;
-	/**
-	 * The last non-recoverable exception
-	 */
 	
 	/**
 	 * @param name Controller name

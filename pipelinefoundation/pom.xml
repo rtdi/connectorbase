@@ -9,13 +9,13 @@
     <parent>
         <groupId>io.rtdi.bigdata.connector</groupId>
         <artifactId>connectorbase</artifactId>
-        <version>0.9.36</version>
+        <version>0.9.37</version>
     </parent>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.13</version>
+			<version>4.13.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

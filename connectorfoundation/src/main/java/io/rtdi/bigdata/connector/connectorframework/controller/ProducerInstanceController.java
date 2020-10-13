@@ -30,7 +30,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 
 	private ProducerController producercontroller;
 	private String lastsourcetransactionid;
-	private OperationState operationstate;
+	private OperationState operationstate = OperationState.STOPPED;
 	private int pollcalls = 0;
 	
 	/**
@@ -71,8 +71,15 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 		this.stopChildControllers(ControllerExitType.ABORT);
 	}
 	
+	/**
+	 * @return the operation state, should never be null
+	 */
 	public OperationState getOperation() {
-		return operationstate;
+		if (operationstate != null) {
+			return operationstate;
+		} else {
+			return OperationState.STOPPED;
+		}
 	}
 	
 	public int getInstanceNumber() {

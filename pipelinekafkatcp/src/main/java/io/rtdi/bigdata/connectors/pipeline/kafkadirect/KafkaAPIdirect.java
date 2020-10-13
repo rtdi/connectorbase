@@ -37,8 +37,12 @@ import org.apache.avro.util.Utf8;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
+import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsResult;
+import org.apache.kafka.clients.admin.ListOffsetsResult;
+import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo;
 import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.admin.TopicListing;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -87,6 +91,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEnti
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.TopicEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -1337,19 +1342,29 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	public SchemaHandler getTransactionLogSchema() {
 		return producertransactionschema;
 	}
-	
+
 	@Override
 	public Map<String, LoadInfo> getLoadInfo(String producername, int instanceno) throws PipelineRuntimeException {
+		return getLoadInfo(producername).get(instanceno);
+	}
+	
+	@Override
+	public Map<Integer, Map<String, LoadInfo>> getLoadInfo(String producername) throws PipelineRuntimeException {
 		/*
 		 * data contains all records, oldest is first
 		 */
 		List<TopicPayload> data = getAllRecordsSince(getTransactionsTopicName(), 0L, Integer.MAX_VALUE, null);
-		Map<String, LoadInfo> r = new HashMap<>();
+		Map<Integer, Map<String, LoadInfo>> l = new HashMap<>();
 		for (TopicPayload d : data) {
 			JexlRecord record = d.getValueRecord();
 			String currentproducername = (String) record.get(PipelineAbstract.AVRO_FIELD_PRODUCERNAME);
 			Integer currentinstanceno = (Integer) record.get(PipelineAbstract.AVRO_FIELD_PRODUCER_INSTANCE_NO);
-			if (currentproducername.equals(producername) && currentinstanceno == instanceno) {
+			if (currentproducername.equals(producername)) {
+				Map<String, LoadInfo> r = l.get(currentinstanceno);
+				if (r == null) {
+					r = new HashMap<>();
+					l.put(currentinstanceno, r);
+				}
 				Boolean successful = (Boolean)record.get(AVRO_FIELD_WAS_SUCCESSFUL);
 				String schemaname = (String) record.get(AVRO_FIELD_SCHEMANAME);
 				/*
@@ -1369,7 +1384,94 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				}
 			}
 		}
-		return r;
+		return l;
+	}
+	
+	@Override
+	public void resetInitialLoad(String producername, String schemaname, int producerinstance) throws IOException {
+		Future<RecordMetadata> f = sendLoadStatus(producername, schemaname, producerinstance, null, false, "0", producer);
+		try {
+			f.get();
+		} catch (InterruptedException | ExecutionException e) {
+			throw new PipelineRuntimeException("Cannot send the reset-initial-load message to the transactionlog", e, null);
+		}
+	}
+	
+	@Override
+	public void rewindDeltaLoad(String producername, int producerinstance, String transactionid) throws IOException {
+		Future<RecordMetadata> f = sendLoadStatus(producername, PipelineAbstract.ALL_SCHEMAS, producerinstance, 0L, true, transactionid, producer);
+		try {
+			f.get();
+		} catch (InterruptedException | ExecutionException e) {
+			throw new PipelineRuntimeException("Cannot send the reset-initial-load message to the transactionlog", e, null);
+		}
 	}
 
+
+	/**
+	 * Adds a status row to the transaction log topic for a provided producer to make sure it is sent as last.
+	 * 
+	 * @param producername responsible for the transaction 
+	 * @param schemaname the transaction is created for - needed for initial loads
+	 * @param producerinstance creating the transaction
+	 * @param rowcount column
+	 * @param finished successfully
+	 * @param transactionid to use
+	 * @param producerchannel is the Kafka producer the message should be sent with
+	 * @return send future
+	 * @throws IOException in case of error
+	 */
+	Future<RecordMetadata> sendLoadStatus(String producername, String schemaname, int producerinstance, 
+			Long rowcount, boolean finished, String transactionid,
+			KafkaProducer<byte[], byte[]> producerchannel) throws IOException {
+		JexlRecord keyrecord = new JexlRecord(producertransactionschema.getKeySchema());
+		keyrecord.set(PipelineAbstract.AVRO_FIELD_PRODUCERNAME, producername);
+		keyrecord.set(PipelineAbstract.AVRO_FIELD_PRODUCER_INSTANCE_NO, producerinstance);
+		keyrecord.set(KafkaAPIdirect.AVRO_FIELD_SCHEMANAME, schemaname);
+		JexlRecord valuerecord = new JexlRecord(producertransactionschema.getValueSchema());
+		valuerecord.set(PipelineAbstract.AVRO_FIELD_PRODUCERNAME, producername);
+		valuerecord.set(PipelineAbstract.AVRO_FIELD_PRODUCER_INSTANCE_NO, producerinstance);
+		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_SCHEMANAME, schemaname);
+		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_SOURCE_TRANSACTION_IDENTIFIER, transactionid);
+		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_LASTCHANGED, System.currentTimeMillis());
+		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_ROW_COUNT, rowcount);
+		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_WAS_SUCCESSFUL, finished);
+		byte[] key = AvroSerializer.serialize(producertransactionschema.getDetails().getKeySchemaID(), keyrecord);
+		byte[] value = AvroSerializer.serialize(producertransactionschema.getDetails().getValueSchemaID(), valuerecord);
+		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(
+				getTransactionsTopicName().getEncodedName(), null, key, value);
+		return producerchannel.send(record);
+	}
+	
+	@Override
+	public void rewindConsumer(ConsumerProperties props, long epoch) throws IOException {
+		ListConsumerGroupOffsetsResult offsets = admin.listConsumerGroupOffsets(props.getName());
+		if (offsets != null) {
+			try {
+				Map<TopicPartition, OffsetAndMetadata> partitions = offsets.partitionsToOffsetAndMetadata().get(20, TimeUnit.SECONDS);
+				if (partitions != null) {
+					Map<TopicPartition, OffsetSpec> requestedoffsets = new HashMap<>();
+					for (TopicPartition partition : partitions.keySet()) {
+						requestedoffsets.put(partition, OffsetSpec.forTimestamp(epoch));
+					}
+					ListOffsetsResult result = admin.listOffsets(requestedoffsets);
+					if (result != null) {
+						Map<TopicPartition, ListOffsetsResultInfo> offsetlist = result.all().get();
+						Map<TopicPartition, OffsetAndMetadata> l = new HashMap<>();
+						for (TopicPartition partition : offsetlist.keySet()) {
+							ListOffsetsResultInfo info = offsetlist.get(partition);
+							l.put(partition, new OffsetAndMetadata(info.offset()));
+						}
+						admin.alterConsumerGroupOffsets(props.getName(), l );
+					}
+				}
+			} catch (TimeoutException | InterruptedException | ExecutionException e) {
+				throw new PipelineCallerException(
+						"Failed to rewind the Consumer",
+						e,
+						"Requires all consumers of that name to be shutdown, even if running on a different server",
+						props.getName());
+			}
+		}
+	}
 }

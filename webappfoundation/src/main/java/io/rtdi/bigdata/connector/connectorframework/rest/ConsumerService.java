@@ -26,6 +26,7 @@ import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorControll
 import io.rtdi.bigdata.connector.connectorframework.controller.ConsumerController;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.Epoch;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ErrorEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
@@ -68,8 +69,8 @@ public class ConsumerService {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ConnectionController conn = connector.getConnectionOrFail(connectionname);
-			ConsumerController producer = conn.getConsumerOrFail(consumername);
-			return Response.ok(producer.getConsumerProperties().getPropertyGroupNoPasswords()).build();
+			ConsumerController consumer = conn.getConsumerOrFail(consumername);
+			return Response.ok(consumer.getConsumerProperties().getPropertyGroupNoPasswords()).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -122,7 +123,7 @@ public class ConsumerService {
 	@Path("/connections/{connectionname}/consumers/{consumername}/stop")
     @Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed(ServletSecurityConstants.ROLE_OPERATOR)
-    public Response stopProducer(@PathParam("connectionname") String connectionname, @PathParam("consumername") String consumername) {
+    public Response stopConsumer(@PathParam("connectionname") String connectionname, @PathParam("consumername") String consumername) {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ConnectionController conn = connector.getConnectionOrFail(connectionname);
@@ -136,10 +137,50 @@ public class ConsumerService {
 	}
 
 	@GET
+	@Path("/connections/{connectionname}/consumers/{consumername}/state")
+    @Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed(ServletSecurityConstants.ROLE_VIEW)
+    public Response getConsumerState(@PathParam("connectionname") String connectionname, @PathParam("consumername") String consumername) {
+		try {
+			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
+			ConnectionController conn = connector.getConnectionOrFail(connectionname);
+			ConsumerController consumer = conn.getConsumerOrFail(consumername);
+			Long l = consumer.getLastOffsetTimestamp();
+			if (l == null) {
+				l = System.currentTimeMillis();
+			}
+			Epoch epoch = new Epoch(l);
+			return Response.ok(epoch).build();
+		} catch (Exception e) {
+			return JAXBErrorResponseBuilder.getJAXBResponse(e);
+		}
+	}
+
+	@POST
+	@Path("/connections/{connectionname}/consumers/{consumername}/state")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed(ServletSecurityConstants.ROLE_CONFIG)
+    public Response setConsumerOffsets(@PathParam("connectionname") String connectionname, @PathParam("consumername") String consumername, Epoch data) {
+		try {
+			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
+			ConnectionController conn = connector.getConnectionOrFail(connectionname);
+			ConsumerController consumer = conn.getConsumerOrFail(consumername);
+			consumer.disableController();
+			consumer.joinAll(ControllerExitType.ABORT);
+			connector.getPipelineAPI().rewindConsumer(consumer.getConsumerProperties(), data.getEpoch());
+			consumer.startController();
+			return JAXBSuccessResponseBuilder.getJAXBResponse("altered");
+		} catch (Exception e) {
+			return JAXBErrorResponseBuilder.getJAXBResponse(e);
+		}
+	}
+
+	@GET
 	@Path("/connections/{connectionname}/consumers/{consumername}/start")
     @Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed(ServletSecurityConstants.ROLE_OPERATOR)
-    public Response startProducer(@PathParam("connectionname") String connectionname, @PathParam("consumername") String consumername) {
+    public Response startConsumer(@PathParam("connectionname") String connectionname, @PathParam("consumername") String consumername) {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ConnectionController conn = connector.getConnectionOrFail(connectionname);

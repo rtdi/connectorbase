@@ -18,6 +18,7 @@ public class ConsumerInstanceController extends ThreadBasedController<Controller
 	private ConsumerController consumercontroller;
 	private Long lastdatatimestamp = null;
 	private long lastoffset = 0;
+	private Long lastoffsettimestamp = null;
 	private int fetchcalls = 0;
 	private boolean updateConsumerMetadata;
 	private long rowsprocessed;
@@ -123,7 +124,11 @@ public class ConsumerInstanceController extends ThreadBasedController<Controller
 	public Long getLastOffset() {
 		return lastoffset;
 	}
-	
+
+	public Long getLastOffsetTimestamp() {
+		return lastoffsettimestamp;
+	}
+
 	public int getFetchCalls() {
 		return fetchcalls;
 	}
@@ -141,10 +146,11 @@ public class ConsumerInstanceController extends ThreadBasedController<Controller
 	protected void updateSchemaCache() {
 	}
 
-	public void incrementRowProcessed(long offset) {
+	public void incrementRowProcessed(long offset, long offsettimestamp) {
 		rowsprocessed++;
 		lastoffset = offset;
 		lastdatatimestamp = System.currentTimeMillis();
+		lastoffsettimestamp = offsettimestamp;
 	}
 
 	public OperationState getOperationState() {

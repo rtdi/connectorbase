@@ -30,8 +30,9 @@ public class ConsumerSessionTest extends ConsumerSession<TopicHandlerTest> {
 			for (TopicPayload p : data) {
 				if (lastoffset < p.getOffset()) {
 					state = OperationState.FETCHGETTINGROW;
-					processor.process(topic.getTopicName(), p.getOffset(), 1, p.getKeyRecord(), p.getValueRecord());
+					processor.process(topic.getTopicName(), p.getOffset(), p.getTimestamp(), 1, p.getKeyRecord(), p.getValueRecord());
 					lastoffset = p.getOffset();
+					processor.incrementRowsProcessed(p.getOffset(), p.getTimestamp());
 					rowsfetched++;
 				}
 			}

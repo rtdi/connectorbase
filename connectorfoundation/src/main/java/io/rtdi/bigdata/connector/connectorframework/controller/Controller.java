@@ -44,13 +44,17 @@ public abstract class Controller<C extends Controller<?>> implements IController
 	 * 
 	 * @throws IOException if the controller or one of its children cannot be started 
 	 */
-	public void startController() throws IOException {
-		lastalive = System.currentTimeMillis();
-		controllerdisabled = false;
-		errors = new ErrorListEntity();
-		state = ControllerState.STARTING;
-		startControllerImpl();
-		state = ControllerState.STARTED;
+	public synchronized void startController() throws IOException {
+		if (state != ControllerState.STARTING && state != ControllerState.STARTED) {
+			lastalive = System.currentTimeMillis();
+			controllerdisabled = false;
+			errors = new ErrorListEntity();
+			state = ControllerState.STARTING;
+			startControllerImpl();
+			state = ControllerState.STARTED;
+		} else {
+			logger.info("A request to start a controller that is started/starting already was made - ignored");
+		}
 	}
 
 	protected void startChildController() throws IOException {

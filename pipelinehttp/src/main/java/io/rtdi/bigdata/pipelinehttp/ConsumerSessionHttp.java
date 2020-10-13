@@ -51,6 +51,7 @@ public class ConsumerSessionHttp extends ConsumerSession<TopicHandlerHttp> {
 					String s = io.readString(in);
 					lasttopic = TopicName.create(s); // lasttopic is a monitoring variable, needs to be set anyhow, hence using it
 					lastoffset = io.readLong(in);
+					lastoffsettimestamp = io.readLong(in);
 					int partition = io.readInt(in);
 					TopicHandlerHttp topic = getTopic(lasttopic); 
 					if (topic == null) {
@@ -72,7 +73,8 @@ public class ConsumerSessionHttp extends ConsumerSession<TopicHandlerHttp> {
 						logger.error("Cannot deserialize data Value with offset {}, row not processed", String.valueOf(lastoffset));
 					}
 
-					processor.process(lasttopic, lastoffset, partition, keyrecord, valuerecord);
+					processor.process(lasttopic, lastoffset, lastoffsettimestamp, partition, keyrecord, valuerecord);
+					processor.incrementRowsProcessed(lastoffset, lastoffsettimestamp);
 					rowsfetched++;
 					break;
 				case 0: 
