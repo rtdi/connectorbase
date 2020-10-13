@@ -259,10 +259,50 @@ public interface IPipelineAPI<S extends PipelineConnectionProperties, T extends 
 	Map<String, LoadInfo> getLoadInfo(String producername, int instanceno) throws IOException;
 
 	/**
-	 * This method most be called early, before the open.
+	 * Returns the list of all schemas and for each producer instance that has been initial-loaded.
+	 * If an entry was never initial loaded, then it is not present.
+	 * 
+	 * @param producername the name of the producer
+	 * @return a Map of instances containing a Map of schema name their LoadInfo
+	 * @throws IOException in case of any errors
+	 */
+	Map<Integer, Map<String, LoadInfo>> getLoadInfo(String producername) throws IOException;
+
+	/**
+	 * This method must be called early, before the open.
 	 * 
 	 * @param globalsettings provides global information like internal topic names
 	 */
 	void setGlobalSettings(GlobalSettings globalsettings);
+
+	/**
+	 * To mark a schema as not-being-initial-loaded-yet, an entry with AVRO_FIELD_WAS_SUCCESSFUL=false needs to be created.
+	 * 
+	 * @param producername responsible for the transaction 
+	 * @param schemaname the transaction is created for
+	 * @param producerinstance creating the transaction
+	 * @throws IOException in case of errors
+	 */
+	void resetInitialLoad(String producername, String schemaname, int producerinstance) throws IOException;
+
+	/**
+	 * Rewind the delta process to an earlier state
+	 * 
+	 * @param producername to rewind the delta for
+	 * @param producerinstance to rewind the delta for
+	 * @param transactionid to start the delta from
+	 * @throws IOException in case of error
+	 */
+	void rewindDeltaLoad(String producername, int producerinstance, String transactionid) throws IOException;
+
+	/**
+	 * Rewind all topics and partitions this consumer is reading from to a particular time. 
+	 * This requires all consumers connected to Kafka with the same name (=consumer group) to be shut down.
+	 *  
+	 * @param props properties of the consumer, required to get the name
+	 * @param epoch Unix epoch to rewind the consumer group to
+	 * @throws IOException in case of errors
+	 */
+	void rewindConsumer(ConsumerProperties props, long epoch) throws IOException;
 
 }

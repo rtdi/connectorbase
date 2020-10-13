@@ -1,0 +1,60 @@
+showFooter : function() {
+	return true;
+},
+init : function() {
+	var oModel = new JSONModel();
+	var that = this;
+	oModel.attachRequestFailed(function(oEvent) {
+			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+	});
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	if (!!sConnectionname) {
+		var sProducername = jQuery.sap.getUriParameters().get("producername");
+		if (!!sProducername) {
+			oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/producers/" + encodeURI(sProducername) + "/transactions");
+			oStateModel.setProperty("/title", "Producer Instance States");
+		}
+		this.getView().setModel(oModel);
+		oStateModel.setProperty("/breadcrumbs", [ 
+			{"text" : "Homepage", "link" : "./Home"}, 
+			{"text" : "Connections", "link" : "./Connections"},
+			{"text" : "Producers", "link" : "./Producers?connectionname=" + encodeURI(sConnectionname) }
+		] );
+		
+	}	
+},
+save : function(oEvent) {
+	var that = this;
+	var oModel = this.getView().getModel();
+	var data = JSON.stringify(oModel.getJSON());
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	var sProducername = jQuery.sap.getUriParameters().get("producername");
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open("POST", "../rest/connections/" + encodeURI(sConnectionname) + "/producers/" + encodeURI(sProducername) + "/transactions");
+	xmlhttp.setRequestHeader("Content-Type", "application/json");
+	xmlhttp.onreadystatechange = function() {
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+		        that.displaySuccess(JSON.parse(xmlhttp.responseText));
+		    } else {
+		        that.displayError(JSON.parse(xmlhttp.responseText));
+		    }
+		}
+	}
+	xmlhttp.send(oModel.getJSON());
+},
+cancel : function(oEvent) {
+},
+onPressRefresh : function(oEvent) {
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	var sProducername = jQuery.sap.getUriParameters().get("producername");
+	var oModel = this.getView().getModel();
+	oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/producers/" + encodeURI(sProducername) + "/transactions");
+},
+datetimeformatter : function(epoche) {
+	if ( ! epoche) {
+		return "";
+	}
+	var oDate = new Date(epoche);
+	return oDate.toLocaleString();
+}

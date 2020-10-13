@@ -61,6 +61,13 @@ onPressConsumer : function(oEvent) {
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	window.location.href = './Consumer?connectionname=' + encodeURI(sConnectionname) + '&consumername=' + encodeURI(obj.name);
 },
+onPressConsumerInstances : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	window.location.href = './ConsumerInstances?connectionname=' + encodeURI(sConnectionname) + '&consumername=' + encodeURI(obj.name);
+},
 onPressStop : function(oEvent) {
 	var path = oEvent.getSource().getBindingContext().getPath();
 	var oModel = this.getView().getModel();

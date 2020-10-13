@@ -496,4 +496,28 @@ public class PipelineHttp extends PipelineAbstract<ConnectionPropertiesHttp, Top
 		return null;
 	}
 
+	@Override
+	public Map<Integer, Map<String, LoadInfo>> getLoadInfo(String producername) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void resetInitialLoad(String producername, String schemaname, int producerinstance) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void rewindDeltaLoad(String producername, int producerinstance, String transactionid) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void rewindConsumer(ConsumerProperties props, long epoch) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

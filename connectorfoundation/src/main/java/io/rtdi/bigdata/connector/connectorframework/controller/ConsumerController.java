@@ -93,6 +93,21 @@ public class ConsumerController extends Controller<ConsumerInstanceController> {
 		return last;
 	}
 
+	public Long getLastOffsetTimestamp() {
+		Long last = null;
+		if (getInstances() != null) {
+			for (ConsumerInstanceController c : getInstances().values()) {
+				Long l = c.getLastOffsetTimestamp();
+				if (l != null) {
+					if (last == null || last < l) {
+						last = l;
+					}
+				}
+			}
+		}
+		return last;
+	}
+
 	@Override
 	protected void updateLandscape() {
 		if (getInstances() != null) {

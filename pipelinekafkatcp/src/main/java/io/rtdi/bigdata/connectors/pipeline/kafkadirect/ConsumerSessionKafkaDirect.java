@@ -100,7 +100,7 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 			}
 			if (valuerecord != null) {
 				TopicName topicname = TopicName.create(record.topic());
-				processor.process(topicname, record.offset(), record.partition(), keyrecord, valuerecord);
+				processor.process(topicname, record.offset(), record.timestamp(), record.partition(), keyrecord, valuerecord);
 				
 				rowcount++;
 

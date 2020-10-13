@@ -27,13 +27,12 @@ import io.rtdi.bigdata.connector.properties.ProducerProperties;
 public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 	public static final long COMMIT_TIMEOUT = 20000L;
 	private KafkaProducer<byte[], byte[]> producer;
-	private SchemaHandler transactionlogschema;
 	private Future<RecordMetadata> lastfuture;
 	
 
 	public ProducerSessionKafkaDirect(ProducerProperties properties, KafkaAPIdirect api) throws PropertiesException {
 		super(properties, api);
-		this.transactionlogschema = api.getTransactionLogSchema();
+		api.getTransactionLogSchema();
 	}
 
 	@Override
@@ -116,23 +115,9 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 	}
 
 	private void sendLoadStatus(String schemaname, int producerinstance, Long rowcount, boolean finished) throws IOException {
-		JexlRecord keyrecord = new JexlRecord(transactionlogschema.getKeySchema());
-		keyrecord.set(PipelineAbstract.AVRO_FIELD_PRODUCERNAME, getProperties().getName());
-		keyrecord.set(PipelineAbstract.AVRO_FIELD_PRODUCER_INSTANCE_NO, producerinstance);
-		keyrecord.set(KafkaAPIdirect.AVRO_FIELD_SCHEMANAME, schemaname);
-		JexlRecord valuerecord = new JexlRecord(transactionlogschema.getValueSchema());
-		valuerecord.set(PipelineAbstract.AVRO_FIELD_PRODUCERNAME, getProperties().getName());
-		valuerecord.set(PipelineAbstract.AVRO_FIELD_PRODUCER_INSTANCE_NO, producerinstance);
-		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_SCHEMANAME, schemaname);
-		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_SOURCE_TRANSACTION_IDENTIFIER, this.getSourceTransactionIdentifier());
-		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_LASTCHANGED, System.currentTimeMillis());
-		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_ROW_COUNT, rowcount);
-		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_WAS_SUCCESSFUL, finished);
-		byte[] key = AvroSerializer.serialize(transactionlogschema.getDetails().getKeySchemaID(), keyrecord);
-		byte[] value = AvroSerializer.serialize(transactionlogschema.getDetails().getValueSchemaID(), valuerecord);
-		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(
-				getPipelineAPI().getTransactionsTopicName().getEncodedName(), null, key, value);
-		producer.send(record);
+		lastfuture = getPipelineAPI().sendLoadStatus(
+				getProperties().getName(), schemaname, producerinstance, 
+				rowcount, finished, this.getSourceTransactionIdentifier(), producer);
 	}
 
 }

@@ -282,4 +282,29 @@ public class PipelineTest extends PipelineAbstract<PipelineConnectionProperties,
 		return loadinfo ;
 	}
 
+	@Override
+	public Map<Integer, Map<String, LoadInfo>> getLoadInfo(String producername) throws IOException {
+		Map<Integer, Map<String, LoadInfo>> l = new HashMap<>();
+		l.put(0, loadinfo);
+		return l;
+	}
+
+	@Override
+	public void resetInitialLoad(String producername, String schemaname, int producerinstance) throws IOException {
+		loadinfo.remove(schemaname);
+	}
+
+	@Override
+	public void rewindDeltaLoad(String producername, int producerinstance, String transactionid) throws IOException {
+		LoadInfo l = loadinfo.get(PipelineAbstract.ALL_SCHEMAS);
+		if (l != null) {
+			l.setTransactionid(transactionid);
+		}
+	}
+
+	@Override
+	public void rewindConsumer(ConsumerProperties props, long epoch) throws IOException {
+		// TODO Auto-generated method stub
+	}
+
 }

@@ -9,8 +9,9 @@
 				<core:Icon src="sap-icon://detail-view" size="2.625rem" color="Default" class="sapUiTinyMarginBottom"/>
 				<ObjectStatus text="{state}" state="Success" />
 			</HBox>
-			<Title text="{name} ({instancecount})" wrapping="true"/>
+			<Title text="{name}" wrapping="true"/>
 			<Text text="{text}" wrapping="true"  class="sapUiTinyMarginTop" />
+			<Button icon="sap-icon://horizontal-stacked-chart" text="Instances: {instancecount}" press="onPressConsumerInstances"/>
 			<component:ErrorMessageButton
 					items="{path: 'messages', templateShareable: true}" >
 				<component:items>

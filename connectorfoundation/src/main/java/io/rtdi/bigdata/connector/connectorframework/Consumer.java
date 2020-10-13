@@ -25,7 +25,7 @@ import io.rtdi.bigdata.connector.properties.ConsumerProperties;
  * The code sequence is
  * <ul><li>constructor: does establish the connection with the PipelineAPI server</li>
  * <li>fetchBatch() of the PipelineAPI calls for each row 
- * {@link #process(TopicName, long, int, JexlRecord, JexlRecord)}</li>
+ * {@link #process(TopicName, long, long, int, JexlRecord, JexlRecord)}</li>
  * <li>flushDataImpl() is called once a while to commit the data</li>
  * <li>close is called</li>
  * </ul>
@@ -102,7 +102,7 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 	 * 
 	 * @throws IOException if network error
 	 * 
-	 * @see #process(TopicName, long, int, JexlRecord, JexlRecord)
+	 * @see #process(TopicName, long, long, int, JexlRecord, JexlRecord)
 	 */
 	public abstract void fetchBatchStart() throws IOException;
 	
@@ -188,7 +188,8 @@ public abstract class Consumer<S extends ConnectionProperties, C extends Consume
 		return instance.getState();
 	}
 
-	public void incrementRowsProcessed(long offset) {
-		instance.incrementRowProcessed(offset);
+	@Override
+	public void incrementRowsProcessed(long offset, long offsettimestamp) {
+		instance.incrementRowProcessed(offset, offsettimestamp);
 	}
 }

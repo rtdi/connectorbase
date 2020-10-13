@@ -1,0 +1,64 @@
+showFooter : function() {
+	return true;
+},
+init : function() {
+	var oModel = new JSONModel();
+	var that = this;
+	oModel.attachRequestFailed(function(oEvent) {
+			that.displayError(JSON.parse(oEvent.getParameter("responseText")));
+	});
+	oModel.attachRequestCompleted(function(oData) {
+		var epoch = oData.getSource().getProperty("/epoch");
+		if (epoch) {
+			var dateJ = new Date();
+			dateJ.setTime(epoch);
+			oData.getSource().setProperty("/dateJ", dateJ);
+		}
+	});
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	if (!!sConnectionname) {
+		var sConsumername = jQuery.sap.getUriParameters().get("consumername");
+		if (sConsumername) {
+			oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/consumers/" + encodeURI(sConsumername) + "/state");
+			oStateModel.setProperty("/title", "Consumer read from date");
+		}
+		this.getView().setModel(oModel);
+		oStateModel.setProperty("/breadcrumbs", [ 
+			{"text" : "Homepage", "link" : "./Home"}, 
+			{"text" : "Connections", "link" : "./Connections"},
+			{"text" : "Consumers", "link" : "./Consumers?connectionname=" + encodeURI(sConnectionname) }
+		] );
+	}
+},
+save : function(oEvent) {
+	var oModel = this.getView().getModel();
+	var data = JSON.stringify(oModel.getJSON());
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	var sConsumername = jQuery.sap.getUriParameters().get("consumername");
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open("POST", "../rest/connections/" + encodeURI(sConnectionname) + "/consumers/" + encodeURI(sConsumername) + "/state");
+	xmlhttp.setRequestHeader("Content-Type", "application/json");
+	var that = this;
+	xmlhttp.onreadystatechange = function() {
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+		        that.displaySuccess(JSON.parse(xmlhttp.responseText));
+		    } else {
+		        that.displayError(JSON.parse(xmlhttp.responseText));
+		    }
+		}
+	}
+	var dateJ = oModel.getProperty("/dateJ");
+	if (dateJ) {
+		oModel.setProperty("/epoch", dateJ.getTime());
+	}
+	xmlhttp.send(oModel.getJSON());
+},
+cancel : function(oEvent) {
+},
+onPressRefresh : function(oEvent) {
+	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
+	var sConsumername = jQuery.sap.getUriParameters().get("consumername");
+	var oModel = this.getView().getModel();
+	oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/consumers/" + encodeURI(sConsumername) + "/state");
+}

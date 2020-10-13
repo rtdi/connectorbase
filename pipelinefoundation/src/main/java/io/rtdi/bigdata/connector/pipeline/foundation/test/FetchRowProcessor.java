@@ -13,7 +13,7 @@ public class FetchRowProcessor implements IProcessFetchedRow {
 	}
 
 	@Override
-	public void process(TopicName topic, long offset, int partition, JexlRecord keyRecord, JexlRecord valueRecord) throws IOException {
+	public void process(TopicName topic, long offset, long offsettimestamp, int partition, JexlRecord keyRecord, JexlRecord valueRecord) throws IOException {
 		System.out.println("Process row for topic " + topic.getName() + " with offset " + offset);
 	}
 
@@ -24,6 +24,10 @@ public class FetchRowProcessor implements IProcessFetchedRow {
 	@Override
 	public boolean isActive() {
 		return false;
+	}
+
+	@Override
+	public void incrementRowsProcessed(long offset, long offsettimestamp) {
 	}
 
 }

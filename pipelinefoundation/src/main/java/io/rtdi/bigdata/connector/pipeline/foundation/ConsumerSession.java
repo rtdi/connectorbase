@@ -33,6 +33,7 @@ public abstract class ConsumerSession<T extends TopicHandler> implements ISchema
 	protected Logger logger;
 	protected OperationState state;
 	protected long lastoffset = -1;
+	protected long lastoffsettimestamp = -1;
 	protected TopicName lasttopic = null;
 	private IControllerState controller;
 
