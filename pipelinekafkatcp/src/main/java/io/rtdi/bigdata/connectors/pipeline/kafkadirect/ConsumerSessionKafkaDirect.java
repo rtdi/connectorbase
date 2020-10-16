@@ -78,37 +78,43 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 	@Override
 	public int fetchBatch(IProcessFetchedRow processor) throws IOException {
 		int rowcount = 0;
-		processor.setOperationState(OperationState.FETCHWAITINGFORDATA);
-		ConsumerRecords<byte[], byte[]> records = consumer.poll(Duration.ofSeconds(10));
-		processor.setOperationState(OperationState.FETCHGETTINGROW);
-		
-		Iterator<ConsumerRecord<byte[], byte[]>> recordsiterator = records.iterator();
-		while (recordsiterator.hasNext() && processor.isActive()) {
-			processor.setOperationState(OperationState.FETCH);
-			ConsumerRecord<byte[], byte[]> record = recordsiterator.next();
-			JexlRecord keyrecord = null;
-			try {
-				keyrecord = AvroDeserialize.deserialize(record.key(), this, null);
-			} catch (IOException e) {
-				logger.error("Cannot deserialize data Key with offset {}, row not processed", String.valueOf(record.offset()));
-			}
-			JexlRecord valuerecord = null;
-			try {
-				valuerecord = AvroDeserialize.deserialize(record.value(), this, null);
-			} catch (IOException e) {
-				logger.error("Cannot deserialize data Value with offset {}, row not processed", String.valueOf(record.offset()));
-			}
-			if (valuerecord != null) {
-				TopicName topicname = TopicName.create(record.topic());
-				processor.process(topicname, record.offset(), record.timestamp(), record.partition(), keyrecord, valuerecord);
-				
-				rowcount++;
-
-				// Due to a rebalance a new topic might be subscribed to
-				if (getTopic(topicname) == null) { 
-					addTopic(getPipelineAPI().getTopic(topicname));
+		try {
+			processor.setOperationState(OperationState.FETCHWAITINGFORDATA);
+			ConsumerRecords<byte[], byte[]> records = consumer.poll(Duration.ofSeconds(10));
+			processor.setOperationState(OperationState.FETCHGETTINGROW);
+			
+			Iterator<ConsumerRecord<byte[], byte[]>> recordsiterator = records.iterator();
+			while (recordsiterator.hasNext() && processor.isActive()) {
+				processor.setOperationState(OperationState.FETCH);
+				ConsumerRecord<byte[], byte[]> record = recordsiterator.next();
+				JexlRecord keyrecord = null;
+				try {
+					keyrecord = AvroDeserialize.deserialize(record.key(), this, null);
+				} catch (IOException e) {
+					logger.error("Cannot deserialize data Key with offset {}, row not processed", String.valueOf(record.offset()));
+				}
+				JexlRecord valuerecord = null;
+				try {
+					valuerecord = AvroDeserialize.deserialize(record.value(), this, null);
+				} catch (IOException e) {
+					logger.error("Cannot deserialize data Value with offset {}, row not processed", String.valueOf(record.offset()));
+				}
+				if (valuerecord != null) {
+					TopicName topicname = TopicName.create(record.topic());
+					processor.process(topicname, record.offset(), record.timestamp(), record.partition(), keyrecord, valuerecord);
+					processor.incrementRowsProcessed(record.offset(), record.timestamp());
+					rowcount++;
+	
+					// Due to a rebalance a new topic might be subscribed to
+					if (getTopic(topicname) == null) { 
+						addTopic(getPipelineAPI().getTopic(topicname));
+					}
 				}
 			}
+		} catch (InterruptException e) {
+			// Catch interrupt exception to keep the log clean and retrigger the interrupt flag just to be on the safe side
+			logger.info("Polling the data from the server was interrupted");
+			Thread.currentThread().interrupt();
 		}
 		return rowcount;
 	}
