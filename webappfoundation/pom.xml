@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>io.rtdi.bigdata.connector</groupId>
 		<artifactId>connectorbase</artifactId>
-		<version>0.9.37</version>
+		<version>0.9.39</version>
 	</parent>
 	<dependencies>
 		<dependency>
@@ -41,17 +41,17 @@
 		<dependency>
 			<groupId>io.rtdi.bigdata.connector</groupId>
 			<artifactId>pipelinefoundation</artifactId>
-			<version>0.9.37</version>
+			<version>0.9.39</version>
 		</dependency>
 		<dependency>
 			<groupId>io.rtdi.bigdata.connector</groupId>
 			<artifactId>connectorfoundation</artifactId>
-			<version>0.9.37</version>
+			<version>0.9.39</version>
 		</dependency>
 		<dependency>
 			<groupId>io.rtdi.bigdata.connector</groupId>
 			<artifactId>pipelinetest</artifactId>
-			<version>0.9.37</version>
+			<version>0.9.39</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

@@ -1345,7 +1345,12 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 
 	@Override
 	public Map<String, LoadInfo> getLoadInfo(String producername, int instanceno) throws PipelineRuntimeException {
-		return getLoadInfo(producername).get(instanceno);
+		Map<Integer, Map<String, LoadInfo>> info = getLoadInfo(producername);
+		if (info != null) {
+			return info.get(instanceno);
+		} else {
+			return null;
+		}
 	}
 	
 	@Override

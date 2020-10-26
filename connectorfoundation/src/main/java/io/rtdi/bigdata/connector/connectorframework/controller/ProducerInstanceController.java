@@ -108,7 +108,10 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 				 * was 1234, hence all tables are read from this transaction onwards.
 				 * Another case would be that all was fine but now a new table got added.
 				 */
-				LoadInfo delta = loadinfo.get(PipelineAbstract.ALL_SCHEMAS);
+				LoadInfo delta = null;
+				if (loadinfo != null) {
+					delta = loadinfo.get(PipelineAbstract.ALL_SCHEMAS);
+				}
 				lastsourcetransactionid = null;
 				String transactionid_at_start = rowproducer.getCurrentTransactionId();
 				logger.debug("TransactionID at start is \"{}\"", transactionid_at_start);
@@ -129,7 +132,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 				List<String> schemanames = rowproducer.getAllSchemas();
 				if (schemanames != null) {
 					for (String name : schemanames) {
-						if (!loadinfo.containsKey(name)) {
+						if (loadinfo == null || !loadinfo.containsKey(name)) {
 							// Initial load all tables the initial load was not yet complete.
 							logger.debug("Initial load for table \"{}\" with transaction id \"{}\" is started", name, transactionid_at_start);
 							rowproducer.executeInitialLoad(name, transactionid_at_start);
