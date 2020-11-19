@@ -93,7 +93,7 @@ public class HomeService {
 							topiccount = 0;
 						}
 						List<SchemaRegistryName> k = api.getSchemas();
-						if (l != null) {
+						if (k != null) {
 							schemacount = k.size();
 						} else {
 							schemacount = 0;

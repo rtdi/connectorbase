@@ -10,6 +10,7 @@ public class GlobalSettings {
 	private String companyname = null;
 	private String pipelineapi;
 	private String connectorhelpurl;
+	private String subjectspath;
 	private TopicName schemaregistrytopicname;
 	private TopicName transactionstopicname;
 	private TopicName producermetadatatopicname;
@@ -38,6 +39,7 @@ public class GlobalSettings {
 			producermetadataschemaname = getSchemaName(props, "schema.producermetadata");
 			consumermetadataschemaname = getSchemaName(props, "schema.consumermetadata");
 			servicemetadataschemaname = getSchemaName(props, "schema.servicemetadata");
+			subjectspath = props.getProperty("schemaregistry.subjectspath");
 		}
 	}
 	
@@ -121,6 +123,10 @@ public class GlobalSettings {
 
 	public SchemaRegistryName getServiceMetadataSchemaName() {
 		return servicemetadataschemaname;
+	}
+
+	public String getSubjectPath() {
+		return subjectspath;
 	}
 
 }

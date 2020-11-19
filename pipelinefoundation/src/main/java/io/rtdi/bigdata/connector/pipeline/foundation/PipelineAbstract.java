@@ -38,7 +38,7 @@ public abstract class PipelineAbstract<
 
 	protected File webinfdir;
 	protected Logger logger = LogManager.getLogger(this.getClass().getName());
-	private GlobalSettings settings;
+	protected GlobalSettings settings;
 	private static final SchemaRegistryName PRODUCER_TRANSACTIONS_SCHEMA_NAME_ = SchemaRegistryName.create("ProducerTransactions");
 	private static final SchemaRegistryName PRODUCER_METADATA_SCHEMA_NAME_ = SchemaRegistryName.create("ProducerMetadata");
 	private static final SchemaRegistryName CONSUMER_METADATA_SCHEMA_NAME_ = SchemaRegistryName.create("ConsumerMetadata");

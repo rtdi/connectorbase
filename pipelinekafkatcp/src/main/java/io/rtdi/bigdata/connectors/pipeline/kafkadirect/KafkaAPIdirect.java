@@ -489,12 +489,12 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 					throw new PipelineRuntimeException("Reading the schema from the server failed", e, null);
 				}
     		} else {
-    			Response entityresponse = callRestfulservice("subjects/" + kafkaschemaname.getEncodedName() + "-key/versions/latest");
+    			Response entityresponse = callRestfulservice(getSubjectsPath() + "/" + kafkaschemaname.getEncodedName() + "-key/versions/latest");
     			if (entityresponse != null) {
 	    			SchemaValue keyschemadef = entityresponse.readEntity(SchemaValue.class);
 					Schema keyschema = new Schema.Parser().parse(keyschemadef.getSchema());
 					
-	    			entityresponse = callRestfulservice("subjects/" + kafkaschemaname.getEncodedName() + "-value/versions/latest");
+	    			entityresponse = callRestfulservice(getSubjectsPath() + "/" + kafkaschemaname.getEncodedName() + "-value/versions/latest");
 	    			SchemaValue valueschemadef = entityresponse.readEntity(SchemaValue.class);
 	    			Schema valueschems = new Schema.Parser().parse(valueschemadef.getSchema()); // Parser does cache names hence cannot be reused
 	    			
@@ -588,12 +588,12 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		} else {
 			SchemaIdResponse post = new SchemaIdResponse();
 			post.setSchema(keyschema.toString());
-			Response entityresponse = postRestfulService("/subjects/" + keysubject + "/versions", post);
+			Response entityresponse = postRestfulService(getSubjectsPath() + "/" + keysubject + "/versions", post);
 			if (entityresponse != null) {
 				SchemaValue entitykey = entityresponse.readEntity(SchemaValue.class);
 	
 				post.setSchema(valueschema.toString());
-				entityresponse = postRestfulService("/subjects/" + valuesubject + "/versions", post);
+				entityresponse = postRestfulService(getSubjectsPath() + "/" + valuesubject + "/versions", post);
 				SchemaValue entityvalue = entityresponse.readEntity(SchemaValue.class);
 	
 				SchemaHandler schemahandler = new SchemaHandler(schemaname, keyschema, valueschema, entitykey.getId(), entityvalue.getId());
@@ -605,6 +605,14 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		}
 	}
    
+   private String getSubjectsPath() {
+		if (settings != null && settings.getSubjectPath() != null) {
+			return settings.getSubjectPath();
+		} else {
+			return "/subjects";
+		}
+   }
+
    private void registerSubject(String subjectname, int id, int version, Schema schema) throws PipelineRuntimeException {
 	   	SchemaValue valuedef = new SchemaValue(subjectname, version, id, schema.toString(), false);
 		SchemaKey keydef = new SchemaKey(subjectname, version);
@@ -940,7 +948,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 			}
 		} else {
 			try {
-				Response entityresponse = callRestfulservice("/subjects");
+				Response entityresponse = callRestfulservice(getSubjectsPath());
 				if (entityresponse != null) {
 					List<String> entityout = entityresponse.readEntity(new GenericType<List<String>>() { });
 					if (entityout != null) {
