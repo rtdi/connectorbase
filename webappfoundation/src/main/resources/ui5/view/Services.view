@@ -1,6 +1,6 @@
 <Panel height="100%">
 	<headerToolbar>
-		<OverflowToolbar>
+		<OverflowToolbar id="toptoolbar">
 			<Button icon="sap-icon://refresh" text="Reload" press="onPressRefresh" />
 		</OverflowToolbar>
 	</headerToolbar>

@@ -1,7 +1,7 @@
 <Table id="previewcontent"
 	items="{path:'/rows', templateShareable:false}">
 	<headerToolbar>
-		<Toolbar>
+		<Toolbar id="toptoolbar">
 			<content>
 					<Button icon="sap-icon://refresh" text="Reload" class="sapUiTinyMarginBeginEnd" press="onPressRefresh" />
 			</content>

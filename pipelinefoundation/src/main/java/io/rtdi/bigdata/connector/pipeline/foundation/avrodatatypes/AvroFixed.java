@@ -11,7 +11,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerEx
 import org.apache.avro.Schema;
 
 /**
- * Wrapper around the Avro Type.ENUM data type
+ * Wrapper around the Avro Type.Fixed data type
  *
  */
 public class AvroFixed extends LogicalTypeWithLength implements IAvroPrimitive {
@@ -26,6 +26,10 @@ public class AvroFixed extends LogicalTypeWithLength implements IAvroPrimitive {
 
 	public static AvroFixed create(int length) {
 		return new AvroFixed(length);
+	}
+
+	public static Schema getSchema(int length) {
+		return create(length).addToSchema(Schema.create(Type.FIXED));
 	}
 
 	@Override

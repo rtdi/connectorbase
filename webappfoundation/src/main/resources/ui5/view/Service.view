@@ -2,7 +2,7 @@
 	id="ServiceInfo"
 	items="{/serviceproperties/values}">
 	<headerToolbar>
-		<OverflowToolbar>
+		<OverflowToolbar id="toptoolbar">
             <Label text="Service name" />
             <Input value="{/serviceproperties/name}" width="30%" enabled="{= ${state>/new} }" />
             <ToolbarSpacer/>

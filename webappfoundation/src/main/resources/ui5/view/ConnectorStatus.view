@@ -1,6 +1,6 @@
 <Table
 	items="{path:'/connections', templateShareable:false}">
-	<headerToolbar>
+	<headerToolbar id="toptoolbar">
 		<Toolbar>
 			<content>
 					<Button icon="sap-icon://refresh" text="Reload" class="sapUiTinyMarginBeginEnd" press="onPressRefresh" />

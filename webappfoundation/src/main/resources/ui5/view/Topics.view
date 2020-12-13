@@ -1,7 +1,7 @@
 <Table
 	items="{path:'/topics', templateShareable:false}">
 	<headerToolbar>
-		<Toolbar>
+		<Toolbar id="toptoolbar">
 			<content>
 					<Button icon="sap-icon://refresh" text="Reload" class="sapUiTinyMarginBeginEnd" press="onPressRefresh" />
 			</content>
