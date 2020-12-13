@@ -2,7 +2,7 @@
 	id="ConnectionInfo"
 	items="{/values}">
 	<headerToolbar>
-		<OverflowToolbar>
+		<OverflowToolbar id="toptoolbar">
             <Title id="title" text="{/name}"/>
             <ToolbarSpacer/>
             <Button text="Collapse all" press="onCollapseAll"/>

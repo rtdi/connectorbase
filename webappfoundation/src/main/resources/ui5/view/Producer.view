@@ -2,7 +2,7 @@
 	id="ProducerInfo"
 	items="{/values}">
 	<headerToolbar>
-		<OverflowToolbar>
+		<OverflowToolbar id="toptoolbar">
             <Label text="Producer name" />
             <Input value="{/name}" width="30%" enabled="{path: 'state>/new', formatter: '.enableControl'}" />
             <ToolbarSpacer/>

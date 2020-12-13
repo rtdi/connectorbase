@@ -73,4 +73,8 @@ public abstract class UI5ServletAbstract extends HttpServlet {
 
 	protected void printCustomHeader(PrintWriter out) {
 	}
+
+	public String getTitle() {
+		return title;
+	}
 }

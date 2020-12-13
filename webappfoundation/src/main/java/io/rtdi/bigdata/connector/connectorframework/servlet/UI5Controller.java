@@ -63,6 +63,9 @@ public class UI5Controller extends HttpServlet {
 					out.println("    var editpermissions = oStateModel.getProperty(\"/roles/config\");");
 					out.println("    this.getView().byId('dynamicpageid').setShowFooter(this.showFooter() && editpermissions);");
 					out.println("    this.init();");
+					out.println("    if (this.initExtension) {");
+					out.println("        this.initExtension();");
+					out.println("    }");
 					out.println("},");
 					out.println("readErrors : function() {");
 					out.println("    oStateModel.loadData(\"../rest/state\", null, false);");

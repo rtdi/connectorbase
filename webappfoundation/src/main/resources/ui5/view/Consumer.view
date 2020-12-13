@@ -2,7 +2,7 @@
 	id="ConnectionInfo"
 	items="{/values}">
 	<headerToolbar>
-		<OverflowToolbar>
+		<OverflowToolbar id="toptoolbar">
             <Label text="Consumer name" />
             <Input value="{/name}" width="30%" enabled="{path: 'state>/new', formatter: '.enableControl'}" />
             <ToolbarSpacer/>
