@@ -45,11 +45,11 @@ public class ProducerSessionTest extends ProducerSession<TopicHandlerTest> {
 	}
 
 	@Override
-	public void confirmInitialLoad(String schemaname, int producerinstance, long rowcount) throws IOException {
+	public void confirmInitialLoad(String schemaname, int producerinstance) throws IOException {
 		PipelineTest api = (PipelineTest) this.getPipelineAPI();
 		String producername = this.getProperties().getName();
 		Map<String, LoadInfo> loadinfomap = api.getLoadInfo(producername, producerinstance);
-		LoadInfo loadinfo = new LoadInfo(producername, schemaname, producerinstance, this.getSourceTransactionIdentifier(), System.currentTimeMillis(), rowcount);
+		LoadInfo loadinfo = new LoadInfo(producername, schemaname, producerinstance, this.getSourceTransactionIdentifier(), System.currentTimeMillis(), 0L);
 		loadinfomap.put(schemaname, loadinfo);
 	}
 

@@ -10,7 +10,8 @@ public class LoadInfo {
 	private String transactionid;
 	private Long completiontime;
 	private Long rowcount;
-	
+	private boolean resetdelta = false;
+
 	public LoadInfo() {
 		super();
 	}
@@ -66,6 +67,14 @@ public class LoadInfo {
 		this.rowcount = rowcount;
 	}
 
+	public boolean isResetdelta() {
+		return resetdelta;
+	}
+
+	public void setResetdelta(boolean resetdelta) {
+		this.resetdelta = resetdelta;
+	}
+	
 	@Override
 	public String toString() {
 		if (schemaname != null && schemaname.equals(PipelineAbstract.ALL_SCHEMAS)) {

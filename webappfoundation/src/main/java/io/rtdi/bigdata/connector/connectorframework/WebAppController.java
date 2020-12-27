@@ -13,10 +13,10 @@ import java.util.ServiceLoader;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
+import jakarta.servlet.annotation.WebListener;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -121,7 +121,7 @@ public class WebAppController implements ServletContextListener {
 	 * The main consumer of this information is the {@link io.rtdi.bigdata.connector.connectorframework.servlet.IndexPage IndexPage} 
 	 * as this redirects the browser to the appropriate detail page or shows the error itself.
 	 *  
-	 * @see javax.servlet.ServletContextListener#contextInitialized(javax.servlet.ServletContextEvent)
+	 * @see jakarta.servlet.ServletContextListener#contextInitialized(jakarta.servlet.ServletContextEvent)
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {

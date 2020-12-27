@@ -14,17 +14,17 @@ As most files and commands will work as root only, switch to the root user
 
 *sudo su -*
 
-Install tomcat9 and its admin pages via apt
+Install tomcat10 and its admin pages via apt
 
-*apt install tomcat9 tomcat9-admin*
+*apt install tomcat10 tomcat10-admin*
 
 To make sure the tomcat is not running while editing its configurations
 
-*systemctl stop tomcat9*
+*systemctl stop tomcat10*
 
 Change the tomcat ports to the default http and https ports and prepare for installing the certificates
 
-*vi /etc/tomcat9/server.xml* 
+*vi /etc/tomcat10/server.xml* 
 
 * change port from 8080 to 80 and redirect port from 8443 to 443
 
@@ -67,16 +67,16 @@ Request certificates for the host, in this example it is the host connectors.rtd
 
 The new certificate files need to be made known to the tomcat and have to be read-able by the tomcat user.
 
-*mkdir /var/lib/tomcat9/conf/cert*
+*mkdir /var/lib/tomcat10/conf/cert*
 
-*ln -s /etc/letsencrypt/live/\*/cert.pem /var/lib/tomcat9/conf/cert/cert.pem*
-*ln -s /etc/letsencrypt/live/\*/fullchain.pem /var/lib/tomcat9/conf/cert/fullchain.pem*
-*ln -s /etc/letsencrypt/live/\*/chain.pem /var/lib/tomcat9/conf/cert/chain.pem*
-*ln -s /etc/letsencrypt/live/connectors.rtdi.io/privkey.pem /var/lib/tomcat9/conf/cert/privkey.pem*
+*ln -s /etc/letsencrypt/live/\*/cert.pem /var/lib/tomcat10/conf/cert/cert.pem*
+*ln -s /etc/letsencrypt/live/\*/fullchain.pem /var/lib/tomcat10/conf/cert/fullchain.pem*
+*ln -s /etc/letsencrypt/live/\*/chain.pem /var/lib/tomcat10/conf/cert/chain.pem*
+*ln -s /etc/letsencrypt/live/connectors.rtdi.io/privkey.pem /var/lib/tomcat10/conf/cert/privkey.pem*
 
-*chgrp tomcat /var/lib/tomcat9/conf/cert*
+*chgrp tomcat /var/lib/tomcat10/conf/cert*
 
-*chmod 770 /var/lib/tomcat9/conf/cert*
+*chmod 770 /var/lib/tomcat10/conf/cert*
 
 *chmod g+rx /etc/letsencrypt/archive*
 *chmod g+rx /etc/letsencrypt/archive/\**
@@ -122,7 +122,7 @@ By default all settings made via the Connectors UI will be stored in the webapp'
 *vi /var/lib/tomcat/conf/context.xml add*
 
 ```xml
-<Environment name="io.rtdi.bigdata.connectors.configpath" value="/var/lib/tomcat9/conf/rtdiconfig" type="java.lang.String"/>
+<Environment name="io.rtdi.bigdata.connectors.configpath" value="/var/lib/tomcat10/conf/rtdiconfig" type="java.lang.String"/>
 ```
 
 Finally the tomcat can be started again and hopefully the logs in /var/lib/tomcat/logs show no errors.

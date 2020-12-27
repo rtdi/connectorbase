@@ -17,6 +17,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.LoadInfo;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.OperationLogContainer;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
@@ -51,6 +52,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	private boolean updateschemacaches;
 	private long rowsprocessed;
 	private Long lastdatatimestamp;
+	private OperationLogContainer operationlog;
 
 	public ProducerInstanceController(String name, ProducerController producercontroller, int instancenumber) {
 		super(name);
@@ -89,6 +91,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	@Override
 	public void runUntilError() throws IOException {
 		try (Producer<?,?> rowproducer = getConnectorFactory().createProducer(this)) {
+			operationlog = rowproducer.getOperationLog();
 			try {
 				// Allow the producer to create all schemas, topics and their relationships
 				rowproducer.createTopiclist();
@@ -408,6 +411,10 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 		 * This just triggers the main loop to execute this action in order to avoid multi-threading side effects
 		 */
 		this.updateschemacaches = true;
+	}
+
+	public OperationLogContainer getOperationLog() {
+		return operationlog;
 	}
 
 }

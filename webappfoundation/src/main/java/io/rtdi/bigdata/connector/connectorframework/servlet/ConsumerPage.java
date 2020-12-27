@@ -1,6 +1,6 @@
 package io.rtdi.bigdata.connector.connectorframework.servlet;
 
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.WebServlet;
 
 @WebServlet("/ui5/Consumer")
 public class ConsumerPage extends UI5ServletAbstract {

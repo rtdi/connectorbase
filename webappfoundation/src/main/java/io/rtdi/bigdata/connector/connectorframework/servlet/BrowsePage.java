@@ -1,6 +1,6 @@
 package io.rtdi.bigdata.connector.connectorframework.servlet;
 
-import javax.servlet.annotation.*;
+import jakarta.servlet.annotation.*;
 
 @WebServlet("/ui5/Browse")
 public class BrowsePage extends UI5ServletAbstract {

@@ -20,14 +20,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
@@ -123,6 +123,10 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	public static final String AVRO_FIELD_ROW_COUNT = "RowCount";
 	public static final String AVRO_FIELD_WAS_SUCCESSFUL = "Successful";
 	private static final long METADATAAGE = 6*3600*1000;
+	public static final String AVRO_FIELD_OFFSETTABLE = "PartitionOffsets";
+	public static final String AVRO_FIELD_PARTITON = "Partition";
+	public static final String AVRO_FIELD_PARTITON_OFFSET = "Offset";
+	private static final String AVRO_FIELD_TOPICOFFSETTABLE = "TopicOffsets";
 		
 	private KafkaProducer<byte[], byte[]> producer;
 	private AdminClient admin;
@@ -132,7 +136,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	
 	private Cache<Integer, Schema> schemaidcache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(30)).maximumSize(1000).build();
 	private Cache<SchemaRegistryName, SchemaHandler> schemacache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(31)).maximumSize(1000).build();
-	
+	private LoadInfoContainer loadinfocache = new LoadInfoContainer();
 
     private Map<String, Object> consumerprops = new HashMap<>(); // These are used for admin tasks only, not to read data
     
@@ -222,6 +226,25 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 			.requiredLong(AVRO_FIELD_LASTCHANGED)
 			.optionalLong(AVRO_FIELD_ROW_COUNT)
 			.requiredBoolean(AVRO_FIELD_WAS_SUCCESSFUL)
+			.name(AVRO_FIELD_TOPICOFFSETTABLE).type().unionOf()
+				.nullType()
+				.and()
+				.array().items()
+				.record("TopicOffsets")
+				.fields()
+				.requiredString(AVRO_FIELD_TOPICNAME)
+				.name(AVRO_FIELD_OFFSETTABLE).type().unionOf()
+					.nullType()
+					.and()
+					.array().items()
+					.record("Offsets")
+					.fields()
+					.requiredInt(AVRO_FIELD_PARTITON)
+					.requiredLong(AVRO_FIELD_PARTITON_OFFSET)
+					.endRecord()
+				.endUnion().nullDefault()
+				.endRecord()
+				.endUnion().nullDefault()
 			.endRecord();
 
 	
@@ -788,30 +811,31 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 							maxtimeout = System.currentTimeMillis() + 10000;
 							do {
 								ConsumerRecord<byte[], byte[]> record = recordsiterator.next();
-								
-								long offsettoreach = offsetstoreachtable.get(record.partition());
-								if (record.offset() >= offsettoreach) {
-									// remove the entry from the offsetstoreachtable when offset was reached
-									offsetstoreachtable.remove(record.partition());
-								}
-				
-								JexlRecord keyrecord = null;
-								JexlRecord valuerecord = null;
-								try {
-									keyrecord = AvroDeserialize.deserialize(record.key(), this, schemaidcache);
-								} catch (IOException e) {
-									throw new PipelineRuntimeException("Cannot deserialize the Avro key record");
-								}
-								try {
-									valuerecord = AvroDeserialize.deserialize(record.value(), this, schemaidcache);
-								} catch (IOException e) {
-									throw new PipelineRuntimeException("Cannot deserialize the Avro value record");
-								}
-								if (schema == null || valuerecord.getSchema().getFullName().equals(schema.toString())) {
-									TopicPayload data = new TopicPayload(kafkatopicname, record.offset(), record.partition(), record.timestamp(),
-											keyrecord, valuerecord, keyrecord.getSchemaId(), valuerecord.getSchemaId());
-									ret.add(data);
-									count--;
+								if (record != null) {
+									long offsettoreach = offsetstoreachtable.get(record.partition());
+									if (record.offset() >= offsettoreach) {
+										// remove the entry from the offsetstoreachtable when offset was reached
+										offsetstoreachtable.remove(record.partition());
+									}
+					
+									JexlRecord keyrecord = null;
+									JexlRecord valuerecord = null;
+									try {
+										keyrecord = AvroDeserialize.deserialize(record.key(), this, schemaidcache);
+									} catch (IOException e) {
+										throw new PipelineRuntimeException("Cannot deserialize the Avro key record");
+									}
+									try {
+										valuerecord = AvroDeserialize.deserialize(record.value(), this, schemaidcache);
+									} catch (IOException e) {
+										throw new PipelineRuntimeException("Cannot deserialize the Avro value record");
+									}
+									if (schema == null || valuerecord.getSchema().getFullName().equals(schema.toString())) {
+										TopicPayload data = new TopicPayload(kafkatopicname, record.offset(), record.partition(), record.timestamp(),
+												keyrecord, valuerecord, keyrecord.getSchemaId(), valuerecord.getSchemaId());
+										ret.add(data);
+										count--;
+									}
 								}
 							} while (recordsiterator.hasNext());
 						}
@@ -1365,44 +1389,42 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	public Map<Integer, Map<String, LoadInfo>> getLoadInfo(String producername) throws PipelineRuntimeException {
 		/*
 		 * data contains all records, oldest is first
+		 * Aggregates all recent transactions into the most recent state
 		 */
-		List<TopicPayload> data = getAllRecordsSince(getTransactionsTopicName(), 0L, Integer.MAX_VALUE, null);
-		Map<Integer, Map<String, LoadInfo>> l = new HashMap<>();
+		long lastreadtime = loadinfocache.getLastReadTime();
+		/*
+		 * The getAllRecordsSince() methods returns all records, oldest is first
+		 */
+		List<TopicPayload> data = getAllRecordsSince(getTransactionsTopicName(), lastreadtime, Integer.MAX_VALUE, null);
 		for (TopicPayload d : data) {
+			loadinfocache.setLastReadTime(d.getTimestamp());
 			JexlRecord record = d.getValueRecord();
 			String currentproducername = (String) record.get(PipelineAbstract.AVRO_FIELD_PRODUCERNAME);
 			Integer currentinstanceno = (Integer) record.get(PipelineAbstract.AVRO_FIELD_PRODUCER_INSTANCE_NO);
-			if (currentproducername.equals(producername)) {
-				Map<String, LoadInfo> r = l.get(currentinstanceno);
-				if (r == null) {
-					r = new HashMap<>();
-					l.put(currentinstanceno, r);
-				}
-				Boolean successful = (Boolean)record.get(AVRO_FIELD_WAS_SUCCESSFUL);
-				String schemaname = (String) record.get(AVRO_FIELD_SCHEMANAME);
-				/*
-				 * We only care about the most recent entry, that is the first
-				 */
-				if (successful) {
-					LoadInfo i = new LoadInfo();
-					i.setProducername(currentproducername);
-					i.setProducerinstanceno(currentinstanceno);
-					i.setSchemaname(schemaname);
-					i.setTransactionid((String) record.get(AVRO_FIELD_SOURCE_TRANSACTION_IDENTIFIER));
-					i.setCompletiontime((Long) record.get(AVRO_FIELD_LASTCHANGED));
-					i.setRowcount((Long) record.get(AVRO_FIELD_ROW_COUNT));
-					r.put(schemaname, i);
-				} else if (r.containsKey(schemaname)) {
-					r.remove(schemaname);
-				}
+			Boolean successful = (Boolean)record.get(AVRO_FIELD_WAS_SUCCESSFUL);
+			String schemaname = (String) record.get(AVRO_FIELD_SCHEMANAME);
+			/*
+			 * We only care about the most recent entry, that is the first
+			 */
+			if (successful) {
+				LoadInfo i = new LoadInfo();
+				i.setProducername(currentproducername);
+				i.setProducerinstanceno(currentinstanceno);
+				i.setSchemaname(schemaname);
+				i.setTransactionid((String) record.get(AVRO_FIELD_SOURCE_TRANSACTION_IDENTIFIER));
+				i.setCompletiontime((Long) record.get(AVRO_FIELD_LASTCHANGED));
+				i.setRowcount((Long) record.get(AVRO_FIELD_ROW_COUNT));
+				loadinfocache.put(currentproducername, currentinstanceno, schemaname, i);
+			} else {
+				loadinfocache.remove(currentproducername, currentinstanceno, schemaname);
 			}
 		}
-		return l;
+		return loadinfocache.get(producername);
 	}
 	
 	@Override
 	public void resetInitialLoad(String producername, String schemaname, int producerinstance) throws IOException {
-		Future<RecordMetadata> f = sendLoadStatus(producername, schemaname, producerinstance, null, false, "0", producer);
+		Future<RecordMetadata> f = sendLoadStatus(producername, schemaname, producerinstance, null, false, "0", producer, null);
 		try {
 			f.get();
 		} catch (InterruptedException | ExecutionException e) {
@@ -1412,7 +1434,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	
 	@Override
 	public void rewindDeltaLoad(String producername, int producerinstance, String transactionid) throws IOException {
-		Future<RecordMetadata> f = sendLoadStatus(producername, PipelineAbstract.ALL_SCHEMAS, producerinstance, 0L, true, transactionid, producer);
+		Future<RecordMetadata> f = sendLoadStatus(producername, PipelineAbstract.ALL_SCHEMAS, producerinstance, 0L, true, transactionid, producer, null);
 		try {
 			f.get();
 		} catch (InterruptedException | ExecutionException e) {
@@ -1423,6 +1445,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 
 	/**
 	 * Adds a status row to the transaction log topic for a provided producer to make sure it is sent as last.
+	 * Contains all end-offsets of all topic partitions.
 	 * 
 	 * @param producername responsible for the transaction 
 	 * @param schemaname the transaction is created for - needed for initial loads
@@ -1431,12 +1454,13 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	 * @param finished successfully
 	 * @param transactionid to use
 	 * @param producerchannel is the Kafka producer the message should be sent with
+	 * @param offsets information about the highest offsets used per topic and partition
 	 * @return send future
 	 * @throws IOException in case of error
 	 */
 	Future<RecordMetadata> sendLoadStatus(String producername, String schemaname, int producerinstance, 
 			Long rowcount, boolean finished, String transactionid,
-			KafkaProducer<byte[], byte[]> producerchannel) throws IOException {
+			KafkaProducer<byte[], byte[]> producerchannel, Map<String, Map<Integer, Long>> offsets) throws IOException {
 		JexlRecord keyrecord = new JexlRecord(producertransactionschema.getKeySchema());
 		keyrecord.set(PipelineAbstract.AVRO_FIELD_PRODUCERNAME, producername);
 		keyrecord.set(PipelineAbstract.AVRO_FIELD_PRODUCER_INSTANCE_NO, producerinstance);
@@ -1449,6 +1473,28 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_LASTCHANGED, System.currentTimeMillis());
 		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_ROW_COUNT, rowcount);
 		valuerecord.set(KafkaAPIdirect.AVRO_FIELD_WAS_SUCCESSFUL, finished);
+		
+		if (offsets != null) {
+			List<JexlRecord> topicoffsets = new ArrayList<>();
+			Schema topicoffsetschema = IOUtils.getBaseSchema(producertransactionschema.getValueSchema().getField(AVRO_FIELD_TOPICOFFSETTABLE).schema()).getElementType();
+			Schema partitionoffsetschema = IOUtils.getBaseSchema(topicoffsetschema.getField(AVRO_FIELD_OFFSETTABLE).schema()).getElementType();
+			for (String topic : offsets.keySet()) {
+				Map<Integer, Long> partitionoffset = offsets.get(topic);
+				JexlRecord topicrecord = new JexlRecord(topicoffsetschema);
+				topicrecord.put(AVRO_FIELD_TOPICNAME, topic);
+				List<JexlRecord> partitionoffsets = new ArrayList<>();
+				for (Integer partition : partitionoffset.keySet()) {
+					JexlRecord partitionrecord = new JexlRecord(partitionoffsetschema);
+					partitionrecord.put(AVRO_FIELD_PARTITON, partition);
+					partitionrecord.put(AVRO_FIELD_PARTITON_OFFSET, partitionoffset.get(partition));
+					partitionoffsets.add(partitionrecord);
+				}
+				topicrecord.put(AVRO_FIELD_OFFSETTABLE, partitionoffsets);
+				topicoffsets.add(topicrecord);
+			}
+			valuerecord.put(AVRO_FIELD_TOPICOFFSETTABLE, topicoffsets);
+		}
+		
 		byte[] key = AvroSerializer.serialize(producertransactionschema.getDetails().getKeySchemaID(), keyrecord);
 		byte[] value = AvroSerializer.serialize(producertransactionschema.getDetails().getValueSchemaID(), valuerecord);
 		ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(
