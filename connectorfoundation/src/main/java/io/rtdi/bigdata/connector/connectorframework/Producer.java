@@ -26,6 +26,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.LoadInfo;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.OperationLogContainer;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.RowType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
@@ -59,6 +60,7 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	private ProducerSession<?> producersession;
 	protected ProducerInstanceController instance;
 	protected final Logger logger;
+	protected OperationLogContainer states = new OperationLogContainer();
 
 	public Producer(ProducerInstanceController instance) throws PropertiesException {
 		IPipelineAPI<?, ?, ?, ?> api = instance.getPipelineAPI();
@@ -339,8 +341,8 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 		producersession.commitDeltaTransaction();
 	}
 	
-	public void commitInitialLoadTransaction(long rowcount) throws IOException {
-		producersession.commitInitialLoadTransaction(rowcount);
+	public void commitInitialLoadTransaction() throws IOException {
+		producersession.commitInitialLoadTransaction();
 	}
 	
 	public void abortTransaction() throws PipelineRuntimeException {
@@ -382,4 +384,23 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	 */
 	public abstract String getCurrentTransactionId() throws IOException;
 	
+	/**
+	 * Allows to append a information to the state display element
+	 * 
+	 * @param text to add
+	 */
+	public void addOperationLogLine(String text) {
+		states.add(text);
+	}
+	
+	/**
+	 * @return the last n state texts
+	 */
+	public OperationLogContainer getOperationLog() {
+		return states;
+	}
+	
+	public long getCurrentTransactionRowCount() {
+		return producersession.getCurrentTransactionRowCount();
+	}
 }

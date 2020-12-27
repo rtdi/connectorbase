@@ -1,6 +1,6 @@
 package io.rtdi.bigdata.connector.connectorframework.servlet;
 
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.WebServlet;
 
 @WebServlet("/ui5/ConnectorStatus")
 public class ConnectorStatusPage extends UI5ServletAbstract {

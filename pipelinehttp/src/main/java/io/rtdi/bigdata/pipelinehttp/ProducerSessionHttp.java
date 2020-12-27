@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.AvroSerializer;
 import io.rtdi.bigdata.connector.pipeline.foundation.ProducerSession;
@@ -116,7 +116,7 @@ public class ProducerSessionHttp extends ProducerSession<TopicHandlerHttp> {
 	}
 
 	@Override
-	public void confirmInitialLoad(String schemaname, int producerinstance, long rowcount) {
+	public void confirmInitialLoad(String schemaname, int producerinstance) {
 		// TODO Needs implementation
 	}
 

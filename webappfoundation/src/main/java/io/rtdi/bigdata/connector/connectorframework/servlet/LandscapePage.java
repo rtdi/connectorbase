@@ -2,7 +2,7 @@ package io.rtdi.bigdata.connector.connectorframework.servlet;
 
 import java.io.PrintWriter;
 
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.WebServlet;
 
 @WebServlet("/ui5/Landscape")
 public class LandscapePage extends UI5ServletAbstract {

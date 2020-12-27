@@ -24,10 +24,14 @@ public class ProducerController extends Controller<ProducerInstanceController> {
 		this.connectioncontroller = connectioncontroller;
 		instancecount = producerprops.getInstanceCount();
 		for (int i = 0 ; i<instancecount; i++) {
-			String name = getName() + " " + String.valueOf(i);
+			String name = createInstanceName(i);
 			ProducerInstanceController instance = new ProducerInstanceController(name, this, i);
 			addChild(name, instance);
 		}
+	}
+	
+	private String createInstanceName(int instanceno) {
+		return getName() + " " + String.valueOf(instanceno);
 	}
 
 	@Override
@@ -131,4 +135,14 @@ public class ProducerController extends Controller<ProducerInstanceController> {
 			return null;
 		}
 	}
+
+	public ProducerInstanceController getInstanceController(int instanceno) {
+		HashMap<String, ProducerInstanceController> children = getInstances();
+		if (children != null) {
+			String name = createInstanceName(instanceno);
+			return children.get(name);
+		}
+		return null;
+	}
+
 }

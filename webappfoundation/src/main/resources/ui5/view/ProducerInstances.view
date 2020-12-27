@@ -10,55 +10,76 @@
 		<Column width="8%">
             <Label text="InstanceNumber"/>
 		</Column>
-		<Column width="40%">
-            <Label text="InitialLoad-State"/>
-		</Column>
-		<Column width="20%">
-            <Label text="Delta-State"/>
+		<Column width="50%">
+            <Label text="State"/>
 		</Column>
 		<Column>
-            <Label text="Delta Transaction"/>
-		</Column>
-		<Column width="8%">
-            <Label text="Rewind?"/>
+            <Label text="Recent Operations"/>
 		</Column>
 	</columns>
 	<items>
 		<ColumnListItem vAlign="Middle">
 			<cells>
     			<Text text="{instanceno}"/>
-				<Table
-					id="InitialLoadInfo"
-					items="{path: 'initialloadtransactions', templateShareable: false}" >
-					<columns>
-						<Column>
-				            <Label text="Initial Load for Schema"/>
-						</Column>
-						<Column>
-				            <Label text="State"/>
-						</Column>
-						<Column width="8%">
-				            <Label text="Reset"/>
-						</Column>
-					</columns>
-					<ColumnListItem vAlign="Middle" >
-						<cells>
-			    			<Text text="{schemaname}"/>
-			                <VBox>
-			                	<Text text="Transaction at start: {transaction/transactionid}" wrapping="false" />
-			                	<Text text="Loaded at: {path: 'transaction/completiontime', formatter: '.datetimeformatter'}" wrapping="false" />
-			                	<Text text="Rows loaded: {transaction/rowcount}" wrapping="false" />
-			                </VBox>
-			                <CheckBox selected="{reset}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
-			            </cells>
-			        </ColumnListItem>
-                </Table>
-                <VBox>
-                	<Text text="Produced at: {path: 'deltatransaction/completiontime', formatter: '.datetimeformatter'}" wrapping="false" />
-                	<Text text="Rows contained: {deltatransaction/rowcount}" wrapping="false" />
-                </VBox>
-            	<Input value="{deltatransaction/transactionid}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
-            	<CheckBox selected="{resetdelta}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
+    			<VBox>
+					<Table
+						id="InitialLoadInfo"
+						items="{path: 'initialloadtransactions', templateShareable: false}" >
+						<columns>
+							<Column>
+					            <Label text="Initial Load for Schema"/>
+							</Column>
+							<Column>
+					            <Label text="State"/>
+							</Column>
+							<Column width="15%">
+					            <Label text="Reset?"/>
+							</Column>
+						</columns>
+						<ColumnListItem vAlign="Middle" >
+							<cells>
+				    			<Text text="{schemaname}"/>
+				                <VBox>
+				                	<Text text="Transaction at start: {transaction/transactionid}" wrapping="false" />
+				                	<Text text="Loaded at: {path: 'transaction/completiontime', formatter: '.datetimeformatter'}" wrapping="false" />
+				                	<Text text="Rows loaded: {transaction/rowcount}" wrapping="false" />
+				                </VBox>
+				                <CheckBox selected="{reset}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
+				            </cells>
+				        </ColumnListItem>
+	                </Table>
+					<Table
+						id="DeltaLoadInfo"
+						items="{path: 'deltatransaction', templateShareable: false}" >
+						<columns>
+							<Column>
+					            <Label text="Delta across all schemas"/>
+							</Column>
+							<Column>
+					            <Label text="Delta Transaction"/>
+							</Column>
+							<Column width="15%">
+					            <Label text="Rewind?"/>
+							</Column>
+						</columns>
+						<items>
+							<ColumnListItem vAlign="Middle" >
+								<cells>
+					                <VBox>
+					                	<Text text="Produced at: {path: 'completiontime', formatter: '.datetimeformatter'}" wrapping="false" />
+					                	<Text text="Rows contained: {rowcount}" wrapping="false" />
+					                </VBox>
+					            	<Input value="{transactionid}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
+					            	<CheckBox selected="{resetdelta}" enabled="{path: 'state>/roles/config', formatter: '.enableControl'}" />
+					            </cells>
+					        </ColumnListItem>
+					   </items>
+	                </Table>
+	            </VBox>
+				<List
+					items="{path: 'operationlogs', templateShareable: false}" >
+					<StandardListItem title="{path: 'time', formatter: '.datetimeformatter'}: {text}" />
+				</List>
 			</cells>
 		</ColumnListItem>
 	</items>

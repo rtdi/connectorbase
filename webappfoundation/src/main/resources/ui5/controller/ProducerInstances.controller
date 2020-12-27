@@ -26,7 +26,12 @@ init : function() {
 save : function(oEvent) {
 	var that = this;
 	var oModel = this.getView().getModel();
-	var data = JSON.stringify(oModel.getJSON());
+	var oData = oModel.getProperty("/");
+	var i;
+	for (i = 0; i<oData.producertransactions.length; i++) {
+		delete oData.producertransactions[i].operationlogs;
+	}
+	var data = JSON.stringify(oData);
 	var sConnectionname = jQuery.sap.getUriParameters().get("connectionname");
 	var sProducername = jQuery.sap.getUriParameters().get("producername");
 	var xmlhttp = new XMLHttpRequest();
@@ -51,10 +56,10 @@ onPressRefresh : function(oEvent) {
 	var oModel = this.getView().getModel();
 	oModel.loadData("../rest/connections/" + encodeURI(sConnectionname) + "/producers/" + encodeURI(sProducername) + "/transactions");
 },
-datetimeformatter : function(epoche) {
-	if ( ! epoche) {
+datetimeformatter : function(epoch) {
+	if ( ! epoch) {
 		return "";
 	}
-	var oDate = new Date(epoche);
+	var oDate = new Date(epoch);
 	return oDate.toLocaleString();
 }

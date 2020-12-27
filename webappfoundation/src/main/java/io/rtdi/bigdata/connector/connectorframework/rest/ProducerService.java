@@ -3,33 +3,37 @@ package io.rtdi.bigdata.connector.connectorframework.rest;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.ServletContext;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.servlet.ServletContext;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Configuration;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryProducer;
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectionController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ProducerController;
+import io.rtdi.bigdata.connector.connectorframework.controller.ProducerInstanceController;
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorTemporaryException;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
 import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ErrorEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.LoadInfo;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.OperationLogContainer.StateDisplayEntry;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
@@ -84,8 +88,10 @@ public class ProducerService {
     public Response getTransactions(@PathParam("connectionname") String connectionname, @PathParam("producername") String producername) {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
+			ConnectionController conn = connector.getConnectionOrFail(connectionname);
+			ProducerController producer = conn.getProducerOrFail(producername);
 			Map<Integer, Map<String, LoadInfo>> m = connector.getPipelineAPI().getLoadInfo(producername);
-			TransactionInfo t = new TransactionInfo(m);
+			TransactionInfo t = new TransactionInfo(m, producer);
 			return Response.ok(t).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
@@ -106,12 +112,14 @@ public class ProducerService {
 			producer.joinAll(ControllerExitType.ABORT);
 			if (data.getProducertransactions() != null) {
 				for (ProducerTransactions p : data.getProducertransactions()) {
-					if (p.getResetdelta() != null && p.getResetdelta()) {
-						connector.getPipelineAPI().rewindDeltaLoad(producername, p.getInstanceno(), p.getDeltatransaction().getTransactionid());
+					if (p.getDeltatransaction() != null && p.getDeltatransaction().size() > 0) {
+						if (p.getDeltatransaction().get(0).isResetdelta()) {
+							connector.getPipelineAPI().rewindDeltaLoad(producername, p.getInstanceno(), p.getDeltatransaction().get(0).getTransactionid());
+						}
 					}
 					if (p.getInitialloadtransactions() != null) {
 						for (SchemaTransaction init : p.getInitialloadtransactions()) {
-							if (init.getReset() != null && init.getReset()) {
+							if (init.isReset()) {
 								connector.getPipelineAPI().resetInitialLoad(producername, init.getSchemaname(), p.getInstanceno());
 							}
 						}
@@ -124,7 +132,6 @@ public class ProducerService {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
 	}
-
 
 	@GET
 	@Path("/connections/{connectionname}/producer/template")
@@ -306,12 +313,30 @@ public class ProducerService {
 		public TransactionInfo() {
 		}
 		
-		public TransactionInfo(Map<Integer, Map<String, LoadInfo>> m) {
+		public TransactionInfo(Map<Integer, Map<String, LoadInfo>> m, ProducerController producer) {
+			Map<Integer, ProducerTransactions> map = new HashMap<>();
 			if (m != null) {
-				p = new ArrayList<>();
 				for (Integer instanceno : m.keySet()) {
-					p.add(new ProducerTransactions(instanceno, m.get(instanceno)));
+					ProducerTransactions t = new ProducerTransactions(instanceno, m.get(instanceno));
+					map.put(instanceno, t);
 				}
+			}
+			HashMap<String, ProducerInstanceController> instances = producer.getInstances();
+			if (instances != null) {
+				for (ProducerInstanceController e : instances.values()) {
+					ProducerTransactions t = map.get(e.getInstanceNumber());
+					if (t == null) {
+						t = new ProducerTransactions(e.getInstanceNumber(), null);
+						map.put(e.getInstanceNumber(), t);
+					}
+					t.setOperationlogs(e.getOperationLog().asList());
+				}
+			}
+			if (map.size() != 0) {
+				p = new ArrayList<>();
+				p.addAll(map.values());
+			} else {
+				p = null;
 			}
 		}
 
@@ -329,8 +354,8 @@ public class ProducerService {
 
 		private Integer instanceno;
 		private List<SchemaTransaction> schematransactions;
-		private LoadInfo deltatransaction;
-		private Boolean resetdelta; 
+		private List<LoadInfo> deltatransaction;
+		private List<StateDisplayEntry> operationlogs; 
 
 		public ProducerTransactions() {
 		}
@@ -341,7 +366,7 @@ public class ProducerService {
 				schematransactions = new ArrayList<>();
 				for (String s : schemamap.keySet()) {
 					if (s.equals(PipelineAbstract.ALL_SCHEMAS)) {
-						deltatransaction = schemamap.get(s);
+						deltatransaction = Collections.singletonList(schemamap.get(s));
 					} else {
 						schematransactions.add(new SchemaTransaction(s, schemamap.get(s)));
 					}
@@ -357,7 +382,7 @@ public class ProducerService {
 			return schematransactions;
 		}
 
-		public LoadInfo getDeltatransaction() {
+		public List<LoadInfo> getDeltatransaction() {
 			return deltatransaction;
 		}
 
@@ -369,25 +394,25 @@ public class ProducerService {
 			this.schematransactions = schematransactions;
 		}
 
-		public void setDeltatransaction(LoadInfo deltatransaction) {
+		public void setDeltatransaction(List<LoadInfo> deltatransaction) {
 			this.deltatransaction = deltatransaction;
 		}
 
-		public Boolean getResetdelta() {
-			return resetdelta;
+		public void setOperationlogs(List<StateDisplayEntry> operationlogs) {
+			this.operationlogs = operationlogs;
 		}
 
-		public void setResetdelta(Boolean resetdelta) {
-			this.resetdelta = resetdelta;
+		public List<StateDisplayEntry> getOperationlogs() {
+			return operationlogs;
 		}
-		
+
 	}
 	
 	public static class SchemaTransaction {
 
 		private String schemaname;
 		private LoadInfo transaction;
-		private Boolean reset; 
+		private boolean reset; 
 
 		public SchemaTransaction() {
 		}
@@ -405,11 +430,11 @@ public class ProducerService {
 			return transaction;
 		}
 
-		public Boolean getReset() {
+		public boolean isReset() {
 			return reset;
 		}
 
-		public void setReset(Boolean reset) {
+		public void setReset(boolean reset) {
 			this.reset = reset;
 		}
 

@@ -25,6 +25,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	private IPipelineBase<?, T> api;
 	private String initialloadschema;
 	private int instanceno;
+	private long rowcount = 0;
 
 
 	/**
@@ -52,6 +53,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 		}
 		this.sourcetransactionidentifier = sourcetransactionid;
 		this.changetime = System.currentTimeMillis();
+		this.rowcount = 0L;
 		beginImpl();
 		this.instanceno = instancenumber;
 	}
@@ -70,6 +72,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 		}
 		this.sourcetransactionidentifier = sourcetransactionid;
 		this.changetime = System.currentTimeMillis();
+		this.rowcount = 0L;
 		beginImpl();
 		markInitialLoadStart(schemaname, instancenumber);
 		this.initialloadschema = schemaname;
@@ -91,13 +94,12 @@ public abstract class ProducerSession<T extends TopicHandler> {
 
 	/**
 	 * Commit the transaction in the producer, thus telling the source this record had been received and cannot get lost anymore.
-	 * @param rowcount number of rows loaded
 	 * 
 	 * @throws IOException in case anything goes wrong during the commit
 	 * 
 	 */
-	public final void commitInitialLoadTransaction(long rowcount) throws IOException {
-		confirmInitialLoad(this.initialloadschema, this.instanceno, rowcount);
+	public final void commitInitialLoadTransaction() throws IOException {
+		confirmInitialLoad(this.initialloadschema, this.instanceno);
 		commitImpl();
 		isopen = false;
 		sourcetransactionidentifier = null;
@@ -205,6 +207,7 @@ public abstract class ProducerSession<T extends TopicHandler> {
 			valuerecord.put(SchemaConstants.SCHEMA_COLUMN_SOURCE_ROWID, sourceRowID);
 		}
 		addRowImpl((T) topic, partition, handler, keyrecord, valuerecord);
+		rowcount++;
 	}
 	
 
@@ -263,10 +266,9 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * 
 	 * @param schemaname of the table initial loaded
 	 * @param producerinstance ID of the producer instance
-	 * @param rowcount number of rows loaded
 	 * @throws IOException in case anything goes wrong
 	 */
-	public abstract void confirmInitialLoad(String schemaname, int producerinstance, long rowcount) throws IOException;
+	public abstract void confirmInitialLoad(String schemaname, int producerinstance) throws IOException;
 
 	/**
 	 * Called to tell that the source initial load was started
@@ -285,4 +287,10 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 */
 	public abstract void confirmDeltaLoad(int producerinstance) throws IOException;
 
+	/**
+	 * @return the current number of rows in the transaction
+	 */
+	public long getCurrentTransactionRowCount() {
+		return rowcount;
+	}
 }
