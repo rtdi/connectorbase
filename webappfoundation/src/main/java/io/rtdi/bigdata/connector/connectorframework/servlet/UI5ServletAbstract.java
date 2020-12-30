@@ -36,7 +36,7 @@ public abstract class UI5ServletAbstract extends HttpServlet {
 		out.println("<!DOCTYPE html>");
 		out.println("<html style=\"height: 100%;\">");
 		out.println("<head>");
-		out.println("<meta charset=\"ISO-8859-1\">");
+		out.println("<meta charset=\"utf-8\"/>");
 		out.print("<title>");
 		out.print(title);
 		out.println("</title>");
