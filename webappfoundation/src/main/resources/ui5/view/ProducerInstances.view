@@ -78,10 +78,14 @@
 	            </VBox>
 				<List
 					items="{path: 'operationlogs', templateShareable: false}" >
-					<StandardListItem title="{path: 'time', formatter: '.datetimeformatter'}: {text}"
+					<NotificationListItem
+						title="{text}"
 						description="{description}"
-						info="{path: 'state', formatter: '.infoformatter'}"
-						infoState="{path: 'state', formatter: '.infoformatter'}" />
+						datetime="executed at: {path: 'time', formatter: '.timeformatter'}"
+						authorName="→"
+						priority="{path: 'state', formatter: '.priorityformatter'}"
+						showCloseButton="false"
+						unread="false" />
 				</List>
 			</cells>
 		</ColumnListItem>
