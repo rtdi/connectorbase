@@ -28,6 +28,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRe
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.LoadInfo;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.OperationLogContainer;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.RowType;
+import io.rtdi.bigdata.connector.pipeline.foundation.enums.RuleResult;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
@@ -385,14 +386,25 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	public abstract String getCurrentTransactionId() throws IOException;
 	
 	/**
-	 * Allows to append a information to the state display element
+	 * Allows to append a information to the state display element of type PASS (=Normal)
 	 * 
 	 * @param text to add
 	 */
 	public void addOperationLogLine(String text) {
 		states.add(text);
 	}
-	
+
+	/**
+	 * Allows to append a information to the state display element
+	 * 
+	 * @param text to add
+	 * @param description free form text
+	 * @param state if it is a normal entry, a warning or something severe
+	 */
+	public void addOperationLogLine(String text, String description, RuleResult state) {
+		states.add(text, description, state);
+	}
+
 	/**
 	 * @return the last n state texts
 	 */

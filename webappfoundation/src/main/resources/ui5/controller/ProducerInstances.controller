@@ -62,4 +62,15 @@ datetimeformatter : function(epoch) {
 	}
 	var oDate = new Date(epoch);
 	return oDate.toLocaleString();
+},
+infoformatter : function(state) {
+	if (!state || state === "PASS") {
+		return undefined;
+	} else if (state === 'WARN') {
+		return "Warning";
+	} else if (state === 'FAIL') {
+		return "Error";
+	} else {
+		return undefined;
+	}
 }

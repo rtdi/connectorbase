@@ -10,10 +10,10 @@
 		<Column width="8%">
             <Label text="InstanceNumber"/>
 		</Column>
-		<Column width="50%">
+		<Column>
             <Label text="State"/>
 		</Column>
-		<Column>
+		<Column width="30%">
             <Label text="Recent Operations"/>
 		</Column>
 	</columns>
@@ -78,7 +78,10 @@
 	            </VBox>
 				<List
 					items="{path: 'operationlogs', templateShareable: false}" >
-					<StandardListItem title="{path: 'time', formatter: '.datetimeformatter'}: {text}" />
+					<StandardListItem title="{path: 'time', formatter: '.datetimeformatter'}: {text}"
+						description="{description}"
+						info="{path: 'state', formatter: '.infoformatter'}"
+						infoState="{path: 'state', formatter: '.infoformatter'}" />
 				</List>
 			</cells>
 		</ColumnListItem>
