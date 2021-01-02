@@ -3,12 +3,15 @@ package io.rtdi.bigdata.connector.connectorframework.controller;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryService;
 import io.rtdi.bigdata.connector.connectorframework.Service;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.MicroServiceTransformation;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.OperationLogContainer.StateDisplayEntry;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.properties.ServiceProperties;
@@ -74,6 +77,14 @@ public class ServiceController extends Controller<Controller<?>> {
 			return service.getRowsProcessed();
 		} else {
 			return 0;
+		}
+	}
+	
+	public Map<String, List<StateDisplayEntry>> getMicroserviceOperationLogs() {
+		if (service != null) {
+			return service.getMicroserviceOperationLogs();
+		} else {
+			return null;
 		}
 	}
 	

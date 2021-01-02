@@ -41,6 +41,12 @@ cancel : function(oEvent) {
 onTileAdd : function(oEvent) {
 	window.location.href = './Service?name=';
 },
+onPressServiceStatistics : function(oEvent) {
+	var path = oEvent.getSource().getBindingContext().getPath();
+	var oModel = this.getView().getModel();
+	var obj = oModel.getProperty(path);
+	window.location.href = './ServiceStatistics?servicename=' + encodeURI(obj.name);
+},
 onPressRefresh : function(oEvent) {
 	var oModel = this.getView().getModel();
 	oModel.loadData(oStateModel.getProperty("/modelurl"));

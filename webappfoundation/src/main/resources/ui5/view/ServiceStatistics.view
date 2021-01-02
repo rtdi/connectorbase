@@ -1,0 +1,35 @@
+<Table
+	id="ProducerInfo"
+	items="{/statistics}">
+	<headerToolbar>
+		<OverflowToolbar id="toptoolbar">
+			<Button icon="sap-icon://refresh" text="Reload" press="onPressRefresh" />
+		</OverflowToolbar>
+	</headerToolbar>
+	<columns>
+		<Column width="15%">
+            <Label text="Microservice name"/>
+		</Column>
+		<Column>
+            <Label text="Recent Operations"/>
+		</Column>
+	</columns>
+	<items>
+		<ColumnListItem vAlign="Middle">
+			<cells>
+    			<Text text="{stepname}"/>
+				<List
+					items="{path: 'operationlogs', templateShareable: false}" >
+					<NotificationListItem
+						title="{text}"
+						description="{description}"
+						datetime="executed at: {path: 'time', formatter: '.timeformatter'}"
+						authorName="→"
+						priority="{path: 'state', formatter: '.priorityformatter'}"
+						showCloseButton="false"
+						unread="false" />
+				</List>
+			</cells>
+		</ColumnListItem>
+	</items>
+</Table>
