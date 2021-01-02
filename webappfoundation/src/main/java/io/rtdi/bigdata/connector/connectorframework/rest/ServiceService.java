@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.servlet.ServletContext;
@@ -24,6 +25,8 @@ import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ServiceController;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ErrorEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.OperationLogContainer.StateDisplayEntry;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ServiceConfigEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.properties.ServiceProperties;
@@ -46,7 +49,7 @@ public class ServiceService {
 	@Path("/services")
     @Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed(ServletSecurityConstants.ROLE_VIEW)
-    public Response getConnections() {
+    public Response getServices() {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			return Response.ok(new ServicesEntity(connector)).build();
@@ -59,7 +62,7 @@ public class ServiceService {
 	@Path("/services/{servicename}")
     @Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed(ServletSecurityConstants.ROLE_VIEW)
-    public Response getConnectionProperties(@PathParam("servicename") String servicename) {
+    public Response getServiceProperties(@PathParam("servicename") String servicename) {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getServiceOrFail(servicename);
@@ -70,10 +73,24 @@ public class ServiceService {
 	}
 
 	@GET
+	@Path("/services/{servicename}/operationlogs")
+    @Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed(ServletSecurityConstants.ROLE_VIEW)
+    public Response getServiceOperationLogs(@PathParam("servicename") String servicename) {
+		try {
+			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
+			ServiceController service = connector.getServiceOrFail(servicename);
+			return Response.ok(new ServiceEntity(service)).build();
+		} catch (Exception e) {
+			return JAXBErrorResponseBuilder.getJAXBResponse(e);
+		}
+	}
+
+	@GET
 	@Path("/service/template")
     @Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed(ServletSecurityConstants.ROLE_CONFIG)
-    public Response getConnectionPropertiesTemplate() {
+    public Response getServicePropertiesTemplate() {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			// Create an empty properties structure so the UI can show all properties needed
@@ -87,7 +104,7 @@ public class ServiceService {
 	@Path("/services/{servicename}/stop")
     @Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed(ServletSecurityConstants.ROLE_OPERATOR)
-    public Response stopConnection(@PathParam("servicename") String servicename) {
+    public Response stopService(@PathParam("servicename") String servicename) {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getServiceOrFail(servicename);
@@ -103,7 +120,7 @@ public class ServiceService {
 	@Path("/services/{servicename}/start")
     @Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed(ServletSecurityConstants.ROLE_OPERATOR)
-    public Response startConnection(@PathParam("servicename") String servicename) {
+    public Response startService(@PathParam("servicename") String servicename) {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getServiceOrFail(servicename);
@@ -119,7 +136,7 @@ public class ServiceService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed(ServletSecurityConstants.ROLE_CONFIG)
-    public Response setConnectionProperties(@PathParam("servicename") String servicename, ServiceConfigEntity data) {
+    public Response setServiceProperties(@PathParam("servicename") String servicename, ServiceConfigEntity data) {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getService(servicename);
@@ -146,7 +163,7 @@ public class ServiceService {
 	@Path("/services/{servicename}")
     @Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed(ServletSecurityConstants.ROLE_CONFIG)
-    public Response deleteConnectionProperties(@PathParam("servicename") String servicename) {
+    public Response deleteServiceProperties(@PathParam("servicename") String servicename) {
 		try {
 			ConnectorController connector = WebAppController.getConnectorOrFail(servletContext);
 			ServiceController service = connector.getServiceOrFail(servicename);
@@ -183,6 +200,8 @@ public class ServiceService {
 		private String text;
 		private long rowsprocessedcount;
 		private String state;
+		private List<ErrorEntity> messages;
+		private List<StepStatistics> statistics;
 
 		public ServiceEntity(ServiceController service) {
 			ServiceProperties props = service.getServiceProperties();
@@ -190,6 +209,14 @@ public class ServiceService {
 			this.text = props.getPropertyGroup().getText();
 			rowsprocessedcount = service.getRowsProcessed();
 			state = service.getState().name();
+			messages = service.getErrorListRecursive();
+			Map<String, List<StateDisplayEntry>> operationlogs = service.getMicroserviceOperationLogs();
+			if (operationlogs != null) {
+				statistics = new ArrayList<>();
+				for (String s : operationlogs.keySet()) {
+					statistics.add(new StepStatistics(s, operationlogs.get(s)));
+				}
+			}
 		}
 
 		public long getRowsprocessedcount() {
@@ -208,5 +235,32 @@ public class ServiceService {
 			return state;
 		}
 
+		public List<ErrorEntity> getMessages() {
+			return messages;
+		}
+
+		public List<StepStatistics> getStatistics() {
+			return statistics;
+		}
+	}
+	
+	public static class StepStatistics {
+
+		private String stepname;
+		private List<StateDisplayEntry> operationlogs;
+
+		public StepStatistics(String s, List<StateDisplayEntry> list) {
+			this.stepname = s;
+			this.operationlogs = list;
+		}
+
+		public String getStepname() {
+			return stepname;
+		}
+
+		public List<StateDisplayEntry> getOperationlogs() {
+			return operationlogs;
+		}
+		
 	}
 }

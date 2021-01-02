@@ -1,6 +1,8 @@
 package io.rtdi.bigdata.connector.connectorframework;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import io.rtdi.bigdata.connector.connectorframework.controller.ServiceController;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.ServiceSession;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.OperationLogContainer.StateDisplayEntry;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 
 public abstract class Service {
@@ -39,6 +42,10 @@ public abstract class Service {
 		return servicesession.getLastRowProcessed();
 	}
 
+	public Map<String, List<StateDisplayEntry>> getMicroserviceOperationLogs() {
+		return servicesession.getMicroserviceOperationLogs();
+	}
+	
 	public ServiceController getController() {
 		return controller;
 	}
