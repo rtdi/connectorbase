@@ -302,19 +302,37 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
     
     void addSecurityProperties(Map<String, Object> propmap) {
 		if (connectionprops.getKafkaAPIKey() != null && connectionprops.getKafkaAPIKey().length() > 0) {
-			/*
-			 * 	security.protocol=SASL_SSL
-			 *	sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule   required username="{{ CLUSTER_API_KEY }}"   password="{{ CLUSTER_API_SECRET }}";
-			 *	ssl.endpoint.identification.algorithm=https
-			 *	sasl.mechanism=PLAIN
-			 */
-			propmap.put("security.protocol", "SASL_SSL");
-			propmap.put(SaslConfigs.SASL_JAAS_CONFIG, 
-					"org.apache.kafka.common.security.plain.PlainLoginModule   required username=\"" +
-							connectionprops.getKafkaAPIKey() + "\"   password=\"" + 
-							connectionprops.getKafkaAPISecret() + "\";");
-			propmap.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, SslConfigs.DEFAULT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM);
-			propmap.put(SaslConfigs.SASL_MECHANISM, "PLAIN");
+			if (connectionprops.getKafkaSASLMechanism() == null || connectionprops.getKafkaSASLMechanism().equals(KafkaConnectionProperties.KAFKASASLMECHANISM_PLAIN)) {
+				/*
+				 * 	security.protocol=SASL_SSL
+				 *	sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule \
+				 *  	required username="{{ CLUSTER_API_KEY }}"   password="{{ CLUSTER_API_SECRET }}";
+				 *	ssl.endpoint.identification.algorithm=https
+				 *	sasl.mechanism=PLAIN
+				 */
+				propmap.put("security.protocol", "SASL_SSL");
+				propmap.put(SaslConfigs.SASL_JAAS_CONFIG, 
+						"org.apache.kafka.common.security.plain.PlainLoginModule   required username=\"" +
+								connectionprops.getKafkaAPIKey() + "\"   password=\"" + 
+								connectionprops.getKafkaAPISecret() + "\";");
+				propmap.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, SslConfigs.DEFAULT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM);
+				propmap.put(SaslConfigs.SASL_MECHANISM, "PLAIN");
+			} else {
+				/*
+				 * security.protocol=SASL_SSL
+				 * sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule \
+  				 * 		required username="{{ CLUSTER_API_KEY }}"   password="{{ CLUSTER_API_SECRET }}";
+				 *	ssl.endpoint.identification.algorithm=https
+				 * sasl.mechanism=SCRAM-SHA-256
+				 */
+				propmap.put("security.protocol", "SASL_SSL");
+				propmap.put(SaslConfigs.SASL_JAAS_CONFIG, 
+						"org.apache.kafka.common.security.scram.ScramLoginModule   required username=\"" +
+								connectionprops.getKafkaAPIKey() + "\"   password=\"" + 
+								connectionprops.getKafkaAPISecret() + "\";");
+				propmap.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, SslConfigs.DEFAULT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM);
+				propmap.put(SaslConfigs.SASL_MECHANISM, "SCRAM-SHA-256");
+			}
 		}    	
     }
     

@@ -1,4 +1,4 @@
-package io.rtdi.bigdata.connector.connectorframework.entity;
+package io.rtdi.bigdata.connector.pipeline.foundation.entity;
 
 public class KeyValue {
 	private String key;
