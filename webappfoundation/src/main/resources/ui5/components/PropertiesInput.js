@@ -63,6 +63,18 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 						that.setProperty("value", oEvent.getParameter("newValue"), true);
 					}
 				}));
+			} else if (type === "PropertyStringSelector") {
+				var oControl = new sap.m.ComboBox( {
+					items: {path: 'options',
+							sorter: { path: 'key'},
+							template: new sap.ui.core.Item( { key: '{key}', text: '{value}' })
+					},
+					width: "100%",
+					change: function(oEvent){
+						that.setProperty("value", oEvent.getParameter("newValue"), true);
+					}
+				});
+				this.setAggregation("_control", oControl);
 			} else if (type === "PropertySchemaSelector") {
 				var oControl = new sap.m.ComboBox( {
 					items: {path: 'schemas>/tablenames',

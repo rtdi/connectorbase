@@ -21,7 +21,8 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesExcept
 	@Type(value = PropertyPassword.class, name = "PropertyPassword"), 
 	@Type(value = PropertyBoolean.class, name = "PropertyBoolean"), 
 	@Type(value = PropertyMultiSchemaSelector.class, name = "PropertyMultiSchemaSelector"), 
-	@Type(value = PropertyTopicSelector.class, name = "PropertyTopicSelector") 
+	@Type(value = PropertyTopicSelector.class, name = "PropertyTopicSelector"),
+	@Type(value = PropertyStringSelector.class, name = "PropertyStringSelector")
 })
 public interface IProperty {
 

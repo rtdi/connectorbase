@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.KeyValue;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 
 public abstract class PropertyGroupAbstract {
@@ -199,6 +200,10 @@ public abstract class PropertyGroupAbstract {
 
 	public void addStringProperty(String name, String displayname, String description, String icon, String defaultvalue, boolean mandatory) {
 		addProperty(new PropertyString(name, displayname, description, icon, defaultvalue, mandatory));
+	}
+
+	public void addStringSelectorProperty(String name, String displayname, String description, String icon, String defaultvalue, boolean mandatory, List<KeyValue> options) {
+		addProperty(new PropertyStringSelector(name, displayname, description, icon, defaultvalue, mandatory, options));
 	}
 
 	public void addSchemaSelector(String name, String displayname, String description, String icon, String defaultvalue, boolean mandatory) {
