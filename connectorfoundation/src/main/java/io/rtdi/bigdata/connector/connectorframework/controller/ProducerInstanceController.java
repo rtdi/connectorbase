@@ -260,7 +260,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	 * 
 	 * @param topic TopicHandler
 	 * @param schema SchemaHandler to add
-	 * @throws ConnectorCallerException 
+	 * @throws ConnectorCallerException in case of errors
 	 */
 	public void addTopicSchema(TopicHandler topic, SchemaHandler schema) throws ConnectorCallerException {
 		if (schema == null) {

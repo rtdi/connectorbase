@@ -125,7 +125,7 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	
 	/**
 	 * Read the configuration directory and create the object tree
-	 * @throws IOException 
+	 * @throws IOException in case of errors
 	 */
 	public void readConfigs() throws IOException {
 		if (connectiondir.isDirectory()) {
