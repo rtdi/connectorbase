@@ -97,7 +97,7 @@ public abstract class ServiceProperties {
 	 * Read the individual properties from a directory. The file name is derived from the {@link #getName()}.
 	 *  
 	 * @param directory where the file can be found
-	 * @throws IOException 
+	 * @throws IOException in case of errors
 	 */
 	public void read(File directory) throws IOException {
 		properties.read(directory);
