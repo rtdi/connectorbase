@@ -331,7 +331,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 								connectionprops.getKafkaAPIKey() + "\"   password=\"" + 
 								connectionprops.getKafkaAPISecret() + "\";");
 				propmap.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, SslConfigs.DEFAULT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM);
-				propmap.put(SaslConfigs.SASL_MECHANISM, "SCRAM-SHA-256");
+				propmap.put(SaslConfigs.SASL_MECHANISM, "SCRAM-SHA-512");
 			}
 		}    	
     }
