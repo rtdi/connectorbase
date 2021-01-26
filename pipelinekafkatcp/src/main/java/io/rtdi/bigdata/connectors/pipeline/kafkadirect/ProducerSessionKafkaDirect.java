@@ -78,6 +78,7 @@ public class ProducerSessionKafkaDirect extends ProducerSession<TopicHandler> {
 		producerprops.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
 		producerprops.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
 		getPipelineAPI().addSecurityProperties(producerprops);
+		KafkaAPIdirect.addCustomProperties(producerprops, getPipelineAPI().getGlobalSettings().getKafkaProducerProperties(), logger);
 		producer = new KafkaProducer<byte[], byte[]>(producerprops);
 		logger.debug("Open Producer");
 	}

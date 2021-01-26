@@ -13,7 +13,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -65,6 +67,7 @@ import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.logging.log4j.Logger;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -97,6 +100,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporar
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.TopicMetadata;
 import io.rtdi.bigdata.connector.pipeline.foundation.metadata.subelements.TopicMetadataPartition;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.GlobalSettings;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 import io.rtdi.bigdata.connector.properties.ConsumerProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
@@ -298,6 +302,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		this.connectionprops = kafkaconnectionproperties;
 		consumerprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaconnectionproperties.getKafkaBootstrapServers());
 		addSecurityProperties(consumerprops);
+		addCustomProperties(consumerprops, getGlobalSettings().getKafkaConsumerProperties(), logger);
 	}
     
     void addSecurityProperties(Map<String, Object> propmap) {
@@ -333,6 +338,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				propmap.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, SslConfigs.DEFAULT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM);
 				propmap.put(SaslConfigs.SASL_MECHANISM, "SCRAM-SHA-512");
 			}
+			addCustomProperties(propmap, settings.getKafkaConnectionProperties(), logger);
 		}    	
     }
     
@@ -355,12 +361,14 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				producerprops.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
 				producerprops.put(ProducerConfig.CLIENT_ID_CONFIG, "MetadataProducer_" + Thread.currentThread().getId());
 				addSecurityProperties(producerprops);
+				addCustomProperties(producerprops, getGlobalSettings().getKafkaProducerProperties(), logger);
 
 				Map<String, Object> adminprops = new HashMap<>();
 				adminprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, connectionprops.getKafkaBootstrapServers());
 				adminprops.put(ProducerConfig.CLIENT_ID_CONFIG, "KafkaAPIAdminClient_" + Thread.currentThread().getId());
 				addSecurityProperties(adminprops);
-		
+				addCustomProperties(adminprops, getGlobalSettings().getKafkaAdminProperties(), logger);
+
 				producer = new KafkaProducer<byte[], byte[]>(producerprops);
 				admin = AdminClient.create(adminprops);
 				
@@ -424,7 +432,21 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
     	}
     }
 
-    @Override
+    static void addCustomProperties(Map<String, Object> propmap, Properties customprops, Logger logger) {
+		if (customprops != null) {
+			for (Entry<Object, Object> e : customprops.entrySet()) {
+				boolean exists = propmap.containsKey(e.getKey().toString());
+				propmap.put(e.getKey().toString(), e.getValue());
+				if (exists) {
+					logger.info("Overwriting property {} with value {}", e.getKey().toString(), e.getValue().toString());
+				} else {
+					logger.info("Adding property {} with value {}", e.getKey().toString(), e.getValue().toString());
+				}
+			}
+		}
+	}
+
+	@Override
 	public Schema getSchema(int schemaid) throws PropertiesException {
     	Schema schema = schemaidcache.getIfPresent(schemaid);
     	if (schema != null) {
@@ -791,6 +813,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 			consumerprops.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
 			consumerprops.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 			addSecurityProperties(consumerprops);
+			KafkaAPIdirect.addCustomProperties(consumerprops, getGlobalSettings().getKafkaConsumerProperties(), logger);
 	
 			consumerprops.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 			consumerprops.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
@@ -880,7 +903,8 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 			consumerprops.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
 			consumerprops.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 			addSecurityProperties(consumerprops);
-	
+			KafkaAPIdirect.addCustomProperties(consumerprops, getGlobalSettings().getKafkaConsumerProperties(), logger);
+
 			consumerprops.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 			consumerprops.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 			try (KafkaConsumer<byte[], byte[]> consumer = new KafkaConsumer<byte[], byte[]>(consumerprops);) {
@@ -1354,6 +1378,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		Map<String, Object> adminprops = new HashMap<>();
 		adminprops.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, connectionprops.getKafkaBootstrapServers());
 		addSecurityProperties(adminprops);
+		KafkaAPIdirect.addCustomProperties(adminprops, getGlobalSettings().getKafkaAdminProperties(), logger);
 		AdminClient client = null;
 		try {
 			client = AdminClient.create(adminprops);
@@ -1550,5 +1575,10 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 						props.getName());
 			}
 		}
+	}
+
+	@Override
+	public void setGlobalSettings(GlobalSettings settings) {
+		super.setGlobalSettings(settings);
 	}
 }

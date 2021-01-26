@@ -33,4 +33,15 @@ The main reason for the global properties is to provide users a first level of c
 | schema.transactions | The schema name used to store transaction metadata in the topic.transactions. |
 | schema.producermetadata | similar for producers |
 | schema.consumermetadata | similar for consumers |
-| schema.servicemetadata | similar for services|
+| schema.servicemetadata | similar for services |
+| kafka.customproperties.connection.* | adds the * part to the Kafka properties |
+| kafka.customproperties.producer.* | adds the * part to the Kafka properties |
+| kafka.customproperties.consumer.* | adds the * part to the Kafka properties |
+| kafka.customproperties.admin.* | adds the * part to the Kafka properties |
+| kafka.customproperties.streams.* | adds the * part to the Kafka properties |
+
+
+Example for kafka.customproperties.connection.*:
+When using the Kafka library for either a producer, consumer or stream, certain connection specific properties might need to be set, e.g. security.protocol to some value not supported by the UI. In that case, by adding a property `kafka.customproperties.connection.security.protocol` to the global properties file, the custom property is added to the properties object used when connecting to Kafka (without the prefix of course).
+For cases where a property makes sense only to producers or consumers, the other two prefixes exist.
+If a property is specified that the UI wants to set as well, e.g. the bootstrap.servers, the global properties value takes priority always.

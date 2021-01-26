@@ -1,6 +1,7 @@
 package io.rtdi.bigdata.connector.pipeline.foundation;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.GlobalSettings;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
 
 /**
@@ -29,5 +30,7 @@ public interface IPipelineBase<S extends ConnectionProperties, T extends TopicHa
 	SchemaHandler getSchema(SchemaRegistryName schemaname) throws PropertiesException;
 
 	S getAPIProperties();
+
+	GlobalSettings getGlobalSettings();
 
 }

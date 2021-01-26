@@ -51,6 +51,7 @@ public class ConsumerSessionKafkaDirect extends ConsumerSession<TopicHandler> {
 			consumerprops.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
 
 			api.addSecurityProperties(consumerprops);
+			KafkaAPIdirect.addCustomProperties(consumerprops, getPipelineAPI().getGlobalSettings().getKafkaConsumerProperties(), logger);
 			consumer = new KafkaConsumer<byte[], byte[]>(consumerprops);
 		} catch (IllegalArgumentException e) {
 			throw new PropertiesException("Illegal argument when calling the Kafka Consumer", e, null);

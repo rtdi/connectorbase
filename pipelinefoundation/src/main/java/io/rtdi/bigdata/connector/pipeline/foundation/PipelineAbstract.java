@@ -58,6 +58,10 @@ public abstract class PipelineAbstract<
 		this.settings = settings;
 	}
 	
+	public GlobalSettings getGlobalSettings() {
+		return settings;
+	}
+	
 	public TopicName getSchemaRegistryTopicName() {
 		if (settings != null && settings.getSchemaRegistryTopicName() != null) {
 			return settings.getSchemaRegistryTopicName();
