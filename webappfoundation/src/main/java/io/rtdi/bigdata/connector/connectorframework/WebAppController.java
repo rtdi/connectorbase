@@ -13,17 +13,16 @@ import java.util.ServiceLoader;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletContextEvent;
-import jakarta.servlet.ServletContextListener;
-import jakarta.servlet.annotation.WebListener;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesRuntimeException;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
+import jakarta.servlet.annotation.WebListener;
 
 /**
  * A ServletContextListener holding the global settings and objects for the web application.
@@ -39,9 +38,8 @@ public class WebAppController implements ServletContextListener {
 	private static final String CONNECTORFACTORY = "CONNECTORFACTORY";
 	private static final String ERRORMESSAGE = "ERRORMESSAGE";
 	private ConnectorController connectorcontroller = null;
-	protected final Logger logger = LogManager.getLogger(this.getClass().getName());
+	protected Logger logger = null;
 
-	
 	/**
 	 * @param servletContext ServletContext
 	 * @return The root ConnectorController with all its connections, producers and consumers
@@ -125,6 +123,12 @@ public class WebAppController implements ServletContextListener {
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
+		/*
+		 * At this point in time the servlet context might not be ready, hence a log4j2.properties web lookup might not work or return empty.
+		 * Hence setting the servletcontextname in the log4j context and usnig that instead.
+		 */
+		org.apache.logging.log4j.ThreadContext.put("servletContextName", sce.getServletContext().getServletContextName());
+		logger = LogManager.getLogger(this.getClass().getName());
         try {
 			String configdirpath = null;
 			

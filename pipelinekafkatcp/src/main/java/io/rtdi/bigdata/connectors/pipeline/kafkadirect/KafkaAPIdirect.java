@@ -317,8 +317,8 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				 */
 				propmap.put("security.protocol", "SASL_SSL");
 				propmap.put(SaslConfigs.SASL_JAAS_CONFIG, 
-						"org.apache.kafka.common.security.plain.PlainLoginModule   required username=\"" +
-								connectionprops.getKafkaAPIKey() + "\"   password=\"" + 
+						"org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" +
+								connectionprops.getKafkaAPIKey() + "\" password=\"" + 
 								connectionprops.getKafkaAPISecret() + "\";");
 				propmap.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, SslConfigs.DEFAULT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM);
 				propmap.put(SaslConfigs.SASL_MECHANISM, "PLAIN");
@@ -332,8 +332,8 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				 */
 				propmap.put("security.protocol", "SASL_SSL");
 				propmap.put(SaslConfigs.SASL_JAAS_CONFIG, 
-						"org.apache.kafka.common.security.scram.ScramLoginModule   required username=\"" +
-								connectionprops.getKafkaAPIKey() + "\"   password=\"" + 
+						"org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" +
+								connectionprops.getKafkaAPIKey() + "\" password=\"" + 
 								connectionprops.getKafkaAPISecret() + "\";");
 				propmap.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, SslConfigs.DEFAULT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM);
 				propmap.put(SaslConfigs.SASL_MECHANISM, "SCRAM-SHA-512");

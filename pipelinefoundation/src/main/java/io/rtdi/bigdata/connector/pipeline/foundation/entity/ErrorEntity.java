@@ -26,6 +26,9 @@ public class ErrorEntity {
 	
 	public ErrorEntity(Throwable e) {
 		this();
+		while (e.getCause() instanceof PropertiesException) {
+			e = e.getCause(); // we want the inner most properties exception, all others are just wrappers.
+		}
 		message = e.getMessage();
 		stacktrace = ErrorListEntity.getStackTrace(e);
 		stacktracerootcause = ErrorListEntity.getStackTraceRootCause(e);
@@ -37,6 +40,9 @@ public class ErrorEntity {
 			errorhelp = null;
 			hint = pe.getHint();
 			causingobject = pe.getCausingObject();
+			if (causingobject != null) {
+				message += "\r\ncaused by: \"" + causingobject + "\"";
+			}
 		}
 		if (message == null) {
 			message = exception;
@@ -77,7 +83,7 @@ public class ErrorEntity {
 					}
 				}
 				
-				InputStream properties = c.getClassLoader().getResourceAsStream("/" + module + ".properties");
+				InputStream properties = c.getClassLoader().getResourceAsStream("/" + module.toLowerCase() + ".properties");
 				if (properties != null) {
 					Properties props = new Properties();
 					props.load(properties);

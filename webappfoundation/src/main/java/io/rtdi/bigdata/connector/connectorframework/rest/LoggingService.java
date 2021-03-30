@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Map;
 
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.servlet.ServletContext;
@@ -22,6 +23,9 @@ import jakarta.ws.rs.core.Response;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.appender.RollingFileAppender;
 import org.apache.logging.log4j.core.config.Configurator;
 
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorCallerException;
@@ -88,10 +92,23 @@ public class LoggingService {
 	@RolesAllowed(ServletSecurityConstants.ROLE_CONFIG)
 	public Response getDebugInfo() {
 		try {
-			java.nio.file.Path logpath = java.nio.file.Path.of(servletContext.getRealPath("WEB-INF"), "..", "..", "..", "logs");
+			Logger logger = LogManager.getLogger(this.getClass().getName());
+			org.apache.logging.log4j.core.Logger loggerImpl = (org.apache.logging.log4j.core.Logger) logger;
+			Map<String, Appender> appenders = loggerImpl.getAppenders();
+			Appender appender = appenders.get("LOGFILE");
+			File webapplog = null;
+			File weblogdir;
+			if (appender != null) {
+				String filename = ((RollingFileAppender) appender).getFileName();
+				webapplog = new File(filename);
+				weblogdir = webapplog.getParentFile();
+			} else {
+				java.nio.file.Path logpath = java.nio.file.Path.of(servletContext.getRealPath("WEB-INF"), "..", "..", "..", "logs");
+				weblogdir = logpath.toFile();
+			}
 			Level level = LogManager.getRootLogger().getLevel();
 			String webappname = servletContext.getServletContextName();
-			return Response.ok(new DebugInfo(level, logpath.toFile(), webappname)).build();
+			return Response.ok(new DebugInfo(level, webapplog, weblogdir, webappname)).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
@@ -110,28 +127,22 @@ public class LoggingService {
 				new LoggingLevel(Level.TRACE),
 				new LoggingLevel(Level.ALL)};
 		
-		public DebugInfo(Level level, File logdir, String webappname) {
+		public DebugInfo(Level level, File webapplog, File logdir, String webappname) {
 			super(level);
 			File[] logfiles = logdir.listFiles();
 			Arrays.sort(logfiles, Comparator.comparingLong(File::lastModified).reversed());
 			File found_server_file = null;
-			File found_app_file = null;
 			for (File f : logfiles) {
 				if (found_server_file == null && f.getName().matches("catalina\\..*\\.log")) {
 					found_server_file = f;
-				}
-				if (found_app_file == null && f.getName().matches(webappname + ".*\\.log")) {
-					found_app_file = f;
-				}
-				if (found_app_file != null && found_server_file != null) {
 					break;
 				}
 			}
 			if (found_server_file != null) {
 				webserverlog = getLastLines(found_server_file);
 			}
-			if (found_app_file != null) {
-				applog = getLastLines(found_app_file);
+			if (webapplog != null) {
+				applog = getLastLines(webapplog);
 			}
 			
 		}
@@ -139,7 +150,7 @@ public class LoggingService {
 		private String getLastLines(File file) {
 			long length = file.length();
 			if (length != 0) {
-				long startpoint = length - 30000L;
+				long startpoint = length - 20000L;
 				try (BufferedReader r = new BufferedReader(new FileReader(file));) {
 					if (startpoint > 0) {
 						// Move the file pointer ahead to the last 30k chars and read the complete line. That is the starting point

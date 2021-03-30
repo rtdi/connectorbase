@@ -1,8 +1,20 @@
-<form:SimpleForm width="100%" maxContainerCols="1" >
+<form:SimpleForm
+		layout="ResponsiveGridLayout"
+		width="100%"
+		columnsXL="1"
+		columnsL="1"
+		columnsM="1"
+		labelSpanXL="12"
+		labelSpanL="12"
+		labelSpanM="12"
+		labelSpanS="12"
+		adjustLabelSpan="false"
+		singleContainerFullSize="false"
+		title="Logging" >
 	<form:content>
-		<Title text="Logging" />
 		<Label text="Logging level" />
 		<Select
+			width="200pt"
 			forceSelection="true"
 			selectedKey="{/logginglevel}"
 			items="{/logginglevels}"
@@ -10,8 +22,8 @@
 			<core:Item key="{logginglevel}" text="{logginglevel}" />
 		</Select>
 		<Label text="Webserver Log" />
-		<Text text="{/webserverlog}" />
+		<Text wrapping="false" renderWhitespace="true" text="{/webserverlog}" />
 		<Label text="Application Log" />
-		<Text text="{/applog}" />
+		<Text wrapping="false" renderWhitespace="true" text="{/applog}" />
 	</form:content>
 </form:SimpleForm>

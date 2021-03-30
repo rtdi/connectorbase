@@ -56,8 +56,19 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 				contentHeight: "600px",
 				resizable: true,
 				content: [
-					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [
-						new sap.m.Title( { text: "Error" } ), 
+					new sap.ui.layout.form.SimpleForm({
+					 width: "100%",
+					 layout: "ResponsiveGridLayout",
+					 columnsL: 1,
+					 columnsM: 1,
+					 labelSpanXL: 3,
+					 labelSpanL: 3,
+					 labelSpanM: 2,
+					 labelSpanS: 12,
+					 singleContainerFullSize: false,
+					 adjustLabelSpan: false,
+					 title: "Error",
+					 content: [
 						new sap.m.Label( { text: "Process" } ), 
 						new sap.m.Text( { text: oItem.getThreadname() } ),
 						new sap.m.Label( { text: "Exception type" } ), 
@@ -66,8 +77,19 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 						new sap.m.Text( { text: new Date(oItem.getTimestamp()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) } ),
 					] } ),
 
-					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [						
-						new sap.m.Title( { text: "Messages" } ), 						
+					new sap.ui.layout.form.SimpleForm({
+					 width: "100%",
+					 layout: "ResponsiveGridLayout",
+					 columnsL: 1,
+					 columnsM: 1,
+					 labelSpanXL: 3,
+					 labelSpanL: 3,
+					 labelSpanM: 2,
+					 labelSpanS: 12,
+					 singleContainerFullSize: false,
+					 adjustLabelSpan: false,
+					 title: "Messages",
+					 content: [					
 						new sap.m.Label( { text: "Message" } ), 
 						new sap.m.Text( { text: oItem.getMessage() } ),
 						new sap.m.Label( { text: "Hint" } ), 
@@ -76,31 +98,68 @@ sap.ui.define([ "jquery.sap.global" ], function(jQuery) {
 						new sap.m.Text( { text: oItem.getErrorhelp() } )
 					] } ),
 
-					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [
-						new sap.m.Title( { text: "Object in question" } ), 
-						new sap.m.Label( { text: "Causing Object" } ), 
+					new sap.ui.layout.form.SimpleForm({
+					 width: "100%",
+					 layout: "ResponsiveGridLayout",
+					 columnsL: 1,
+					 columnsM: 1,
+					 labelSpanXL: 12,
+					 labelSpanL: 12,
+					 labelSpanM: 12,
+					 labelSpanS: 12,
+					 singleContainerFullSize: false,
+					 adjustLabelSpan: false,
+					 title: "Causing object",
+					 content: [
 						new sap.m.Text( { text: oItem.getCausingobject() } ),
 					] } ),
 
-					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [
-
-						new sap.m.Title( { text: "Source code reference" } ), 
-						new sap.m.Label( { text: "SourceCode" } ), 
+					new sap.ui.layout.form.SimpleForm({
+					 width: "100%",
+					 layout: "ResponsiveGridLayout",
+					 columnsL: 1,
+					 columnsM: 1,
+					 labelSpanXL: 12,
+					 labelSpanL: 12,
+					 labelSpanM: 12,
+					 labelSpanS: 12,
+					 singleContainerFullSize: false,
+					 adjustLabelSpan: false,
+					 title: "Source code line",
+					 content: [
 						new sap.m.Link( { href: oItem.getSourcecodeline(), text: "Show Source line", target: "_blank", visible: (!!oItem.getSourcecodeline()) } ),
 					] } ),
-
-					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [
-						
-						new sap.m.Title( { text: "Stack trace" } ), 
-						new sap.m.Label( { text: "Trace" } ), 
-						new sap.m.Text( { text: oItem.getStacktrace() } )
-					] } ),
 					
-					new sap.ui.layout.form.SimpleForm({ width: "100%", content: [
-						
-						new sap.m.Title( { text: "Stack trace Cause" } ), 
-						new sap.m.Label( { text: "Trace" } ), 
-						new sap.m.Text( { text: oItem.getStacktracerootcause() } )
+					new sap.ui.layout.form.SimpleForm({
+					 width: "100%",
+					 layout: "ResponsiveGridLayout",
+					 columnsL: 1,
+					 columnsM: 1,
+					 labelSpanXL: 12,
+					 labelSpanL: 12,
+					 labelSpanM: 12,
+					 labelSpanS: 12,
+					 singleContainerFullSize: false,
+					 adjustLabelSpan: false,
+					 title: "Root cause",
+					 content: [
+						new sap.m.Text( { text: oItem.getStacktracerootcause(), renderWhitespace: true, wrapping: false } )
+					] } ),
+
+					new sap.ui.layout.form.SimpleForm({
+					 width: "100%",
+					 layout: "ResponsiveGridLayout",
+					 columnsL: 1,
+					 columnsM: 1,
+					 labelSpanXL: 12,
+					 labelSpanL: 12,
+					 labelSpanM: 12,
+					 labelSpanS: 12,
+					 singleContainerFullSize: false,
+					 adjustLabelSpan: false,
+					 title: "Cause",
+					 content: [
+						new sap.m.Text( { text: oItem.getStacktrace(), renderWhitespace: true, wrapping: false } )
 					] } )
 
 				],
