@@ -59,7 +59,7 @@ public class PropertyPassword extends PropertyAbstract implements IPropertyValue
 
 	@Override
 	public IProperty clone(boolean ignorepasswords) {
-		return new PropertyPassword(this.getName(), this.getDisplayname(), this.getDescription(), this.getIcon(), (ignorepasswords==false?this.getValue():"******"), this.getMandatory());
+		return new PropertyPassword(this.getName(), this.getDisplayname(), this.getDescription(), this.getIcon(), (ignorepasswords==false?this.getValue():""), this.getMandatory());
 	}
 
 }
