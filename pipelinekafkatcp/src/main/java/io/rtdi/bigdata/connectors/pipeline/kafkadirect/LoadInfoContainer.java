@@ -41,8 +41,12 @@ public class LoadInfoContainer {
 
 	public void remove(String producername, Integer instanceno, String schemaname) {
 		Map<Integer, Map<String, LoadInfo>> instance = loadinfocache.get(producername, x -> new HashMap<>());
-		Map<String, LoadInfo> schemadata = instance.get(instanceno);
-		schemadata.remove(schemaname);
+		if (instance != null) {
+			Map<String, LoadInfo> schemadata = instance.get(instanceno);
+			if (schemadata != null) {
+				schemadata.remove(schemaname);
+			}
+		}
 	}
 
 	public Map<Integer, Map<String, LoadInfo>> get(String producername) {
