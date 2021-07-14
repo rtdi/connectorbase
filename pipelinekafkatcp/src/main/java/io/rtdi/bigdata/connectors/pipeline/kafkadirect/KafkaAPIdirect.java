@@ -832,8 +832,8 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				if (startoffsets != null) { // if null, then no recent data is available
 					HashMap<Integer, Long> offsetstoreachtable = new HashMap<Integer, Long>();
 					for (TopicPartition partition : partitions) {
-						long endoffset = endoffsetmap.get(partition);
-						if (endoffset > 0) { // if the offset == 0 then there is no data. Skip reading that partition then
+						Long endoffset = endoffsetmap.get(partition);
+						if (endoffset != null && endoffset > 0) { // if the offset == 0 then there is no data. Skip reading that partition then
 							OffsetAndTimestamp startoffset = startoffsets.get(partition);
 							if (startoffset != null) {
 								offsetstoreachtable.put(partition.partition(), endoffset-1); // The end offset is the offset of the next one to be produced, hence offset-1
@@ -853,8 +853,8 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 							do {
 								ConsumerRecord<byte[], byte[]> record = recordsiterator.next();
 								if (record != null) {
-									long offsettoreach = offsetstoreachtable.get(record.partition());
-									if (record.offset() >= offsettoreach) {
+									Long offsettoreach = offsetstoreachtable.get(record.partition()); // can be null as well
+									if (offsettoreach != null && record.offset() >= offsettoreach) {
 										// remove the entry from the offsetstoreachtable when offset was reached
 										offsetstoreachtable.remove(record.partition());
 									}
