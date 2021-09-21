@@ -1,0 +1,23 @@
+
+<form:SimpleForm
+		layout="ResponsiveGridLayout"
+		width="100%"
+		columnsXL="1"
+		columnsL="1"
+		columnsM="1"
+		labelSpanXL="12"
+		labelSpanL="12"
+		labelSpanM="12"
+		labelSpanS="12"
+		adjustLabelSpan="false"
+		singleContainerFullSize="false"
+		>
+	<form:content>
+		<Label text="Connector Status" />
+		<Text text="{state>/controllerState}" />
+		<Label text="Stop and restart Connector" />
+		<Button text="Start/Restart" press="pressStart" />
+		<Label text="Stop the entire Connector" />
+		<Button text="Stop" press="pressStop" />
+	</form:content>
+</form:SimpleForm>

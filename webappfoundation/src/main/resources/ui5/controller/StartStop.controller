@@ -1,0 +1,42 @@
+showFooter : function() {
+	return false;
+},
+init : function() {
+	oStateModel.setProperty("/title", "StartStop");
+	oStateModel.setProperty("/breadcrumbs", [ {"text" : "Homepage", "link" : "./Home"} ] );
+},
+pressStart : function(oEvent) {
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open("GET", "../rest/ConnectorStatus/start");
+	xmlhttp.setRequestHeader("Content-Type", "application/json");
+	var that = this;
+	xmlhttp.onreadystatechange = function() {
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+		        that.displaySuccess(JSON.parse(xmlhttp.responseText));
+		    } else {
+		        that.displayError(JSON.parse(xmlhttp.responseText));
+		    }
+		}
+	}
+	xmlhttp.send(data);
+},
+pressStop : function(oEvent) {
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open("GET", "../rest/ConnectorStatus/stop");
+	xmlhttp.setRequestHeader("Content-Type", "application/json");
+	var that = this;
+	xmlhttp.onreadystatechange = function() {
+	    if (xmlhttp.readyState == 4) {
+	    	if (xmlhttp.status == 200) {
+		        that.displaySuccess(JSON.parse(xmlhttp.responseText));
+		    } else {
+		        that.displayError(JSON.parse(xmlhttp.responseText));
+		    }
+		}
+	}
+	xmlhttp.send(data);
+},
+cancel : function(oEvent) {
+},
+

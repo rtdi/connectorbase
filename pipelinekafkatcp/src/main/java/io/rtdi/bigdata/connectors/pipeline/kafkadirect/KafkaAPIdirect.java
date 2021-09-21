@@ -369,8 +369,9 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				addSecurityProperties(adminprops);
 				addCustomProperties(adminprops, getGlobalSettings().getKafkaAdminProperties(), logger);
 
-				producer = new KafkaProducer<byte[], byte[]>(producerprops);
 				admin = AdminClient.create(adminprops);
+				admin.describeCluster(); // The admin client is asynchronous, so we must do something to validate it has a valid connection
+				producer = new KafkaProducer<byte[], byte[]>(producerprops);
 				
 				if (getAPIProperties().getKafkaSchemaRegistry() != null) {
 					URI uri;
@@ -696,6 +697,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		
 	public TopicHandler topicCreate(TopicName topic, int partitioncount, short replicationfactor,
 			Map<String, String> props) throws PropertiesException {
+    	validatePipelineAPI();
 		try {
 			Optional<Short> repfactor;
 			if (replicationfactor <= 1) {
@@ -720,9 +722,16 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		}
 	}
 
+	private void validatePipelineAPI() throws PipelineRuntimeException {
+    	if (admin == null) {
+    		throw new PipelineRuntimeException("Pipeline not started/connected", 
+    				"Check the Kafka Connection screen and the global error messages in the menu bar");
+    	}
+	}
 	
     @Override
 	public TopicHandler getTopic(TopicName kafkatopicname) throws PropertiesException {
+    	validatePipelineAPI();
 		try {
 			Collection<String> topicNames = Collections.singleton(kafkatopicname.getName());
 			DescribeTopicsResult result = admin.describeTopics(topicNames);
@@ -752,26 +761,21 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 
     @Override
 	public List<TopicName> getTopics() throws PipelineRuntimeException {
+    	validatePipelineAPI();
 		try {
-			if (admin != null) {
-				ListTopicsResult result = admin.listTopics();
-				Collection<TopicListing> listing = result.listings().get(10, TimeUnit.SECONDS);
-				List<TopicName> topicNames = new ArrayList<>();
-				for ( TopicListing t : listing) {
-					String n = t.name();
-					if (!internaltopics.contains(n)) {
-						topicNames.add(TopicName.createViaEncoded(n));
-					}
+			ListTopicsResult result = admin.listTopics();
+			Collection<TopicListing> listing = result.listings().get(10, TimeUnit.SECONDS);
+			List<TopicName> topicNames = new ArrayList<>();
+			for ( TopicListing t : listing) {
+				String n = t.name();
+				if (!internaltopics.contains(n)) {
+					topicNames.add(TopicName.createViaEncoded(n));
 				}
-				Collections.sort(topicNames);
-				return topicNames;
-			} else {
-				throw new PipelineRuntimeException("Reading the list of topics failed as there is no valid connection with the backend", null, null);
 			}
-		} catch (InterruptedException | TimeoutException e) {
+			Collections.sort(topicNames);
+			return topicNames;
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			throw new PipelineTemporaryException("Reading the list of topics failed", e, null);
-		} catch (ExecutionException e) {
-			throw new PipelineRuntimeException("Reading the list of topics failed", e, null);
 		}
 	}
 
@@ -1343,8 +1347,12 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				return response;
 			} else if (response.getStatus() == 404) {
 				return null;
+			} else if (response.getStatus() == 401) {
+				throw new PipelineRuntimeException("restful call did return status \"401\", a http not-authorized", null,
+						"Please ensure the security setting for the schema registry service and the schema properties match", path);
 			} else {
-				throw new PipelineRuntimeException("restful call did return status \"" + response.getStatus() + "\"", null, response.getEntity().toString(), path);
+				throw new PipelineRuntimeException("restful call did return status \"" + response.getStatus() + "\"", null,
+						response.getEntity().toString(), path);
 			}
 		} catch (ProcessingException e) {
 			throw new PipelineRuntimeException("restful call got an error", e, null, path);
@@ -1361,11 +1369,15 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				return response;
 			} else if (response.getStatus() == 404) {
 				return null;
+			} else if (response.getStatus() == 401) {
+				throw new PipelineRuntimeException("restful post call did return status \"401\", a http not-authorized", null,
+						"Please ensure the security setting for the schema registry service and the schema properties match", path);
 			} else {
-				throw new PipelineRuntimeException("restful call did return status \"" + response.getStatus() + "\"", null, response.getEntity().toString(), path);
+				throw new PipelineRuntimeException("restful post call did return status \"" + response.getStatus() + "\"", null,
+						response.getEntity().toString(), path);
 			}
 		} catch (ProcessingException e) {
-			throw new PipelineRuntimeException("restful call got an error", e, null, path);
+			throw new PipelineRuntimeException("restful post call got an error", e, null, path);
 		}
 	}
 
@@ -1382,6 +1394,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		AdminClient client = null;
 		try {
 			client = AdminClient.create(adminprops);
+			client.describeCluster();
 		} catch (KafkaException e) {
 			throw new PipelineRuntimeException("Validation of the session failed with error \"" + e.getMessage() + "\"", e, "Hostname and port correct? Firewall?");
 		} finally {
@@ -1442,10 +1455,10 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		for (TopicPayload d : data) {
 			loadinfocache.setLastReadTime(d.getTimestamp());
 			JexlRecord record = d.getValueRecord();
-			String currentproducername = (String) record.get(PipelineAbstract.AVRO_FIELD_PRODUCERNAME);
+			String currentproducername = record.get(PipelineAbstract.AVRO_FIELD_PRODUCERNAME).toString();
 			Integer currentinstanceno = (Integer) record.get(PipelineAbstract.AVRO_FIELD_PRODUCER_INSTANCE_NO);
 			Boolean successful = (Boolean)record.get(AVRO_FIELD_WAS_SUCCESSFUL);
-			String schemaname = (String) record.get(AVRO_FIELD_SCHEMANAME);
+			String schemaname = record.get(AVRO_FIELD_SCHEMANAME).toString();
 			/*
 			 * We only care about the most recent entry, that is the first
 			 */
@@ -1454,7 +1467,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 				i.setProducername(currentproducername);
 				i.setProducerinstanceno(currentinstanceno);
 				i.setSchemaname(schemaname);
-				i.setTransactionid((String) record.get(AVRO_FIELD_SOURCE_TRANSACTION_IDENTIFIER));
+				i.setTransactionid(record.get(AVRO_FIELD_SOURCE_TRANSACTION_IDENTIFIER).toString());
 				i.setCompletiontime((Long) record.get(AVRO_FIELD_LASTCHANGED));
 				i.setRowcount((Long) record.get(AVRO_FIELD_ROW_COUNT));
 				loadinfocache.put(currentproducername, currentinstanceno, schemaname, i);
@@ -1547,6 +1560,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 	
 	@Override
 	public void rewindConsumer(ConsumerProperties props, long epoch) throws IOException {
+    	validatePipelineAPI();
 		ListConsumerGroupOffsetsResult offsets = admin.listConsumerGroupOffsets(props.getName());
 		if (offsets != null) {
 			try {

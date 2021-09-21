@@ -1,5 +1,6 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.exceptions;
 
+import java.util.concurrent.ExecutionException;
 
 /**
  * An Exception where a retry does not make sense. Something severe happened within the code and
@@ -23,11 +24,24 @@ public class PipelineRuntimeException extends PropertiesRuntimeException {
 	}
 
 	public PipelineRuntimeException(String message, Throwable cause, String hint) {
-		super(message, cause, hint, null);
+		// In case the cause is an ExecutionException, don't show it but its actual cause
+		super(message, getError(cause), hint, null);
 	}
 	
 	public PipelineRuntimeException(String message, Throwable cause, String hint, String causingobject) {
-		super(message, cause, hint, causingobject);
+		super(message, getError(cause), hint, causingobject);
+	}
+	
+	private static Throwable getError(Throwable cause) {
+		if (cause == null) {
+			return null;
+		} else if (cause.getCause() == null) {
+			return cause;
+		} else if (cause.getCause() instanceof ExecutionException) {
+			return cause.getCause();
+		} else {
+			return cause;
+		}
 	}
 	
 }

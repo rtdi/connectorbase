@@ -78,4 +78,11 @@
 		description="Support related settings and information"
 		tooltip="" />
 
+	<components:ApplicationTile
+		name="Start/Stop"
+		icon="sap-icon://begin"
+		href="./StartStop"
+		description="Restart all"
+		tooltip="" />
+
 </HBox>

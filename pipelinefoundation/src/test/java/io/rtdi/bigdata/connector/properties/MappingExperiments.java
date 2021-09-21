@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilderException;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.BinaryDecoder;
@@ -17,18 +18,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.SchemaConstants;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlArray;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericDatumReader;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroInt;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroLong;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroString;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroTimestamp;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroVarchar;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.AvroRecordArray;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
+import io.rtdi.bigdata.kafka.avro.SchemaConstants;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroInt;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroLong;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroString;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroTimestamp;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroVarchar;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.AvroRecordArray;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.ValueSchema;
 
 public class MappingExperiments {
 	private static EncoderFactory encoderFactory = EncoderFactory.get();
@@ -116,7 +116,7 @@ public class MappingExperiments {
 		}
 	}
 
-	private Schema getValueSchema() throws SchemaException {
+	private Schema getValueSchema() throws SchemaBuilderException {
 		ValueSchema valuebuilder = new ValueSchema("HWMonitor", "HWMonitor structure contains detailed data about the hardware utilization");
 		valuebuilder.add("HOST", AvroString.getSchema(), "The ip address of the computer being monitored", false).setPrimaryKey();
 		valuebuilder.add("TIMESTAMP", AvroTimestamp.getSchema(), "The timestamp (Unix epoch format) of this event", false).setPrimaryKey();

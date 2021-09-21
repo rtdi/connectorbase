@@ -11,7 +11,7 @@ import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.LogicalDataTypesRegistry;
+import io.rtdi.bigdata.kafka.avro.datatypes.LogicalDataTypesRegistry;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 /**

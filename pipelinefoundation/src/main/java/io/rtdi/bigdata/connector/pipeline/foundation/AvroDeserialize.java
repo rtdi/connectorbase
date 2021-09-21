@@ -13,7 +13,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericDatumReader;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.LogicalDataTypesRegistry;
+import io.rtdi.bigdata.kafka.avro.datatypes.LogicalDataTypesRegistry;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 

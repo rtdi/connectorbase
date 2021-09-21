@@ -9,10 +9,8 @@ import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData;
 import org.apache.commons.jexl3.JexlContext;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroRecord;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroType;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineCallerException;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
+import io.rtdi.bigdata.kafka.avro.datatypes.*;
 
 public class JexlGenericData extends GenericData {
 	private static JexlGenericData INSTANCE = new JexlGenericData();
@@ -70,11 +68,7 @@ public class JexlGenericData extends GenericData {
 	    		a.setParent(this);
 	    		a.parentfield = field;
 	    	} else {
-	    		try {
-					value = AvroType.getAvroDataType(field.schema()).convertToInternal(value);
-				} catch (PipelineCallerException e) {
-		            throw new AvroRuntimeException("Not a convertable value \"" + value + "\"", e);
-				}
+	    		value = AvroType.getAvroDataType(field.schema()).convertToInternal(value);
 	    	}
 	    	super.put(field.pos(), value);
 	    }
@@ -91,11 +85,7 @@ public class JexlGenericData extends GenericData {
 	    		a.setParent(this);
 	    		a.parentfield = field;
 	    	} else {
-	    		try {
-					v = AvroType.getAvroDataType(field.schema()).convertToInternal(v);
-				} catch (PipelineCallerException e) {
-		            throw new AvroRuntimeException("Not a convertable value \"" + v + "\"", e);
-				}
+	    		v = AvroType.getAvroDataType(field.schema()).convertToInternal(v);
 	    	}
 	    	super.put(i, v);
 	    }

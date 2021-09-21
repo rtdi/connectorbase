@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilderException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,13 +28,12 @@ import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.LoadInfo;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.OperationLogContainer;
-import io.rtdi.bigdata.connector.pipeline.foundation.enums.RowType;
-import io.rtdi.bigdata.connector.pipeline.foundation.enums.RuleResult;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 import io.rtdi.bigdata.connector.pipeline.foundation.mapping.RecordMapping;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
+import io.rtdi.bigdata.kafka.avro.RowType;
+import io.rtdi.bigdata.kafka.avro.RuleResult;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.KeySchema;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
 
@@ -199,7 +199,7 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 					Schema targetvalueschema = SchemaMappingData.getTargetSchema(mappingfile);
 					Schema targetkeyschema = KeySchema.create(targetvalueschema);
 					schemahandler = getPipelineAPI().registerSchema(targetschema, null, targetkeyschema, targetvalueschema);
-				} catch (SchemaException e) {
+				} catch (SchemaBuilderException e) {
 					throw new ConnectorRuntimeException("Creating the value schema failed", e, null, sourceschemaname);
 				}
 			}
@@ -222,7 +222,7 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 				SchemaRegistryName schemaname = SchemaRegistryName.create(sourceschemaname);
 				Schema keyschema = KeySchema.create(valueschema);
 				schemahandler = getPipelineAPI().registerSchema(schemaname, null, keyschema, valueschema);
-			} catch (SchemaException e) {
+			} catch (SchemaBuilderException e) {
 				throw new ConnectorRuntimeException("Creating the value schema failed", e, null, sourceschemaname);
 			}
 			return schemahandler;
@@ -235,10 +235,10 @@ public abstract class Producer<S extends ConnectionProperties, P extends Produce
 	 * 
 	 * @param sourceschemaname Name of the schema to create
 	 * @return Schema of the value 
-	 * @throws SchemaException in case the schema has a logical error
+	 * @throws SchemaBuilderException in case the schema has a logical error
 	 * @throws IOException any other type of error
 	 */
-	protected abstract Schema createSchema(String sourceschemaname) throws SchemaException, IOException;
+	protected abstract Schema createSchema(String sourceschemaname) throws SchemaBuilderException, IOException;
 
 	/**
 	 * Convenience function to add a topic/schema to the instance controller

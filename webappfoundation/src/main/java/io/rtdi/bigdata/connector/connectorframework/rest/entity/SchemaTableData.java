@@ -17,10 +17,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroAnyPrimitive;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroType;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroAnyPrimitive;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.AvroArray;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.AvroArray;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 public class SchemaTableData {

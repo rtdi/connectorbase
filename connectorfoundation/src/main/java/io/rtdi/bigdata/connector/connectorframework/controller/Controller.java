@@ -50,8 +50,13 @@ public abstract class Controller<C extends Controller<?>> implements IController
 			controllerdisabled = false;
 			errors = new ErrorListEntity();
 			state = ControllerState.STARTING;
-			startControllerImpl();
-			state = ControllerState.STARTED;
+			try {
+				startControllerImpl();
+				state = ControllerState.STARTED;
+			} catch (IOException e) {
+				errors.addError(e);
+				state = ControllerState.TEMPORARYERROR;
+			}
 		} else {
 			logger.info("A request to start a controller that is started/starting already was made - ignored");
 		}
