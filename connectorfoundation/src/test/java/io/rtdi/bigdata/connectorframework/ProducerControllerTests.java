@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilderException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,15 +26,14 @@ import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroInt;
+import io.rtdi.bigdata.kafka.avro.RowType;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroInt;
 import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
-import io.rtdi.bigdata.connector.pipeline.foundation.enums.RowType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineTemporaryException;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.KeySchema;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.ValueSchema;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
 import io.rtdi.bigdata.pipelinetest.PipelineTest;
@@ -192,7 +192,7 @@ public class ProducerControllerTests {
 		}
 
 		@Override
-		protected Schema createSchema(String sourceschemaname) throws SchemaException, IOException {
+		protected Schema createSchema(String sourceschemaname) throws SchemaBuilderException, IOException {
 			return null;
 		}
 
@@ -219,8 +219,8 @@ public class ProducerControllerTests {
 			keybuilder.add("KEY", AvroInt.getSchema(), null, false);
 			keybuilder.build();
 			return keybuilder.getSchema();
-		} catch (SchemaException e) {
-			throw new ConnectorRuntimeException("SchemaException thrown", e, null, null);
+		} catch (SchemaBuilderException e) {
+			throw new ConnectorRuntimeException("SchemaBuilderException thrown", e, null, null);
 		}
 	}
 
@@ -231,8 +231,8 @@ public class ProducerControllerTests {
 			valuebuilder.add("VALUE", AvroInt.getSchema(), null, false);
 			valuebuilder.build();
 			return valuebuilder.getSchema();
-		} catch (SchemaException e) {
-			throw new ConnectorRuntimeException("SchemaException thrown", e, null, null);
+		} catch (SchemaBuilderException e) {
+			throw new ConnectorRuntimeException("SchemaBuilderException thrown", e, null, null);
 		}
 	}
 

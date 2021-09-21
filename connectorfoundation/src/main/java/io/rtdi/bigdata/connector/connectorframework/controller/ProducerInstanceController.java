@@ -94,14 +94,17 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 			operationlog = rowproducer.getOperationLog();
 			try {
 				// Allow the producer to create all schemas, topics and their relationships
+				logger.info("Instance {}: Create Topiclist", instancenumber);
 				rowproducer.createTopiclist();
 				// Start capturing changes on all requested source objects 
+				logger.info("Instance {}: StartProducerChangeLogging", instancenumber);
 				rowproducer.startProducerChangeLogging();
 				
 				/*
 				 *  Read the LoadInfo from the transaction topic. This tells what table have been initial 
 				 *  loaded already and the last processed delta transaction.
 				 */
+				logger.info("Instance {}: Reading LoadInfo to know the start point", instancenumber);
 				Map<String, LoadInfo> loadinfo = rowproducer.getLoadInfo();
 				/*
 				 * The initial load info is per table, the delta is global.
@@ -117,14 +120,15 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 				}
 				lastsourcetransactionid = null;
 				String transactionid_at_start = rowproducer.getCurrentTransactionId();
-				logger.debug("TransactionID at start is \"{}\"", transactionid_at_start);
+				logger.info("Instance {}: TransactionID at start is \"{}\"", instancenumber, transactionid_at_start);
 				
 				if (delta != null) {
 					// The producer had processed delta before and should continue where it left.
 					lastsourcetransactionid = delta.getTransactionid();
-					logger.debug("TransactionID of the last delta is \"{}\"", lastsourcetransactionid);
+					logger.info("Instance {}: TransactionID of the last delta is \"{}\"", instancenumber, lastsourcetransactionid);
 				} else {
-					logger.debug("No delta ever executed, marking the current transaction id \"{}\" as the start point", transactionid_at_start);
+					logger.info("Instance {}: No delta ever executed, marking the current transaction id \"{}\" as the start point",
+							instancenumber, transactionid_at_start);
 					rowproducer.beginDeltaTransaction(transactionid_at_start, instancenumber);
 					rowproducer.commitDeltaTransaction();
 				}
@@ -137,17 +141,20 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 					for (String name : schemanames) {
 						if (loadinfo == null || !loadinfo.containsKey(name)) {
 							// Initial load all tables the initial load was not yet complete.
-							logger.debug("Initial load for table \"{}\" with transaction id \"{}\" is started", name, transactionid_at_start);
+							logger.info("Instance {}: Initial load for table \"{}\" with transaction id \"{}\" is started",
+									instancenumber, name, transactionid_at_start);
 							rowproducer.executeInitialLoad(name, transactionid_at_start);
-							logger.debug("Initial load for table \"{}\" with transaction id \"{}\" is completed", name, transactionid_at_start);
+							logger.info("Instance {}: Initial load for table \"{}\" with transaction id \"{}\" is completed",
+									instancenumber, name, transactionid_at_start);
 						}
 					}
 				}
 
 				if (lastsourcetransactionid != null && lastsourcetransactionid.length() != 0) {
 					// Allow the producer to execute some recovery logic
-					logger.debug("Execute restart logic with transaction id \"{}\" is started", lastsourcetransactionid);
+					logger.info("Instance {}: Execute restart logic with transaction id \"{}\"...", instancenumber, lastsourcetransactionid);
 					rowproducer.restartWith(lastsourcetransactionid);
+					logger.info("Instance {}: Execute restart logic with transaction id \"{}\"...done", instancenumber, lastsourcetransactionid);
 				} else {
 					lastsourcetransactionid = transactionid_at_start;
 				}
@@ -174,6 +181,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 						rowproducer.executePeriodicTask();
 					}
 					if (ismetadatachanged) {
+						logger.info("ProducerInstance got changed in regards to topics or schemas");
 						updateLandscape();
 					}
 					operationstate = OperationState.DONEREQUESTDATA;
@@ -196,6 +204,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	 */
 	public void updateSchemaWithLatest() throws PropertiesException {
 		try {
+			logger.info("updating schema metadata...");
 			for (Set<SchemaHandler> schemas : usedtopics.values()) {
 				Set<SchemaHandler> newschemas = new HashSet<>(); // collect the new schemahandlers here
 				for (SchemaHandler schema : schemas) {
@@ -211,6 +220,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 				}
 				schemas.addAll(newschemas); // overwrite the current schemahandlers with the new ones
 			}
+			logger.info("updating schema metadata...done");
 		} catch (Exception e) {
 			logger.info("updating the schema failed", e, "As this is optional, any error is ignored", null);
 		}
@@ -382,7 +392,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 	@Override
 	protected void updateLandscape() {
 		try {
-			logger.info("updating producer metadata");
+			logger.info("updating producer metadata...");
 			getPipelineAPI().addProducerMetadata(
 					new ProducerEntity(
 							producercontroller.getName(),
@@ -400,6 +410,7 @@ public class ProducerInstanceController extends ThreadBasedController<Controller
 								null));
 			}
 			ismetadatachanged = false;
+			logger.info("updating producer metadata...done");
 		} catch (IOException e) {
 			logger.error("updating producer metadata failed", e);
 		}

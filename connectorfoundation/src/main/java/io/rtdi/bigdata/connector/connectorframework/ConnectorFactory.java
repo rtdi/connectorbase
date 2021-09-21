@@ -1,6 +1,6 @@
 package io.rtdi.bigdata.connector.connectorframework;
 
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.LogicalDataTypesRegistry;
+import io.rtdi.bigdata.kafka.avro.datatypes.LogicalDataTypesRegistry;
 import io.rtdi.bigdata.connector.properties.ConnectionProperties;
 
 /**

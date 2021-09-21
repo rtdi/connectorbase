@@ -7,9 +7,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
-import io.rtdi.bigdata.connector.pipeline.foundation.enums.RowType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import io.rtdi.bigdata.connector.properties.ProducerProperties;
+import io.rtdi.bigdata.kafka.avro.RowType;
+import io.rtdi.bigdata.kafka.avro.SchemaConstants;
 
 /**
  * A ProducerSession is a single connection to the topic server and used to load data into various topics in a transactional way.
@@ -48,6 +49,8 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * @throws PipelineRuntimeException in case the previous transaction is open still
 	 */
 	public final void beginDeltaTransaction(String sourcetransactionid, int instancenumber) throws PipelineRuntimeException {
+		logger.debug("Begin delta load transaction (\"{}\"), instance {}", 
+				sourcetransactionid, instancenumber);
 		if (isopen) {
 			throw new PipelineRuntimeException("Cannot begin a new transaction while it is not completed");
 		}
@@ -67,6 +70,8 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * @throws IOException in case of any errors
 	 */
 	public final void beginInitialLoadTransaction(String sourcetransactionid, String schemaname, int instancenumber) throws IOException {
+		logger.debug("Begin initial load transaction (\"{}\") for \"{}\", instance {}", 
+				sourcetransactionid, schemaname, instancenumber);
 		if (isopen) {
 			throw new PipelineRuntimeException("Cannot begin a new transaction while it is not completed");
 		}
@@ -86,6 +91,8 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * 
 	 */
 	public final void commitDeltaTransaction() throws IOException {
+		logger.debug("Commit delta load transaction (\"{}\"), instance {}", 
+				sourcetransactionidentifier, instanceno);
 		confirmDeltaLoad(this.instanceno);
 		commitImpl();
 		isopen = false;
@@ -99,6 +106,8 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * 
 	 */
 	public final void commitInitialLoadTransaction() throws IOException {
+		logger.debug("Commit initial load transaction (\"{}\") for \"{}\", instance {}", 
+				sourcetransactionidentifier, initialloadschema, instanceno);
 		confirmInitialLoad(this.initialloadschema, this.instanceno);
 		commitImpl();
 		isopen = false;
@@ -112,6 +121,8 @@ public abstract class ProducerSession<T extends TopicHandler> {
 	 * 
 	 */
 	public final void abortTransaction() throws PipelineRuntimeException {
+		logger.debug("Abort transaction (\"{}\") for \"{}\", instance {}", 
+				sourcetransactionidentifier, initialloadschema, instanceno);
 		isopen = false;
 		sourcetransactionidentifier = null;
 		abort();

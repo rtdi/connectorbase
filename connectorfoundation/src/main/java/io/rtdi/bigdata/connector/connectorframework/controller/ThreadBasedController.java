@@ -101,6 +101,7 @@ public abstract class ThreadBasedController<C extends Controller<?>> extends Con
 			stopChildControllers(ControllerExitType.ABORT);
 			joinChildControllers(ControllerExitType.ABORT);
 			stopThreadControllerImpl(ControllerExitType.ABORT);
+			state = ControllerState.STOPPED;
 			logger.info("Controller thread {} stopped", Thread.currentThread().getName());
 			lastalive = System.currentTimeMillis();
 		}

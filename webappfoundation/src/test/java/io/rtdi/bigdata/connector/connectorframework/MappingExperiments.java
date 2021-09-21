@@ -3,24 +3,24 @@ package io.rtdi.bigdata.connector.connectorframework;
 import static org.junit.Assert.fail;
 
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilderException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlArray;
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroInt;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroLong;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroString;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroTimestamp;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroVarchar;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
 import io.rtdi.bigdata.connector.pipeline.foundation.mapping.ArrayMapping;
 import io.rtdi.bigdata.connector.pipeline.foundation.mapping.ArrayPrimitiveMapping;
 import io.rtdi.bigdata.connector.pipeline.foundation.mapping.RecordMapping;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.AvroRecordArray;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroInt;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroLong;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroString;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroTimestamp;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroVarchar;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.AvroRecordArray;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.KeySchema;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.ValueSchema;
 
 public class MappingExperiments {
 
@@ -85,7 +85,7 @@ public class MappingExperiments {
 		}
 	}
 
-	private Schema getValueSchema() throws SchemaException {
+	private Schema getValueSchema() throws SchemaBuilderException {
 		ValueSchema valuebuilder = new ValueSchema("HWMonitor", "HWMonitor structure contains detailed data about the hardware utilization");
 		valuebuilder.add("HOST", AvroString.getSchema(), "The ip address of the computer being monitored", false).setPrimaryKey();
 		valuebuilder.add("TIMESTAMP", AvroTimestamp.getSchema(), "The timestamp (Unix epoch format) of this event", false).setPrimaryKey();
@@ -109,7 +109,7 @@ public class MappingExperiments {
 	}
 
 	@SuppressWarnings("unused")
-	private Schema getKeySchema() throws SchemaException {
+	private Schema getKeySchema() throws SchemaBuilderException {
 		KeySchema valuebuilder = new KeySchema("HWMonitor", "HWMonitor structure contains detailed data about the hardware utilization");
 		valuebuilder.add("HOST", AvroString.getSchema(), "The ip address of the computer being monitored", false);
 		valuebuilder.add("TIMESTAMP", AvroLong.getSchema(), "The timestamp (Unix epoch format) of this event", false);

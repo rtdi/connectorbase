@@ -9,7 +9,7 @@
     <parent>
         <groupId>io.rtdi.bigdata.connector</groupId>
         <artifactId>connectorbase</artifactId>
-        <version>0.10.9</version>
+        <version>${revision}</version>
     </parent>
 	<dependencies>
 		<dependency>
@@ -62,6 +62,11 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
 			<version>1.9</version>
+		</dependency>
+		<dependency>
+		  <groupId>io.rtdi.bigdata.kafka</groupId>
+		  <artifactId>kafkaavro</artifactId>
+		  <version>0.10.11</version>
 		</dependency>
 	</dependencies>
 </project>

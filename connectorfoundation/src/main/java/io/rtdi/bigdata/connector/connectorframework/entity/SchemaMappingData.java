@@ -28,10 +28,9 @@ import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorControll
 import io.rtdi.bigdata.connector.connectorframework.exceptions.ConnectorRuntimeException;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroAnyPrimitive;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroType;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.AvroArray;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.AvroField;
+import io.rtdi.bigdata.kafka.avro.datatypes.*;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.AvroArray;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.AvroField;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 /**

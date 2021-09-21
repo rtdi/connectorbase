@@ -209,9 +209,11 @@ public class ConnectorController extends ThreadBasedController<Controller<?>> {
 	 */
 	protected void periodictask(long executioncounter) {
 		if (executioncounter % 7200 == 60) { // every two hours, starting one minute after start
+			logger.info("Every 2h update the landscape information");
 			updateLandscape();
 		}
 		if (executioncounter % 1200 == 61) { // every 20 minutes, starting one minute after start
+			logger.info("Every 20 minutes re-read the schemas from the registry");
 			updateSchemaCache();
 		}
 		/**

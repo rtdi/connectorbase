@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilderException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,12 +18,11 @@ import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroInt;
-import io.rtdi.bigdata.connector.pipeline.foundation.avrodatatypes.AvroString;
-import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.SchemaException;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.AvroRecordArray;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.KeySchema;
-import io.rtdi.bigdata.connector.pipeline.foundation.recordbuilders.ValueSchema;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroInt;
+import io.rtdi.bigdata.kafka.avro.datatypes.AvroString;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.AvroRecordArray;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.KeySchema;
+import io.rtdi.bigdata.kafka.avro.recordbuilders.ValueSchema;
 
 public class APITestsIT {
 	private PipelineAbstract<?,?,?,?> api;
@@ -41,14 +41,14 @@ public class APITestsIT {
 		api.close();
 	}
 	
-	public static KeySchema getKeySchema() throws SchemaException {
+	public static KeySchema getKeySchema() throws SchemaBuilderException {
 		KeySchema keybuilder = new KeySchema("KeyTest", null);
 		keybuilder.add("EmployeeID", AvroInt.getSchema(), null, false);
 		keybuilder.build();
 		return keybuilder;
 	}
 
-	public static ValueSchema getValueSchema() throws SchemaException {
+	public static ValueSchema getValueSchema() throws SchemaBuilderException {
 		ValueSchema valuebuilder = new ValueSchema("ValueTest", null);
 		valuebuilder.add("EmployeeID", AvroInt.getSchema(), null, false);
 		valuebuilder.add("LastName", AvroString.getSchema(), null, true);

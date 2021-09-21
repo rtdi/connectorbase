@@ -1,19 +1,21 @@
 package io.rtdi.bigdata.connector.connectorframework.rest.entity;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
+import io.rtdi.bigdata.connector.connectorframework.WebAppController;
+import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
+import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
+import io.rtdi.bigdata.connector.pipeline.foundation.entity.ErrorEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerState;
+import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PipelineRuntimeException;
 import jakarta.servlet.ServletContext;
 import jakarta.ws.rs.core.SecurityContext;
 
-import io.rtdi.bigdata.connector.connectorframework.WebAppController;
-import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
-import io.rtdi.bigdata.connector.pipeline.foundation.entity.JAXBErrorMessage;
-
 public class GlobalState {
-	private List<JAXBErrorMessage> messages;
+	private List<ErrorEntity> messages;
 	private RoleAssignment roles;
+	private ControllerState state;
 	
 	public GlobalState() {
 		super();
@@ -21,10 +23,17 @@ public class GlobalState {
 
 	public GlobalState(ServletContext servletContext, SecurityContext securityContext) {
 		Exception error = WebAppController.getError(servletContext);
-		if (error != null) {
-			messages = Collections.singletonList(new JAXBErrorMessage(error));
+		ConnectorController connectorcontroller = WebAppController.getConnector(servletContext);
+		if (connectorcontroller == null) {
+			messages = new LinkedList<>();
+			messages.add(new ErrorEntity(new PipelineRuntimeException("No ConnectorController found")));
+			this.state = ControllerState.TEMPORARYERROR;
 		} else {
-			messages = new ArrayList<>(); // should be an empty array
+			messages = connectorcontroller.getErrorList();
+			this.state = connectorcontroller.getState();
+		}
+		if (error != null) {
+			messages.add(new ErrorEntity(error));
 		}
 		roles = new RoleAssignment(securityContext);
 	}
@@ -32,8 +41,12 @@ public class GlobalState {
 	public RoleAssignment getRoles() {
 		return roles;
 	}
+	
+	public ControllerState getControllerState() {
+		return state;
+	}
 
-	public List<JAXBErrorMessage> getMessages() {
+	public List<ErrorEntity> getMessages() {
 		return messages;
 	}
 

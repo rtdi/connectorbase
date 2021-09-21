@@ -3,16 +3,6 @@ package io.rtdi.bigdata.connector.connectorframework.rest;
 import java.io.IOException;
 import java.util.List;
 
-import jakarta.annotation.security.RolesAllowed;
-import jakarta.servlet.ServletContext;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Configuration;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactory;
 import io.rtdi.bigdata.connector.connectorframework.IConnectorFactoryService;
 import io.rtdi.bigdata.connector.connectorframework.WebAppController;
@@ -22,6 +12,15 @@ import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConst
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.servlet.ServletContext;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Configuration;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 
 @Path("/")
@@ -42,20 +41,20 @@ public class HomeService {
 		try {
 			ConnectorController controller = WebAppController.getConnector(servletContext);
 			IConnectorFactory<?> factory = WebAppController.getConnectorFactory(servletContext);
-			return Response.ok(new HomeEntity(controller, factory)).build();
+			return Response.ok(new HomeEntity(controller, factory, servletContext)).build();
 		} catch (Exception e) {
 			return JAXBErrorResponseBuilder.getJAXBResponse(e);
 		}
 	}
 
 	public static class HomeEntity {
-		private int connectioncount;
-		private int servicecount;
-		private int topiccount;
-		private int schemacount;
-		private int producercount;
-		private int consumercount;
-		private long rowsprocessedcount;
+		private int connectioncount = 0;
+		private int servicecount = 0;
+		private int topiccount = 0;
+		private int schemacount = 0;
+		private int producercount = 0;
+		private int consumercount = 0;
+		private long rowsprocessedcount = 0L;
 		private Long lastprocessed = null;
 		private boolean supportsconnections = true;
 		private boolean supportsservices = true;
@@ -67,7 +66,7 @@ public class HomeService {
 			super();
 		}
 		
-		public HomeEntity(ConnectorController controller, IConnectorFactory<?> factory) throws IOException {
+		public HomeEntity(ConnectorController controller, IConnectorFactory<?> factory, ServletContext servletContext) throws IOException {
 			if (factory != null) {
 				supportsconnections = !(factory instanceof IConnectorFactoryService);
 				supportsservices = factory instanceof IConnectorFactoryService;
@@ -82,34 +81,27 @@ public class HomeService {
 					pipelineAPIName = api.getClass().getSimpleName();
 					pipelineAPIConfigured = api.getAPIProperties() != null;
 					if (pipelineAPIConfigured) {
-						if (!controller.isRunning()) {
-							api.reloadConnectionProperties();
-							controller.startController();
-						}
-						List<TopicName> l = api.getTopics();
-						if (l != null) {
-							topiccount = l.size();
-						} else {
-							topiccount = 0;
-						}
-						List<SchemaRegistryName> k = api.getSchemas();
-						if (k != null) {
-							schemacount = k.size();
-						} else {
-							schemacount = 0;
-						}
 						connectioncount = controller.getConnections().size();
 						producercount = controller.getProducerCount();
 						consumercount = controller.getConsumerCount();
 						rowsprocessedcount = controller.getRowsProcessed();
 						lastprocessed = controller.getLastProcessed();
 						servicecount = controller.getServices().size();
-					} else {
+						if (controller.isRunning()) {
+							/*
+							 * If the controller is active
+							 */
+							List<TopicName> l = api.getTopics();
+							if (l != null) {
+								topiccount = l.size();
+							}
+							List<SchemaRegistryName> k = api.getSchemas();
+							if (k != null) {
+								schemacount = k.size();
+							}
+						}
 					}
 				}
-			} else {
-				connectioncount = 0;
-				servicecount = 0;
 			}
 		}
 		

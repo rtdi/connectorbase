@@ -15,6 +15,7 @@ import io.rtdi.bigdata.connector.connectorframework.WebAppController;
 import io.rtdi.bigdata.connector.connectorframework.controller.ConnectorController;
 import io.rtdi.bigdata.connector.connectorframework.servlet.ServletSecurityConstants;
 import io.rtdi.bigdata.connector.pipeline.foundation.IPipelineAPI;
+import io.rtdi.bigdata.connector.pipeline.foundation.enums.ControllerExitType;
 import io.rtdi.bigdata.connector.properties.atomic.PropertyRoot;
 
 
@@ -33,7 +34,7 @@ public class PipelineConnectionService {
 	@RolesAllowed(ServletSecurityConstants.ROLE_VIEW)
     public Response getPipelineConnection() {
 		try {
-			ConnectorController connectorcontroller = WebAppController.getConnector(servletContext);
+			ConnectorController connectorcontroller = WebAppController.getConnectorOrFail(servletContext);
 			IPipelineAPI<?, ?, ?, ?> api = connectorcontroller.getPipelineAPI();
 			return Response.ok(api.getAPIProperties().getPropertyGroupNoPasswords()).build();
 		} catch (Exception e) {
@@ -48,7 +49,8 @@ public class PipelineConnectionService {
     public Response postPipelineConnection(PropertyRoot data) {
 		try {
 			WebAppController.clearError(servletContext);
-			ConnectorController connectorcontroller = WebAppController.getConnector(servletContext);
+			ConnectorController connectorcontroller = WebAppController.getConnectorOrFail(servletContext);
+			connectorcontroller.stopController(ControllerExitType.ABORT);
 			IPipelineAPI<?, ?, ?, ?> api = connectorcontroller.getPipelineAPI();
 			api.getAPIProperties().setValue(data);
 			api.writeConnectionProperties();

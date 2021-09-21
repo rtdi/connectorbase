@@ -220,9 +220,11 @@ public abstract class PipelineAbstract<
 
 	@Override
 	public void reloadConnectionProperties() throws IOException {
+		/*
+		 * Close but do not open the connection. Open will be done by starting the controller
+		 */
 		close();
 		loadConnectionProperties();
-		open();
 	}
 
 }
