@@ -11,9 +11,6 @@
 		<artifactId>connectorbase</artifactId>
         <version>${revision}</version>
     </parent>
-	<properties>
-		<revision>0.10.12</revision>
-	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
