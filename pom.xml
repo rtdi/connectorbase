@@ -6,7 +6,7 @@
 	<artifactId>connectorbase</artifactId>
 	<name>${project.groupId}:${project.artifactId}</name>
 	<description>Parent POM.</description>
-	<version>0.10.12</version>
+	<version>${revision}</version>
 	<packaging>pom</packaging>
 	<url>https://www.rtdi.io/</url>
 	<scm>
@@ -37,6 +37,7 @@
 	</distributionManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<revision>0.10.12</revision>
 	</properties>
 	<modules>
 		<module>pipelinefoundation</module>
