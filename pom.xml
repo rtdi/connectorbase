@@ -6,7 +6,7 @@
 	<artifactId>connectorbase</artifactId>
 	<name>${project.groupId}:${project.artifactId}</name>
 	<description>Parent POM.</description>
-	<version>${revision}</version>
+	<version>0.10.12</version>
 	<packaging>pom</packaging>
 	<url>https://www.rtdi.io/</url>
 	<scm>
@@ -37,7 +37,7 @@
 	</distributionManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<revision>0.10.11</revision>
+		<revision>0.10.12</revision>
 	</properties>
 	<modules>
 		<module>pipelinefoundation</module>
@@ -100,25 +100,25 @@
 			</plugin>
 			<!-- GPG plugin -->
 			<plugin>
-			      <groupId>org.apache.maven.plugins</groupId>
-			      <artifactId>maven-gpg-plugin</artifactId>
-			      <version>1.6</version>
-			      <executions>
-				  <execution>
-				      <id>sign-artifacts</id>
-				      <phase>verify</phase>
-				      <goals>
-					  <goal>sign</goal>
-				      </goals>
-				      <configuration>
-					  <!-- Prevent `gpg` from using pinentry programs -->
-					  <gpgArguments>
-					      <arg>--pinentry-mode</arg>
-					      <arg>loopback</arg>
-					  </gpgArguments>
-				      </configuration>
-				  </execution>
-			      </executions>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+						<configuration>
+							<!-- Prevent `gpg` from using pinentry programs -->
+							<gpgArguments>
+								<arg>--pinentry-mode</arg>
+								<arg>loopback</arg>
+							</gpgArguments>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
