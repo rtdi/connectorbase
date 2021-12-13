@@ -1,6 +1,10 @@
 package io.rtdi.bigdata.connector.pipeline.foundation;
 
 import java.io.IOException;
+import java.util.Objects;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.avro.JexlGenericData.JexlRecord;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.OperationLogContainer;
@@ -12,9 +16,11 @@ public abstract class MicroServiceTransformation implements Comparable<MicroServ
 	private long rowsprocessed = 0;
 	private Long lastRowProcessed = null;
 	protected OperationLogContainer states = new OperationLogContainer();
+	protected final Logger logger;
 
 	public MicroServiceTransformation(String name) {
-		this.name = name;
+		this.name = Objects.requireNonNull(name, "No name for the microservice provided");
+		logger = LogManager.getLogger(this.getClass().getName());
 	}
 
 	public final JexlRecord apply(JexlRecord valuerecord) throws IOException {
@@ -78,6 +84,11 @@ public abstract class MicroServiceTransformation implements Comparable<MicroServ
 	 */
 	public OperationLogContainer getOperationLog() {
 		return states;
+	}
+
+	@Override
+	public String toString() {
+		return "Microservice Transformation " + name;
 	}
 
 }
