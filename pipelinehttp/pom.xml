@@ -10,6 +10,7 @@
 		<groupId>io.rtdi.bigdata.connector</groupId>
 		<artifactId>connectorbase</artifactId>
         <version>0.10.14</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 	<dependencies>
 		<dependency>
