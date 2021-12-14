@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>io.rtdi.bigdata.connector</groupId>
 		<artifactId>connectorbase</artifactId>
-		<version>0.10.15</version>
+		<version>0.10.16</version>
         <relativePath>../pom.xml</relativePath>
 	</parent>
 	<dependencies>
@@ -30,16 +30,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.glassfish.jersey.core</groupId>
-			<artifactId>jersey-client</artifactId>
-			<version>3.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.inject</groupId>
-			<artifactId>jersey-hk2</artifactId>
-			<version>3.0.0</version>
-		</dependency>
-		<dependency>
 			<groupId>io.rtdi.bigdata.connector</groupId>
 			<artifactId>pipelinefoundation</artifactId>
 			<version>${revision}</version>
@@ -54,11 +44,6 @@
 			<artifactId>pipelinetest</artifactId>
 			<version>${revision}</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-json-jackson</artifactId>
-			<version>3.0.0</version>
 		</dependency>
 		<dependency>
 		  <groupId>jakarta.servlet</groupId>
