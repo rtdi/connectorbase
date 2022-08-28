@@ -38,7 +38,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>0.10.18</revision>
-		<log4j.version>2.18</log4j.version>
+		<log4j.version>2.18.0</log4j.version>
 		<org.glassfish.jersey.version>3.0.0</org.glassfish.jersey.version>
 	</properties>
 	<modules>
