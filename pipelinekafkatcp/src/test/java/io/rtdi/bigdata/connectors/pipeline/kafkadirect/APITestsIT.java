@@ -26,7 +26,7 @@ import io.rtdi.bigdata.kafka.avro.recordbuilders.KeySchema;
 import io.rtdi.bigdata.kafka.avro.recordbuilders.ValueSchema;
 
 public class APITestsIT {
-	private PipelineAbstract<?,?,?,?> api;
+	private PipelineAbstract<KafkaConnectionProperties,?,?,?> api;
 
 	@Before
 	public void setUp() throws Exception {

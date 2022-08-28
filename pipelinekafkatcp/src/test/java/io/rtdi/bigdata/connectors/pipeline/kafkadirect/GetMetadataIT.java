@@ -11,17 +11,20 @@ import org.junit.Test;
 import io.rtdi.bigdata.connector.pipeline.foundation.PipelineAbstract;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ConsumerMetadataEntity;
 import io.rtdi.bigdata.connector.pipeline.foundation.entity.ProducerMetadataEntity;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.GlobalSettings;
 
 
 public class GetMetadataIT {
-	private PipelineAbstract<?,?,?,?> api;
+	private PipelineAbstract<KafkaConnectionProperties,?,?,?> api;
 
 	@Before
 	public void setUp() throws Exception {
 		File dir = new File("./src/test/resources/tmp");
 		KafkaConnectionProperties kafkaprops = new KafkaConnectionProperties();
 		kafkaprops.read(dir);
-		api = new KafkaAPIdirect(kafkaprops);
+		api = new KafkaAPIdirect();
+		api.setGlobalSettings(new GlobalSettings());
+		api.setConnectionProperties(kafkaprops);
 		api.open();
 	}
 
