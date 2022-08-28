@@ -18,6 +18,7 @@ import io.rtdi.bigdata.connector.pipeline.foundation.SchemaRegistryName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicHandler;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicName;
 import io.rtdi.bigdata.connector.pipeline.foundation.TopicPayload;
+import io.rtdi.bigdata.connector.pipeline.foundation.utils.GlobalSettings;
 import io.rtdi.bigdata.kafka.avro.datatypes.AvroInt;
 import io.rtdi.bigdata.kafka.avro.datatypes.AvroString;
 import io.rtdi.bigdata.kafka.avro.recordbuilders.AvroRecordArray;
@@ -29,10 +30,12 @@ public class APITestsIT {
 
 	@Before
 	public void setUp() throws Exception {
-		File dir = new File("./src/test/resources/tmp");
+		File dir = new File("C:\\Users\\werne\\OneDrive\\GitHub\\Eclipse\\rtdiconfig\\test");
 		KafkaConnectionProperties kafkaprops = new KafkaConnectionProperties();
 		kafkaprops.read(dir);
-		api = new KafkaAPIdirect(kafkaprops);
+		api = new KafkaAPIdirect();
+		api.setGlobalSettings(new GlobalSettings());
+		api.setConnectionProperties(kafkaprops);
 		api.open();
 	}
 

@@ -9,7 +9,7 @@
     <parent>
         <groupId>io.rtdi.bigdata.connector</groupId>
         <artifactId>connectorbase</artifactId>
-        <version>0.10.16</version>
+        <version>0.10.18</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 	<dependencies>
@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
 			<artifactId>jersey-client</artifactId>
-			<version>3.0.0</version>
+			<version>${org.glassfish.jersey.version}</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -272,11 +272,6 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		consumerprops.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 	}
 	
-    public KafkaAPIdirect(KafkaConnectionProperties kafkaconnectionproperties) throws PropertiesException {
-    	this();
-    	setConnectionProperties(kafkaconnectionproperties);
-    }
-
 
 	@Override
 	protected ProducerSessionKafkaDirect createProducerSession(ProducerProperties properties) throws PropertiesException {
