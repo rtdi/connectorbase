@@ -730,7 +730,7 @@ public class KafkaAPIdirect extends PipelineAbstract<KafkaConnectionProperties, 
 		try {
 			Collection<String> topicNames = Collections.singleton(kafkatopicname.getName());
 			DescribeTopicsResult result = admin.describeTopics(topicNames);
-			Map<String, TopicDescription> v = result.all().get(10, TimeUnit.SECONDS);
+			Map<String, TopicDescription> v = result.allTopicNames().get(10, TimeUnit.SECONDS);
 			TopicDescription d = v.get(kafkatopicname.getName());
 			TopicMetadata m = new TopicMetadata();
 			m.setPartitionCount(d.partitions().size());

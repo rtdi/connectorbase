@@ -5,9 +5,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
-
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
@@ -21,6 +18,8 @@ import io.rtdi.bigdata.kafka.avro.datatypes.AvroAnyPrimitive;
 import io.rtdi.bigdata.kafka.avro.datatypes.AvroType;
 import io.rtdi.bigdata.connector.pipeline.foundation.exceptions.PropertiesException;
 import io.rtdi.bigdata.kafka.avro.recordbuilders.AvroArray;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlTransient;
 import io.rtdi.bigdata.connector.pipeline.foundation.utils.IOUtils;
 
 public class SchemaTableData {

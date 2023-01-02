@@ -1,8 +1,8 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.entity;
 
-import javax.xml.bind.annotation.XmlTransient;
-
 import org.apache.avro.Schema;
+
+import jakarta.xml.bind.annotation.XmlTransient;
 
 public class SchemaEntity {
 

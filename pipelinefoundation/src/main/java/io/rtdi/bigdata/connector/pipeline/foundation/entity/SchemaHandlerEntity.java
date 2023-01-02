@@ -1,10 +1,9 @@
 package io.rtdi.bigdata.connector.pipeline.foundation.entity;
 
-import javax.xml.bind.annotation.XmlTransient;
-
 import org.apache.avro.Schema;
 
 import io.rtdi.bigdata.connector.pipeline.foundation.SchemaHandler;
+import jakarta.xml.bind.annotation.XmlTransient;
 
 public class SchemaHandlerEntity {
 
