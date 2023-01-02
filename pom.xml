@@ -6,7 +6,7 @@
 	<artifactId>connectorbase</artifactId>
 	<name>${project.groupId}:${project.artifactId}</name>
 	<description>Parent POM</description>
-	<version>0.10.18</version>
+	<version>0.10.19</version>
 	<packaging>pom</packaging>
 	<url>https://www.rtdi.io/</url>
 	<scm>
@@ -37,9 +37,9 @@
 	</distributionManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<revision>0.10.18</revision>
+		<revision>0.10.19</revision>
 		<log4j.version>2.18.0</log4j.version>
-		<org.glassfish.jersey.version>3.0.0</org.glassfish.jersey.version>
+		<org.glassfish.jersey.version>3.0.6</org.glassfish.jersey.version>
 	</properties>
 	<modules>
 		<module>pipelinefoundation</module>
