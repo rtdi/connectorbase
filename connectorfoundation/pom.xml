@@ -9,7 +9,7 @@
     <parent>
         <groupId>io.rtdi.bigdata.connector</groupId>
         <artifactId>connectorbase</artifactId>
-        <version>0.10.20</version>
+        <version>${revision}</version>
     </parent>
 	<dependencies>
 		<dependency>
